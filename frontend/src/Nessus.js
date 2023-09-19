@@ -30,7 +30,7 @@ export default function SelectTextFields() {
   const [exporting, setExporting] = useState(false); 
 
   useEffect(() => {
-    axios.get("http://webaudit.smartskills.tn:8000/api/getScan").then((res) => {
+    axios.get("http://webapp.smartskills.local:8000/api/getScan").then((res) => {
       if (res.status === 200) {
         setFolders(res.data.Folders.folders);
         setScans(res.data.Folders.scans);
@@ -43,7 +43,7 @@ export default function SelectTextFields() {
   const [Vm, setVm] = useState(); 
 
   useEffect(() => {
-    axios.get("http://webaudit.smartskills.tn:8000/api/get_vm").then((res) => {
+    axios.get("http://webapp.smartskills.local:8000/api/get_vm").then((res) => {
       if (res.status === 200) {
         setVm(res.data.Vm);
       }
@@ -99,7 +99,7 @@ export default function SelectTextFields() {
       ID_Projet: project_id
     };
 
-    axios.post('http://webaudit.smartskills.tn:8000/api/uploadanomalie',Data)
+    axios.post('http://webapp.smartskills.local:8000/api/uploadanomalie',Data)
     .then((response) => {
       if(response.data.status===200){
         setcreatedId(response.data.createdId);
@@ -124,7 +124,7 @@ parsedData.project_id = createdId;
 
 console.log(parsedData);
     setExporting(true);
-    axios.post('http://webaudit.smartskills.tn:8000/api/ImportAll',parsedData)
+    axios.post('http://webapp.smartskills.local:8000/api/ImportAll',parsedData)
     .then((response) => {
       if(response.data.status===200){
         sessionStorage.removeItem('Export_links');
@@ -157,7 +157,7 @@ console.log(parsedData);
       VmSelected: VmSelected,
     }; */
      setExporting(true);
-    axios.post('http://webaudit.smartskills.tn:8000/api/ExportAll',selectedIdsJSON)
+    axios.post('http://webapp.smartskills.local:8000/api/ExportAll',selectedIdsJSON)
     .then((response) => {
       if(response.data.status===200){
 

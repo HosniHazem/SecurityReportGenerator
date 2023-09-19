@@ -22,7 +22,7 @@ return [
     'allowed_origins' => [
         'http://192.168.0.55:3000', // Add your React frontend's IP address and port
         'http://localhost:3000',
-        'http://webaudit.smartskills.tn:3000'
+        'http://webapp.smartskills.local:3000'
     ],
 
     'allowed_origins_patterns' => [],
