@@ -99,7 +99,7 @@ $filesJson = json_encode($filesData);
         $json = $request->all();
 
         $jsonData = $json['links'];
-        $project_id = $json['project_id'];
+        $createdId = $json['createdId'];
         $verif = 'true';
 
          // Create an array to store the readiness status for each item
@@ -175,7 +175,7 @@ else {
              LINES TERMINATED BY '\r\n'
              IGNORE 1 LINES
               (`Plugin ID`,CVE,`CVSS v2.0 Base Score`,Risk,Host,Protocol,Port,Name,Synopsis,Description,Solution,`See Also`,`Plugin Output`)
-              SET upload_id={$project_id}, scan={$sc} , file={$fi}
+              SET upload_id={$createdId}, scan={$sc} , file={$fi}
               ;";
 
         // Execute query

@@ -16,7 +16,6 @@ export default function SelectTextFields() {
   const project_id = sessionStorage.getItem('project_id');
   const [Folders, setFolders] = useState([]);
   const [Scans, setScans] = useState([]);
-  const [createdId, setcreatedId] = useState();
   const [VmSelected, setVmSelected] = useState();
   const [jsonData, setJsonData] = useState([]);
   const [checkedItems, setCheckedItems] = useState(() => {
@@ -102,7 +101,7 @@ export default function SelectTextFields() {
     axios.post('http://webapp.smartskills.local:8002/api/uploadanomalie',Data)
     .then((response) => {
       if(response.data.status===200){
-        setcreatedId(response.data.createdId);
+        sessionStorage.setItem('createdId',response.data.createdId);
       }
       })
       .catch((error) => {
@@ -116,11 +115,13 @@ export default function SelectTextFields() {
 
 
     const Export_links = sessionStorage.getItem('Export_links');
+    const createdId = sessionStorage.getItem('createdId');
    
 
 const parsedData = {}; // Initialize parsedData as an empty object
 parsedData.links = JSON.parse(Export_links);
-parsedData.project_id = createdId;
+parsedData.createdId = createdId;
+parsedData.project_id = project_id;
 
 console.log(parsedData);
     setExporting(true);
