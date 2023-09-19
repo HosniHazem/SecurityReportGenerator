@@ -77,6 +77,7 @@ const Projects = () => {
     const Select = (name,id,e) => {
       e.persist();
       sessionStorage.setItem('project_id',id);
+      sessionStorage.setItem('project_name',name);
 
 
       navigate("/import");

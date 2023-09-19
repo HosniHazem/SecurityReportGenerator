@@ -62,6 +62,19 @@ export default function SelectTextFields() {
     const selectedFolderId = event.target.value;
     const scansForSelectedFolder = Scans.filter((scan) => scan.folder_id === selectedFolderId);
   
+
+  // Find the folder object with the matching id
+  const selectedFolder = Folders.find((folder) => folder.id === selectedFolderId);
+
+  if (selectedFolder) {
+    // Now, you have the selected folder object
+    const folderName = selectedFolder.name;
+
+    // Store the folder name in session storage
+    sessionStorage.setItem('description', folderName);
+
+    // Rest of your code...
+  }
     // Initialize checkedItems with all items checked for the selected scans
     const initialCheckedItems = {};
     scansForSelectedFolder.forEach((item) => {
@@ -93,9 +106,14 @@ export default function SelectTextFields() {
 
   const handleExport = (event) => {
     event.preventDefault(); // Prevent form submission and page refresh
+
+    const Label = sessionStorage.getItem('project_name');
+    const description = sessionStorage.getItem('description');
     const Data = {
       Source: 'Nessus' ,
-      ID_Projet: project_id
+      ID_Projet: project_id,
+      Label : Label,
+      Description : description
     };
 
     axios.post('http://webapp.smartskills.local:8002/api/uploadanomalie',Data)
@@ -221,7 +239,7 @@ console.log(parsedData);
           onChange={handleChange}
         >
           {Folders.map((option) => (
-            <MenuItem key={option.id} value={option.id}  >
+            <MenuItem key={option.name} value={option.id}  >
               {option.name}
             </MenuItem>
           ))}

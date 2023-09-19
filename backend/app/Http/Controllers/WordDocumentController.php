@@ -23,10 +23,48 @@ use App\Models\Project; // Replace with your actual model
 
 class WordDocumentController extends Controller
 {
+
+
+ /*    function getVulnerabilityData($id, $type, $portUtilization = null) {
+        $query = SoW::join('vuln', 'vuln.Host', '=', 'sow.IP_Host')
+            ->where('sow.Projet', $id)
+            ->where('sow.Type', $type);
+    
+        if (!is_null($portUtilization)) {
+            $query->whereIn('vuln.Port', function ($query) use ($portUtilization) {
+                $query->select('Ports_List')
+                    ->from('PortsMapping')
+                    ->where('Utilisation', $portUtilization);
+            });
+        } else {
+            $query->whereNotIn('vuln.Port', function ($query) {
+                $query->select('Ports_List')
+                    ->from('PortsMapping');
+            });
+        }
+    
+        $query->select('sow.Nom', 'sow.IP_Host', 'sow.field4')
+            ->selectRaw('COUNT(IF(Risk_Factor = "Critical" and (Metasploit ="true" or `Core Impact` = "true" or CANVAS = "true"),1 , NULL)) AS Critical_Ex')
+            ->selectRaw('COUNT(IF(Risk_Factor = "High" and (Metasploit ="true" or `Core Impact` = "true" or CANVAS = "true"),1 , NULL)) AS High_Ex')
+            ->selectRaw('COUNT(IF(Risk_Factor = "Medium" and (Metasploit ="true" or `Core Impact` = "true" or CANVAS = "true"),1 , NULL)) AS Medium_Ex')
+            ->selectRaw('COUNT(IF(vuln.Risk_Factor = "Critical", 1, NULL)) AS Critical')
+            ->selectRaw('COUNT(IF(vuln.Risk_Factor = "High", 1, NULL)) AS High')
+            ->selectRaw('COUNT(IF(vuln.Risk_Factor = "Medium", 1, NULL)) AS Medium')
+            ->selectRaw('COUNT(IF(vuln.Risk_Factor = "Low", 1, NULL)) AS Low')
+            ->selectRaw('COUNT(IF(vuln.Risk_Factor = "WARNING", 1, NULL)) WARNING')
+            ->selectRaw('COUNT(IF(vuln.Risk_Factor = "PASSED", 1, NULL)) PASSED')
+            ->groupBy('sow.Nom', 'sow.IP_Host', 'sow.field4');
+    
+        return $query->get();
+    } */
+
+
+
     public function generateWordDocument(Request $request)
 
 
     {
+
 
         $id = $request->project_id;
 
@@ -42,6 +80,60 @@ class WordDocumentController extends Controller
         foreach ($docxs as $docx) {
             File::delete($docx); // Delete each docx file
         }
+
+     /*    $subquery = DB::table('vuln')
+        ->select('vuln.Host as Hostip')
+        ->selectRaw('COUNT(IF(`exploited_by_malware` = "true", 1, NULL)) AS Exp_Malware')
+        ->selectRaw('COUNT(IF(vuln.`Risk` = "Critical" AND `exploit_available` = "true", 1, NULL)) AS Critical_Ex')
+        ->selectRaw('COUNT(IF(vuln.`Risk` = "High" AND `exploit_available` = "true", 1, NULL)) AS High_Ex')
+        ->selectRaw('COUNT(IF(vuln.`Risk` = "Medium" AND `exploit_available` = "true", 1, NULL)) AS Medium_Ex')
+        ->selectRaw('COUNT(IF(vuln.`Risk` = "Critical", 1, NULL)) AS Critical')
+        ->selectRaw('COUNT(IF(vuln.`Risk` = "High", 1, NULL)) AS High')
+        ->selectRaw('COUNT(IF(vuln.`Risk` = "Medium", 1, NULL)) AS Mediu')
+        ->selectRaw('COUNT(IF(vuln.`Risk` = "FAILED", 1, NULL)) AS FAILED2')
+        ->selectRaw('COUNT(IF(vuln.`Risk` = "PASSED", 1, NULL)) AS PASSED2')
+        ->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
+        ->whereIn('vuln.upload_id', function ($query) use ($id) {
+            $query->select('ID')
+                ->from('uploadanomalies')
+                ->where('ID_Projet', $id);
+        })
+        ->groupBy('Host', 'vuln.Name');
+    
+    $results = DB::table(DB::raw("({$subquery->toSql()}) as t"))
+        ->mergeBindings($subquery)
+        ->select('Hostip')
+        ->selectRaw('COUNT(IF(Exp_Malware > 0, 1, NULL)) as Exp_Malware')
+        ->selectRaw('COUNT(IF(Critical_Ex > 0, 1, NULL)) as Critical_Ex')
+        ->selectRaw('COUNT(IF(High_Ex > 0, 1, NULL)) as High_Ex')
+        ->selectRaw('COUNT(IF(Medium_Ex > 0, 1, NULL)) as Medium_Ex')
+        ->selectRaw('COUNT(IF(Critical > 0, 1, NULL)) as Critical')
+        ->selectRaw('COUNT(IF(High > 0, 1, NULL)) as High')
+        ->selectRaw('COUNT(IF(Mediu > 0, 1, NULL)) as Mediu')
+        ->selectRaw('MAX(FAILED2) as FAILED2')
+        ->selectRaw('MAX(PASSED2) as PASSED2')
+        ->groupBy('Hostip')
+        ->orderByDesc('Critical_Ex')
+        ->orderByDesc('High_Ex')
+        ->orderByDesc('Exp_Malware')
+        ->orderByDesc('Medium_Ex')
+        ->orderByDesc('Critical')
+        ->orderByDesc('High')
+        ->get();
+    
+    return $results; */
+
+
+       /*  $data_serv = getVulnerabilityData($id, 'Serveur');
+        $data_db = getVulnerabilityData($id, 'Serveur', 'DB');
+        $data_pc = getVulnerabilityData($id, 'PC');
+        $data_ext = getVulnerabilityData($id, 'EXT');
+        $data_apps = getVulnerabilityData($id, 'Serveur', 'Apps');
+        $data_mails = getVulnerabilityData($id, 'Serveur', 'Mail');
+        $data_voip = getVulnerabilityData($id, 'Serveur', 'Voip');
+ */
+
+
 
         $data_serv = SoW::join('vuln', 'vuln.Host', '=', 'sow.IP_Host')
             ->where('sow.Projet', $id)
@@ -475,8 +567,7 @@ WHERE sow.Project = 1
     vuln.Metasploit = 'true'
     OR vuln.`Core Impact` = 'true'
     OR vuln.CANVAS = 'true'
-  )
-GROUP BY
+  )GROUP BY
   vuln.Risk,
   vuln.Name
 ORDER BY
