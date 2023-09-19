@@ -13,6 +13,7 @@ const Projects = () => {
   const navigate = useNavigate();
     const [Project, setProject] = useState([]);
     const [exporting, setExporting] = useState(false); // Add loading state
+    const [downloading, setDownloading] = useState(false);
 
     
     useEffect(() => {
@@ -82,39 +83,51 @@ const Projects = () => {
     }
 
 
-    const Export = (id,e) => {
+    const Export = (id, e) => {
       e.persist();
+      setDownloading(true);
       const project_id = sessionStorage.getItem('project_id');
-       const dataToSend = {
-          project_id: id,
-        };
-        setExporting(true);
-        axios.post(`http://webapp.smartskills.local:8000/api/generate-word-document/${project_id}`,dataToSend)
-          .then((response) => {
-           // Assuming the response is in JSON format and contains a 'download_link'
-           const downloadLink = response.data.download_link;
-          
-           // Trigger the download
-           downloadFile(downloadLink);
-              swal("Exported","Successfully");
-          
-          })
-          .catch((error) => {
-            // Handle errors
-            console.error('Error sending data:', error);
-          })
-          .finally(() => {
-            // Set exporting to false when export completes 
-            setExporting(false);
-          });
-        const downloadFile = (url) => {
-          const link = document.createElement('a');
-          link.href = url;
-          link.target = '_blank'; // Open the link in a new tab
-          link.download = 'document_name.docx'; // Change the name as needed
-          link.click();
-        }; 
-  };
+      const dataToSend = {
+        project_id: id,
+      };
+      setExporting(true);
+      
+      axios.post(`http://webapp.smartskills.local:8000/api/generate-word-document/`, dataToSend, {
+        responseType: 'blob', // Set responseType to 'blob' to indicate binary data
+      })
+        .then((response) => {
+          // Use response.data as the blob
+          const blob = new Blob([response.data], { type: 'application/octet-stream' });
+    
+          // Create a URL for the blob
+          const url = window.URL.createObjectURL(blob);
+    
+          // Create a temporary <a> element to trigger the download
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'downloaded_files.zip';
+          document.body.appendChild(a);
+          a.click();
+    
+          // Remove the temporary <a> element and revoke the URL to free up resources
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+    
+          setDownloading(false);
+          swal("Exported", "Successfully");
+        })
+        .catch((error) => {
+          // Handle errors
+          console.error('Error sending data:', error);
+          setDownloading(false);
+        })
+        .finally(() => {
+          // Set exporting to false when export completes 
+          setExporting(false);
+        });
+    };
+    
+    
     return (
         <div className="datatable">
         <div className="datatableTitle1">

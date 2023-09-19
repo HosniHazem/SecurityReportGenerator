@@ -23,8 +23,13 @@ use App\Models\Project; // Replace with your actual model
 
 class WordDocumentController extends Controller
 {
-    public function generateWordDocument($id)
+    public function generateWordDocument(Request $request)
+
+
     {
+
+        $id = $request->project_id;
+
         $docxDirectory = public_path('storage');
         $docxs = glob($docxDirectory . '/*.docx'); // Get a list of all PNG files in the directory
 

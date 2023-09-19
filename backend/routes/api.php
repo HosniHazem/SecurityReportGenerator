@@ -28,7 +28,7 @@ use App\Http\Controllers\UploadanomaliesController;
 
 
     Route::get('/get_vm', [VmController::class,'index']);
-    Route::get('/generate-word-document/{id}', [WordDocumentController::class,'generateWordDocument']);
+    Route::post('/generate-word-document', [WordDocumentController::class,'generateWordDocument']);
     Route::get('/generate-concat', [concatenateDocxFiles::class,'mergeDocxFiles']);
     Route::get('/getScan', [NassusController::class,'GetAll']);
     Route::Post('/ExportAll', [NassusController::class,'ExportAll']);
