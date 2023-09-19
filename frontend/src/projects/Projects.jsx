@@ -104,7 +104,7 @@ const Projects = () => {
             console.error('Error sending data:', error);
           })
           .finally(() => {
-            // Set exporting to false when export completes (whether successful or not)
+            // Set exporting to false when export completes 
             setExporting(false);
           });
         const downloadFile = (url) => {
