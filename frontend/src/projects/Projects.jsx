@@ -17,7 +17,7 @@ const Projects = () => {
 
     
     useEffect(() => {
-      axios.get(`http://webapp.smartskills.local:8000/api/getProject`,).then((res) => {
+      axios.get(`http://webapp.smartskills.local:8002/api/getProject`,).then((res) => {
         if(res.status === 200){
         setProject(res.data.Project);
    }
@@ -92,7 +92,7 @@ const Projects = () => {
       };
       setExporting(true);
       
-      axios.post(`http://webapp.smartskills.local:8000/api/generate-word-document/`, dataToSend, {
+      axios.post(`http://webapp.smartskills.local:8002/api/generate-word-document/`, dataToSend, {
         responseType: 'blob', // Set responseType to 'blob' to indicate binary data
       })
         .then((response) => {
