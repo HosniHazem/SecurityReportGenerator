@@ -136,7 +136,6 @@ class WordDocumentController extends Controller
     ) subquery"))
         ->select('Hostip', 'Exp_Malware', 'Critical_Ex', 'High_Ex', 'Medium_Ex', 'Critical', 'High', 'Mediu', 'FAILED2', 'PASSED2')
         ->get();
-    return $data_serv;
 
        /*  $data_serv = getVulnerabilityData($id, 'Serveur');
         $data_db = getVulnerabilityData($id, 'Serveur', 'DB');
