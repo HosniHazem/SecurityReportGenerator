@@ -25,7 +25,7 @@ class WordDocumentController extends Controller
 {
 
 
- /*    function getVulnerabilityData($id, $type, $portUtilization = null) {
+  /*   function getVulnerabilityData($id, $type, $portUtilization = null) {
         $query = SoW::join('vuln', 'vuln.Host', '=', 'sow.IP_Host')
             ->where('sow.Projet', $id)
             ->where('sow.Type', $type);
@@ -56,8 +56,8 @@ class WordDocumentController extends Controller
             ->groupBy('sow.Nom', 'sow.IP_Host', 'sow.field4');
     
         return $query->get();
-    } */
-
+    } 
+ */
 
 
     public function generateWordDocument(Request $request)
@@ -81,48 +81,62 @@ class WordDocumentController extends Controller
             File::delete($docx); // Delete each docx file
         }
 
-     /*    $subquery = DB::table('vuln')
-        ->select('vuln.Host as Hostip')
-        ->selectRaw('COUNT(IF(`exploited_by_malware` = "true", 1, NULL)) AS Exp_Malware')
-        ->selectRaw('COUNT(IF(vuln.`Risk` = "Critical" AND `exploit_available` = "true", 1, NULL)) AS Critical_Ex')
-        ->selectRaw('COUNT(IF(vuln.`Risk` = "High" AND `exploit_available` = "true", 1, NULL)) AS High_Ex')
-        ->selectRaw('COUNT(IF(vuln.`Risk` = "Medium" AND `exploit_available` = "true", 1, NULL)) AS Medium_Ex')
-        ->selectRaw('COUNT(IF(vuln.`Risk` = "Critical", 1, NULL)) AS Critical')
-        ->selectRaw('COUNT(IF(vuln.`Risk` = "High", 1, NULL)) AS High')
-        ->selectRaw('COUNT(IF(vuln.`Risk` = "Medium", 1, NULL)) AS Mediu')
-        ->selectRaw('COUNT(IF(vuln.`Risk` = "FAILED", 1, NULL)) AS FAILED2')
-        ->selectRaw('COUNT(IF(vuln.`Risk` = "PASSED", 1, NULL)) AS PASSED2')
-        ->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
-        ->whereIn('vuln.upload_id', function ($query) use ($id) {
-            $query->select('ID')
-                ->from('uploadanomalies')
-                ->where('ID_Projet', $id);
+        $subquery = DB::table('vuln AS vuln')
+        ->select('vuln.`Host` as Hostip',
+                 'COUNT(IF( `exploited_by_malware` = `true` , 1, NULL)) AS Exp_Malware',
+                 'COUNT(IF(vuln.`Risk` = `Critical` AND ( `exploit_available` = `true` ), 1, NULL)) AS Critical_Ex',
+                 'COUNT(IF(vuln.`Risk` = `High` AND ( `exploit_available` = `true` ), 1, NULL)) AS High_Ex',
+                 'COUNT(IF(vuln.`Risk` = `Medium` AND ( `exploit_available` = `true` ), 1, NULL)) AS Medium_Ex',
+                 'COUNT(IF(vuln.`Risk` = `Critical`, 1, NULL)) AS Critical',
+                 'COUNT(IF(vuln.`Risk` = `High`, 1, NULL)) AS High',
+                 'COUNT(IF(vuln.`Risk` = `Medium`, 1, NULL)) AS Mediu',
+                 'COUNT(IF(vuln.`Risk` = `Low`, 1, NULL)) AS Low',
+                 'COUNT(IF(vuln.`Risk` = `FAILED`, 1, NULL)) AS FAILED2',
+                 'COUNT(IF(vuln.`Risk` = `PASSED`, 1, NULL)) AS PASSED2')
+        ->leftJoin('plugins', 'vuln.`Plugin ID`', '=', 'plugins.id')
+        ->whereIn('vuln.upload_id', function($q) {
+            $q->select('ID')->from('uploadanomalies')->where('ID_Projet', 2);  
         })
-        ->groupBy('Host', 'vuln.Name');
+        ->whereNotIn('vuln.Port', function($q) {
+            $q->select('Ports_List')->from('PortsMapping');
+        })
+        ->groupBy('vuln.Host');
     
-    $results = DB::table(DB::raw("({$subquery->toSql()}) as t"))
-        ->mergeBindings($subquery)
-        ->select('Hostip')
-        ->selectRaw('COUNT(IF(Exp_Malware > 0, 1, NULL)) as Exp_Malware')
-        ->selectRaw('COUNT(IF(Critical_Ex > 0, 1, NULL)) as Critical_Ex')
-        ->selectRaw('COUNT(IF(High_Ex > 0, 1, NULL)) as High_Ex')
-        ->selectRaw('COUNT(IF(Medium_Ex > 0, 1, NULL)) as Medium_Ex')
-        ->selectRaw('COUNT(IF(Critical > 0, 1, NULL)) as Critical')
-        ->selectRaw('COUNT(IF(High > 0, 1, NULL)) as High')
-        ->selectRaw('COUNT(IF(Mediu > 0, 1, NULL)) as Mediu')
-        ->selectRaw('MAX(FAILED2) as FAILED2')
-        ->selectRaw('MAX(PASSED2) as PASSED2')
-        ->groupBy('Hostip')
-        ->orderByDesc('Critical_Ex')
-        ->orderByDesc('High_Ex')
-        ->orderByDesc('Exp_Malware')
-        ->orderByDesc('Medium_Ex')
-        ->orderByDesc('Critical')
-        ->orderByDesc('High')
+    $data_serv = DB::table(DB::raw("(
+        SELECT Hostip, 
+            COUNT(IF(Exp_Malware>0,1,NULL)) as Exp_Malware,
+            COUNT(IF(Critical_Ex>0,1,NULL)) as Critical_Ex, 
+            COUNT(IF(High_Ex>0,1,NULL)) as High_Ex,
+            COUNT(IF(Medium_Ex>0,1,NULL)) as Medium_Ex, 
+            COUNT(IF(Critical>0,1,NULL)) as Critical,
+            COUNT(IF(High>0,1,NULL)) as High, 
+            COUNT(IF(Mediu>0,1,NULL)) as Mediu,
+            MAX(FAILED2) as FAILED2, 
+            MAX(PASSED2) as PASSED2 
+        FROM (
+            SELECT 
+                vuln.`Host` as Hostip,
+                COUNT(IF( `exploited_by_malware` = 'true' , 1, NULL)) AS Exp_Malware, 
+                COUNT(IF(vuln.`Risk` = 'Critical' AND ( `exploit_available` = 'true' ), 1, NULL)) AS Critical_Ex,
+                COUNT(IF(vuln.`Risk` = 'High' AND ( `exploit_available` = 'true' ), 1, NULL)) AS High_Ex,
+                COUNT(IF(vuln.`Risk` = 'Medium' AND ( `exploit_available` = 'true' ), 1, NULL)) AS Medium_Ex,
+                COUNT(IF(vuln.`Risk` = 'Critical', 1, NULL)) AS Critical,
+                COUNT(IF(vuln.`Risk` = 'High', 1, NULL)) AS High,
+                COUNT(IF(vuln.`Risk` = 'Medium', 1, NULL)) AS Mediu,
+                COUNT(IF(vuln.`Risk` = 'Low', 1, NULL)) AS Low,
+                COUNT(IF(vuln.`Risk` = 'FAILED', 1, NULL)) AS FAILED2, 
+                COUNT(IF(vuln.`Risk` = 'PASSED', 1, NULL)) AS PASSED2
+            FROM vuln
+            LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id 
+            WHERE vuln.upload_id in (SELECT `ID` from uploadanomalies WHERE `ID_Projet` = 2)
+            AND vuln.Port NOT IN (SELECT `Ports_List` FROM PortsMapping) 
+            GROUP BY `Host`, vuln.Name
+        ) t
+        GROUP BY Hostip
+    ) subquery"))
+        ->select('Hostip', 'Exp_Malware', 'Critical_Ex', 'High_Ex', 'Medium_Ex', 'Critical', 'High', 'Mediu', 'FAILED2', 'PASSED2')
         ->get();
-    
-    return $results; */
-
+    return $data_serv;
 
        /*  $data_serv = getVulnerabilityData($id, 'Serveur');
         $data_db = getVulnerabilityData($id, 'Serveur', 'DB');
@@ -133,41 +147,6 @@ class WordDocumentController extends Controller
         $data_voip = getVulnerabilityData($id, 'Serveur', 'Voip');
  */
 
-
-
-        $data_serv = SoW::join('vuln', 'vuln.Host', '=', 'sow.IP_Host')
-            ->where('sow.Projet', $id)
-            ->where('sow.Type', 'Serveur')
-            ->whereNotIn('vuln.Port', function ($query) {
-                $query->select('Ports_List')
-                    ->from('PortsMapping');
-            })
-            ->select('sow.Nom', 'sow.IP_Host', 'sow.field4')
-            ->selectRaw('COUNT(IF(Risk_Factor = "Critical" and (Metasploit ="true" or `Core Impact` = "true" or CANVAS = "true"),1 , NULL)) AS Critical_Ex')
-            ->selectRaw('COUNT(IF(Risk_Factor = "High" and (Metasploit ="true" or `Core Impact` = "true" or CANVAS = "true"),1 , NULL)) AS High_Ex')
-            ->selectRaw('COUNT(IF(Risk_Factor = "Medium" and (Metasploit ="true" or `Core Impact` = "true" or CANVAS = "true"),1 , NULL)) AS Medium_Ex')
-            ->selectRaw('COUNT(IF(vuln.Risk_Factor = "Critical", 1, NULL)) AS Critical')
-            ->selectRaw('COUNT(IF(vuln.Risk_Factor = "High", 1, NULL)) AS High')
-            ->selectRaw('COUNT(IF(vuln.Risk_Factor = "Medium", 1, NULL)) AS Medium')
-            ->selectRaw('COUNT(IF(vuln.Risk_Factor = "Low", 1, NULL)) AS Low')
-            ->selectRaw(' COUNT(IF(vuln.Risk_Factor = "WARNING", 1, NULL)) WARNING')
-            ->selectRaw('COUNT(IF(vuln.Risk_Factor = "PASSED", 1, NULL)) PASSED')
-            //->groupBy('sow.Nom', 'sow.IP_Host', 'sow.field4')
-            ->groupBy('sow.IP_Host')
-            ->get();
-
-
-
-        /*           SELECT `Nom`,`IP_Host`,`field4`,
-            COUNT(IF(`Risk_Factor` = 'Critical', 1, NULL)) 'Critical',COUNT(IF(`Risk_Factor` = 'High', 1, NULL)) 'High',
-            COUNT(IF(`Risk_Factor` = 'Meduim', 1, NULL)) 'Medium',  COUNT(IF(`Risk_Factor` = 'Low', 1, NULL)) 'Low' ,
-            COUNT(IF(`Risk_Factor` = 'WARNING', 1, NULL)) 'WARNING', COUNT(IF(`Risk_Factor` = 'PASSED', 1, NULL)) 'PASSED'
-
-            FROM sow
-
-            LEFT JOIN vuln on vuln.Host = sow.`IP_Host`
-            WHERE sow.Projet=1 AND vuln.Host = sow.`IP_Host` and
-            sow.Type='Serveur' and vuln.Port in (select `Ports_List` from PortsMapping WHERE Utilisation='DB') group by `Nom`,`IP_Host`,`field4`; */
 
         $data_db = SoW::join('vuln', 'vuln.Host', '=', 'sow.IP_Host')
             ->where('sow.Projet', $id)
@@ -887,29 +866,32 @@ ORDER BY
                 $values_serv[] = [
                 'id' => $n_serv,
                 'SRV_Name' => $item2->Nom,
-                'SRV_IP' => $item2->IP_Host,
+                'SRV_IP' => $item2->Hostip,
                 'SRV_OS' => $item2->field4,
+                'SRV_MLW' => $item2->Exp_Malware,
                 'SRV_CR' => $item2->Critical,
                 'SRV_HI' => $item2->High,
-                'SRV_ME' => $item2->Medium,
+                'SRV_ME' => $item2->Mediu,
                 'SRV_LO' => $item2->Low,
-                'SRV_NC' => $item2->WARNING,
-                'SRV_CF' => $item2->PASSED,
+                'SRV_NC' => $item2->FAILED2,
+                'SRV_CF' => $item2->PASSED2,
                 'SRV_CR_Exp' => $item2->Critical_Ex,
                 'SRV_HI_Exp' => $item2->High_Ex,
                 'SRV_MO_Exp' => $item2->Medium_Ex
                 ];
             $c_serv = $c_serv + $item2->Critical;
+            $mlw_serv = $mlw_serv + $item2->Exp_Malware;
             $h_serv = $h_serv + $item2->High;
-            $m_serv = $m_serv + $item2->Medium;
+            $m_serv = $m_serv + $item2->Mediu;
             $cex_serv = $cex_serv + $item2->Critical_Ex;
             $hex_serv = $hex_serv + $item2->High_Ex;
             $mex_serv = $mex_serv + $item2->Medium_Ex;
             $f_serv = $f_serv + $item2->Low;
-            $nc_serv = $nc_serv + $item2->WARNING;
-            $cc_serv = $cc_serv + $item2->PASSED;
+            $nc_serv = $nc_serv + $item2->FAILED2;
+            $cc_serv = $cc_serv + $item2->PASSED2;
                 }
             }
+            $templateProcessor->setValue('TLT_SRV_MLW', $mlw_serv);
             $templateProcessor->setValue('TLT_SRV_CR', $c_serv);
             $templateProcessor->setValue('TLT_SRV_HI', $h_serv);
             $templateProcessor->setValue('TLT_SRV_ME', $m_serv);

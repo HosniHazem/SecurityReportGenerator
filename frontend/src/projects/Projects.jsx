@@ -120,6 +120,7 @@ const Projects = () => {
         .catch((error) => {
           // Handle errors
           console.error('Error sending data:', error);
+          swal("Problem", "Detected");
           setDownloading(false);
         })
         .finally(() => {
