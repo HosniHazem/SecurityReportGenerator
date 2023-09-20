@@ -797,7 +797,7 @@ $data2_voip = DB::table('vuln')
             $cc_serv = $cc_serv + $item2->PASSED2;
                 }
             }
-            $templateProcessor->setValue('TLT_SRV', $$n_serv);
+            $templateProcessor->setValue('TLT_SRV', $n_serv);
             $templateProcessor->setValue('TLT_SRV_MLW', $mlw_serv);
             $templateProcessor->setValue('TLT_SRV_CR', $c_serv);
             $templateProcessor->setValue('TLT_SRV_HI', $h_serv);
