@@ -20,59 +20,44 @@ use clsTbsZip;
 use ZipArchive;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Project; // Replace with your actual model
+use Illuminate\Support\Facades\Http;
+use Stichoza\GoogleTranslate\GoogleTranslate;
 
 class WordDocumentController extends Controller
 {
 
 
-  /*   function getVulnerabilityData($id, $type, $portUtilization = null) {
-        $query = SoW::join('vuln', 'vuln.Host', '=', 'sow.IP_Host')
-            ->where('sow.Projet', $id)
-            ->where('sow.Type', $type);
+    public function translateText($text, $targetLanguage)
+    {
+        // Make a request to the translation API
+        $translationData = [
+            'q' => $text,
+            'source' => 'auto', // Automatically detect the source language
+            'target' => $targetLanguage,
+        ];
+        $response = Http::withOptions([
+            'verify' => false, // Disable SSL verification
+        ])->withHeaders([
+            'api_key' => 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+        ])->post('https://libretranslate.de/translate', $translationData);
 
-        if (!is_null($portUtilization)) {
-            $query->whereIn('vuln.Port', function ($query) use ($portUtilization) {
-                $query->select('Ports_List')
-                    ->from('PortsMapping')
-                    ->where('Utilisation', $portUtilization);
-            });
+
+        if ($response->successful()) {
+            $translatedText = $response->json()['translatedText'];
+            return $translatedText;
         } else {
-            $query->whereNotIn('vuln.Port', function ($query) {
-                $query->select('Ports_List')
-                    ->from('PortsMapping');
-            });
+            // Handle translation error
+            return 'Translation error';
         }
-
-        $query->select('sow.Nom', 'sow.IP_Host', 'sow.field4 as field4')
-            ->selectRaw('COUNT(IF(Risk_Factor = "Critical" and (Metasploit ="true" or `Core Impact` = "true" or CANVAS = "true"),1 , NULL)) AS Critical_Ex')
-            ->selectRaw('COUNT(IF(Risk_Factor = "High" and (Metasploit ="true" or `Core Impact` = "true" or CANVAS = "true"),1 , NULL)) AS High_Ex')
-            ->selectRaw('COUNT(IF(Risk_Factor = "Medium" and (Metasploit ="true" or `Core Impact` = "true" or CANVAS = "true"),1 , NULL)) AS Medium_Ex')
-            ->selectRaw('COUNT(IF(vuln.Risk_Factor = "Critical", 1, NULL)) AS Critical')
-            ->selectRaw('COUNT(IF(vuln.Risk_Factor = "High", 1, NULL)) AS High')
-            ->selectRaw('COUNT(IF(vuln.Risk_Factor = "Medium", 1, NULL)) AS Medium')
-            ->selectRaw('COUNT(IF(vuln.Risk_Factor = "Low", 1, NULL)) AS Low')
-            ->selectRaw('COUNT(IF(vuln.Risk_Factor = "WARNING", 1, NULL)) WARNING')
-            ->selectRaw('COUNT(IF(vuln.Risk_Factor = "PASSED", 1, NULL)) PASSED')
-            ->groupBy('sow.Nom', 'sow.IP_Host', 'sow.field4 as field4');
-
-        return $query->get();
     }
- */
-       /*  $data_serv = getVulnerabilityData($id, 'Serveur');
-        $data_db = getVulnerabilityData($id, 'Serveur', 'DB');
-        $data_pc = getVulnerabilityData($id, 'PC');
-        $data_ext = getVulnerabilityData($id, 'EXT');
-        $data_apps = getVulnerabilityData($id, 'Serveur', 'Apps');
-        $data_mails = getVulnerabilityData($id, 'Serveur', 'Mail');
-        $data_voip = getVulnerabilityData($id, 'Serveur', 'Voip');
- */
 
     public function generateWordDocument(Request $request)
 
 
     {
 
-
+        
+       
         $id = $request->project_id;
 
         $docxDirectory = public_path('storage');
@@ -400,7 +385,7 @@ $data2_serv = DB::table('vuln')
 ->get();
 
 $data2_db = DB::table('vuln')
-->select('Risk','vuln.Synopsis',DB::raw('count(DISTINCT Risk,vuln.Synopsis,vuln.Host) As Num'),
+->select('Risk','vuln.Synopsis',DB::raw('count(DISTINCT Risk,vuln.Synopsis,vuln.Host) As count'),
 DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'),'exploited_by_malware','exploit_available')
 ->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
 ->rightJoin('sow','vuln.Host','=','sow.IP_Host')
@@ -670,7 +655,15 @@ $data2_voip = DB::table('vuln')
             // Fetch data from the database based on the received 'project_id'
             $project =Project::find($id);
             $customer =Customer::find($project->customer_id);
-
+            
+       /*      if ($project==='en'){
+            $targetLanguage = 'en'; // English
+        }else {
+            $targetLanguage = 'fr'; // frensh
+        }
+            */
+        
+    
 
             $templatePath2 = public_path('storage/app/file0.docx');
             $templateProcessor2 = new TemplateProcessor($templatePath2);
@@ -876,17 +869,12 @@ $templateProcessor->setValue('DESC',  $project->description);
                     'id_h_serv' => $n2_h_serv,
                     'SRV_Risk_Factor_High' => $item->Risk,
                     'SRV_Synopsis_High' => $item->Synopsis,
+                    'SRV_count' => $item->count,
                     'SRV_exploi' => $exp,
                     'SRV_nbr_High' => Str::limit($item->nbr, 50, '...'),
                 ];
                 
-                // Set the count for each item
-                if (isset($item->count)) {
-                    $itemValues['SRV_count'] = $item->count;
-                } else {
-                    $itemValues['SRV_count'] = 0;
-                }
-                
+             
                 $values2_h_serv[] = $itemValues;
             }
 
@@ -906,17 +894,12 @@ $templateProcessor->setValue('DESC',  $project->description);
                     'id_m_serv' => $n2_m_serv,
                     'SRV_Risk_Factor_Medium' => $item->Risk,
                     'SRV_Synopsis_Medium' => $item->Synopsis,
-
+                    'SRV_count' => $item->count,
                     'SRV_exploi' => $exp,
                     'SRV_nbr_Medium' => Str::limit($item->nbr, 50, '...'),
                 ];
                 
-                // Set the count for each item
-                if (isset($item->count)) {
-                    $itemValues['SRV_count'] = $item->count;
-                } else {
-                    $itemValues['SRV_count'] = 0;
-                }
+            
                 
                 $values2_m_serv[] = $itemValues;
             }
@@ -936,16 +919,11 @@ $templateProcessor->setValue('DESC',  $project->description);
                     'id_c_serv' => $n2_c_serv,
                     'SRV_Risk_Factor_Critical' => $item->Risk,
                     'SRV_Synopsis_Critical' => $item->Synopsis,
+                    'SRV_count' => $item->count,
                     'SRV_exploi' => $exp,
                     'SRV_nbr_Critical' => Str::limit($item->nbr, 50, '...'),
                 ];
-                
-                // Set the count for each item
-                if (isset($item->count)) {
-                    $itemValues['SRV_count'] = $item->count;
-                } else {
-                    $itemValues['SRV_count'] = 0;
-                }
+          
                 
                 $values2_c_serv[] = $itemValues;
             }
@@ -968,7 +946,10 @@ $templateProcessor->setValue('DESC',  $project->description);
             foreach ($data3 as $item3) {
 
                 $trieValue = str_pad($trieCounter, 3, '0', STR_PAD_LEFT);
-
+/* $trname = $this->translateText($item3->Name, $targetLanguage);
+$trsyn = $this->translateText($item3->synopsis, $targetLanguage);
+$trdes = $this->translateText($item3->description, $targetLanguage);
+$trsol = $this->translateText($item3->solution, $targetLanguage); */
                 $trieCounter++;
                 $templateProcessor->setValue('SRV_VULN_ID' . '#' . $m, htmlspecialchars($trieValue));
                 $templateProcessor->setValue('SRV_VULN_RISK' . '#' . $m, htmlspecialchars($item3->Risk));
@@ -976,9 +957,9 @@ $templateProcessor->setValue('DESC',  $project->description);
                 $templateProcessor->setValue('SRV_VULN_Synopsis' . '#' . $m, htmlspecialchars($item3->synopsis));
                 $templateProcessor->setValue('SRV_VULN_Name' . '#' . $m, htmlspecialchars($item3->Name));
                 $templateProcessor->setValue('SRV_VULN_Hosts' . '#' . $m, htmlspecialchars($item3->Elt_Impactes));
-                $templateProcessor->setValue('SRV_VULN_Metasploit' . '#' . $m, htmlspecialchars($item3->exploit_framework_metasploit));
-                $templateProcessor->setValue('SRV_VULN_Core_Impact' . '#' . $m, htmlspecialchars($item3->exploit_framework_core));
-                $templateProcessor->setValue('SRV_VULN_CANVAS' . '#' . $m, htmlspecialchars($item3->exploit_framework_canvas));
+                $templateProcessor->setValue('SRV_VULN_Metasploit' . '#' . $m, !empty($item3->exploit_framework_metasploit) ? htmlspecialchars($item3->exploit_framework_metasploit) : 'NI');
+                $templateProcessor->setValue('SRV_VULN_Core_Impact' . '#' . $m, !empty($item3->exploit_framework_core) ? htmlspecialchars($item3->exploit_framework_core) : 'NI');
+                $templateProcessor->setValue('SRV_VULN_CANVAS' . '#' . $m, !empty($item3->exploit_framework_canvas) ? htmlspecialchars($item3->exploit_framework_canvas) : 'NI');                
                 $templateProcessor->setValue('SRV_VULN_Desc' . '#' . $m, htmlspecialchars($item3->description));
                 $templateProcessor->setValue('SRV_VULN_ref' . '#' . $m, htmlspecialchars($item3->See));
                 $templateProcessor->setValue('SRV_VULN_Recomendations' . '#' . $m, htmlspecialchars($item3->solution));

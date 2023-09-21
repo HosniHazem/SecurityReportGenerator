@@ -23,6 +23,7 @@
         "seblucas/tbszip": "^2.16",
         "spatie/browsershot": "^3.58",
         "spatie/pdf-to-image": "^2.2",
+        "stichoza/google-translate-php": "^4.1",
         "tinybutstrong/tinybutstrong": "^3.15",
         "tymon/jwt-auth": "^1.0",
         "wemersonjanuario/wkhtmltopdf-windows": "0.12.2.3"
