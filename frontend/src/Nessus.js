@@ -106,10 +106,13 @@ export default function SelectTextFields() {
 
   const handleExport = (event) => {
     event.preventDefault(); // Prevent form submission and page refresh
-
+    let parsedData = {};
     const Label = sessionStorage.getItem('project_name');
     const description = sessionStorage.getItem('description');
-    const Data = {
+
+
+
+    let Data = {
       Source: 'Nessus' ,
       ID_Projet: project_id,
       Label : Label,
@@ -136,7 +139,7 @@ export default function SelectTextFields() {
     const createdId = sessionStorage.getItem('createdId');
    
 
-const parsedData = {}; // Initialize parsedData as an empty object
+ // Initialize parsedData as an empty object
 parsedData.links = JSON.parse(Export_links);
 parsedData.createdId = createdId;
 parsedData.project_id = project_id;
@@ -163,7 +166,7 @@ console.log(parsedData);
       setExporting(false);
       
     });   
- 
+  
   };
   const handleImport = (event) => {
     event.preventDefault(); // Prevent form submission and page refresh

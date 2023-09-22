@@ -861,7 +861,7 @@ $templateProcessor->setValue('DESC',  $project->description);
                 $n2_h_serv++;
                 $exp = '';
                 if ($item->exploited_by_malware === 'true') {
-                    $exp = 'exploité by malware';
+                    $exp = 'exploité par malware';
                 } else if ($item->exploit_available === 'true') {
                     $exp = 'exploit available ';
                 }
@@ -886,7 +886,7 @@ $templateProcessor->setValue('DESC',  $project->description);
                 $n2_m_serv++;
                 $exp = '';
                 if ($item->exploited_by_malware === 'true') {
-                    $exp = 'exploité by malware';
+                    $exp = 'exploité par malware';
                 } else if ($item->exploit_available === 'true') {
                     $exp = 'exploit available ';
                 }
@@ -911,7 +911,7 @@ $templateProcessor->setValue('DESC',  $project->description);
                 $n2_c_serv++;
                 $exp = '';
                 if ($item->exploited_by_malware === 'true') {
-                    $exp = 'exploité by malware';
+                    $exp = 'exploité par malware';
                 } else if ($item->exploit_available === 'true') {
                     $exp = 'exploit available ';
                 }
@@ -940,7 +940,7 @@ $templateProcessor->setValue('DESC',  $project->description);
             foreach ($it['data3'] as $item2)
             {
 
-
+return htmlspecialchars("<br/>");
 
             $data3 = $item2->sortByDesc('Score');
             foreach ($data3 as $item3) {
@@ -957,9 +957,9 @@ $trsol = $this->translateText($item3->solution, $targetLanguage); */
                 $templateProcessor->setValue('SRV_VULN_Synopsis' . '#' . $m, htmlspecialchars($item3->synopsis));
                 $templateProcessor->setValue('SRV_VULN_Name' . '#' . $m, htmlspecialchars($item3->Name));
                 $templateProcessor->setValue('SRV_VULN_Hosts' . '#' . $m, htmlspecialchars($item3->Elt_Impactes));
-                $templateProcessor->setValue('SRV_VULN_Metasploit' . '#' . $m, !empty($item3->exploit_framework_metasploit) ? htmlspecialchars($item3->exploit_framework_metasploit) : 'NI');
-                $templateProcessor->setValue('SRV_VULN_Core_Impact' . '#' . $m, !empty($item3->exploit_framework_core) ? htmlspecialchars($item3->exploit_framework_core) : 'NI');
-                $templateProcessor->setValue('SRV_VULN_CANVAS' . '#' . $m, !empty($item3->exploit_framework_canvas) ? htmlspecialchars($item3->exploit_framework_canvas) : 'NI');                
+                $templateProcessor->setValue('SRV_VULN_Metasploit' . '#' . $m, !empty($item3->exploit_framework_metasploit) ? htmlspecialchars($item3->exploit_framework_metasploit) : 'N/A');
+                $templateProcessor->setValue('SRV_VULN_Core_Impact' . '#' . $m, !empty($item3->exploit_framework_core) ? htmlspecialchars($item3->exploit_framework_core) : 'N/A');
+                $templateProcessor->setValue('SRV_VULN_CANVAS' . '#' . $m, !empty($item3->exploit_framework_canvas) ? htmlspecialchars($item3->exploit_framework_canvas) : 'N/A');                
                 $templateProcessor->setValue('SRV_VULN_Desc' . '#' . $m, htmlspecialchars($item3->description));
                 $templateProcessor->setValue('SRV_VULN_ref' . '#' . $m, htmlspecialchars($item3->See));
                 $templateProcessor->setValue('SRV_VULN_Recomendations' . '#' . $m, htmlspecialchars($item3->solution));
