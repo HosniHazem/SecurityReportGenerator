@@ -370,7 +370,7 @@ DB::raw('max(PASSED2) as PASSED2'))
 
 
 $data2_serv = DB::table('vuln')
-->select('Risk', 'vuln.Synopsis', DB::raw('count(DISTINCT Risk, vuln.Synopsis, vuln.Host) as count'), DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_available')
+->select('Risk', 'plugins.synopsis', DB::raw('count(DISTINCT Risk, plugins.synopsis, vuln.Host) as count'), DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_available')
 ->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
 ->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
 ->whereRaw('vuln.upload_id IN (SELECT ID from uploadanomalies WHERE ID_Projet = ?)', [$id])
@@ -379,13 +379,13 @@ $data2_serv = DB::table('vuln')
 ->where('sow.Projet', '=', $id)
 ->whereRaw('vuln.Port NOT IN (SELECT Ports_List FROM PortsMapping)')
 ->whereIn('Risk', ['Critical', 'High', 'Medium'])
-->groupBy(['Risk', 'vuln.Synopsis'])
+->groupBy(['Risk', 'plugins.synopsis'])
 ->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
 ->limit(20)
 ->get();
 
 $data2_db = DB::table('vuln')
-->select('Risk','vuln.Synopsis',DB::raw('count(DISTINCT Risk,vuln.Synopsis,vuln.Host) As count'),
+->select('Risk','plugins.synopsis',DB::raw('count(DISTINCT Risk,plugins.synopsis,vuln.Host) As count'),
 DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'),'exploited_by_malware','exploit_available')
 ->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
 ->rightJoin('sow','vuln.Host','=','sow.IP_Host')
@@ -395,14 +395,14 @@ DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'),'exploited_by_malware','exploit_av
 ->where('sow.Projet','=',$id)
 ->whereIn('Risk',['Critical', 'High', 'Medium'])
 ->whereRaw('vuln.Port IN (SELECT Ports_List FROM PortsMapping WHERE Utilisation=\'DB\')')
-->groupBy(['Risk','vuln.Synopsis'])
+->groupBy(['Risk','plugins.synopsis'])
 ->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC')
 ->limit(20)
 ->get();
 
 
 $data2_rs = DB::table('vuln')
-->select('Risk', 'vuln.Synopsis', DB::raw('count(DISTINCT Risk, vuln.Synopsis, vuln.Host) as count'),
+->select('Risk', 'plugins.synopsis', DB::raw('count(DISTINCT Risk, plugins.synopsis, vuln.Host) as count'),
 DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_available')
 ->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
 ->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
@@ -411,12 +411,12 @@ DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_
 ->whereRaw('sow.IP_Host = vuln.Host')
 ->where('sow.Projet', '=', $id)
 ->whereIn('Risk', ['Critical', 'High', 'Medium'])
-->groupBy(['Risk', 'vuln.Synopsis'])
+->groupBy(['Risk', 'plugins.synopsis'])
 ->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
 ->limit(20)
 ->get();
 $data2_pc = DB::table('vuln')
-->select('Risk', 'vuln.Synopsis', DB::raw('count(DISTINCT Risk, vuln.Synopsis, vuln.Host) as count'),
+->select('Risk', 'plugins.synopsis', DB::raw('count(DISTINCT Risk, plugins.synopsis, vuln.Host) as count'),
 DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_available')
 ->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
 ->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
@@ -425,13 +425,13 @@ DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_
 ->whereRaw('sow.IP_Host = vuln.Host')
 ->where('sow.Projet', '=', $id)
 ->whereIn('Risk', ['Critical', 'High', 'Medium'])
-->groupBy(['Risk', 'vuln.Synopsis'])
+->groupBy(['Risk', 'plugins.synopsis'])
 ->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
 ->limit(20)
 ->get();
 
 $data2_ext = DB::table('vuln')
-->select('Risk', 'vuln.Synopsis', DB::raw('count(DISTINCT Risk, vuln.Synopsis, vuln.Host) as count'),
+->select('Risk', 'plugins.synopsis', DB::raw('count(DISTINCT Risk, plugins.synopsis, vuln.Host) as count'),
 DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_available')
 ->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
 ->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
@@ -440,13 +440,13 @@ DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_
 ->whereRaw('sow.IP_Host = vuln.Host')
 ->where('sow.Projet', '=', $id)
 ->whereIn('Risk', ['Critical', 'High', 'Medium'])
-->groupBy(['Risk', 'vuln.Synopsis'])
+->groupBy(['Risk', 'plugins.synopsis'])
 ->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
 ->limit(20)
 ->get();
 
 $data2_apps = DB::table('vuln')
-    ->select('Risk', 'vuln.Synopsis', DB::raw('count(DISTINCT Risk, vuln.Synopsis, vuln.Host) as count'), DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_available')
+    ->select('Risk', 'plugins.synopsis', DB::raw('count(DISTINCT Risk, plugins.synopsis, vuln.Host) as count'), DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_available')
     ->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
     ->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
     ->whereRaw('vuln.upload_id IN (SELECT ID from uploadanomalies WHERE ID_Projet = ?)', [$id])
@@ -455,12 +455,12 @@ $data2_apps = DB::table('vuln')
     ->where('sow.Projet', '=', $id)
     ->whereRaw('vuln.Port IN (SELECT Ports_List FROM PortsMapping WHERE UTILISATION=\'Apps\')')
     ->whereIn('Risk', ['Critical', 'High', 'Medium'])
-    ->groupBy(['Risk', 'vuln.Synopsis'])
+    ->groupBy(['Risk', 'plugins.synopsis'])
     ->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
     ->limit(20)
     ->get();
 $data2_mails = DB::table('vuln')
-    ->select('Risk', 'vuln.Synopsis', DB::raw('count(DISTINCT Risk, vuln.Synopsis, vuln.Host) as count'), DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_available')
+    ->select('Risk', 'plugins.synopsis', DB::raw('count(DISTINCT Risk, plugins.synopsis, vuln.Host) as count'), DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_available')
     ->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
     ->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
     ->whereRaw('vuln.upload_id IN (SELECT ID from uploadanomalies WHERE ID_Projet = ?)', [$id])
@@ -469,7 +469,7 @@ $data2_mails = DB::table('vuln')
     ->where('sow.Projet', '=', $id)
     ->whereRaw('vuln.Port IN (SELECT Ports_List FROM PortsMapping WHERE UTILISATION=\'Mail\')')
     ->whereIn('Risk', ['Critical', 'High', 'Medium'])
-    ->groupBy(['Risk', 'vuln.Synopsis'])
+    ->groupBy(['Risk', 'plugins.synopsis'])
     ->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
     ->limit(20)
     ->get();
@@ -477,7 +477,7 @@ $data2_mails = DB::table('vuln')
 
 
 $data2_voip = DB::table('vuln')
-    ->select('Risk', 'vuln.Synopsis', DB::raw('count(DISTINCT Risk, vuln.Synopsis, vuln.Host) as count'),
+    ->select('Risk', 'plugins.synopsis', DB::raw('count(DISTINCT Risk, plugins.synopsis, vuln.Host) as count'),
      DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_available')
     ->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
     ->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
@@ -487,7 +487,7 @@ $data2_voip = DB::table('vuln')
     ->where('sow.Projet', '=', $id)
     ->whereRaw('vuln.Port IN (SELECT Ports_List FROM PortsMapping WHERE UTILISATION=\'Voip\')')
     ->whereIn('Risk', ['Critical', 'High', 'Medium'])
-    ->groupBy(['Risk', 'vuln.Synopsis'])
+    ->groupBy(['Risk', 'plugins.synopsis'])
     ->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
     ->limit(20)
     ->get();
@@ -667,10 +667,10 @@ $data2_voip = DB::table('vuln')
 
             $templatePath2 = public_path('storage/app/file0.docx');
             $templateProcessor2 = new TemplateProcessor($templatePath2);
-            $imageData = file_get_contents($customer->Logo);
+         /*    $imageData = file_get_contents($customer->Logo);
             $localImagePath = public_path('images/logo.png'); // Specify the local path to save the image
             file_put_contents($localImagePath, $imageData);
-            $templateProcessor2->setImageValue('icon', $localImagePath);
+            $templateProcessor2->setImageValue('icon', $localImagePath); */
             $templateProcessor2->setValue('SN',  $customer->SN);
             $templateProcessor2->setValue('LN',  $customer->LN);
             $templateProcessor2->setValue('PRJ',  $project->Nom);
@@ -724,6 +724,8 @@ $data2_voip = DB::table('vuln')
         ];
 
         $all = [$val_serv,$val_rs, $val_db, $val_pc, $val_ext, $val_apps, $val_voip, $val_mails];
+
+
 
         $v = 1;
         foreach ($all as $it) {
@@ -868,7 +870,7 @@ $templateProcessor->setValue('DESC',  $project->description);
                 $itemValues = [
                     'id_h_serv' => $n2_h_serv,
                     'SRV_Risk_Factor_High' => $item->Risk,
-                    'SRV_Synopsis_High' => $item->Synopsis,
+                    'SRV_Synopsis_High' => $item->synopsis,
                     'SRV_count' => $item->count,
                     'SRV_exploi' => $exp,
                     'SRV_nbr_High' => Str::limit($item->nbr, 50, '...'),
@@ -893,7 +895,7 @@ $templateProcessor->setValue('DESC',  $project->description);
                 $itemValues = [
                     'id_m_serv' => $n2_m_serv,
                     'SRV_Risk_Factor_Medium' => $item->Risk,
-                    'SRV_Synopsis_Medium' => $item->Synopsis,
+                    'SRV_Synopsis_Medium' => $item->synopsis,
                     'SRV_count' => $item->count,
                     'SRV_exploi' => $exp,
                     'SRV_nbr_Medium' => Str::limit($item->nbr, 50, '...'),
@@ -918,7 +920,7 @@ $templateProcessor->setValue('DESC',  $project->description);
                 $itemValues = [
                     'id_c_serv' => $n2_c_serv,
                     'SRV_Risk_Factor_Critical' => $item->Risk,
-                    'SRV_Synopsis_Critical' => $item->Synopsis,
+                    'SRV_Synopsis_Critical' => $item->synopsis,
                     'SRV_count' => $item->count,
                     'SRV_exploi' => $exp,
                     'SRV_nbr_Critical' => Str::limit($item->nbr, 50, '...'),
@@ -940,7 +942,6 @@ $templateProcessor->setValue('DESC',  $project->description);
             foreach ($it['data3'] as $item2)
             {
 
-return htmlspecialchars("<br/>");
 
             $data3 = $item2->sortByDesc('Score');
             foreach ($data3 as $item3) {
@@ -1039,7 +1040,7 @@ $trsol = $this->translateText($item3->solution, $targetLanguage); */
 
  // Create a zip archive
  $zip = new ZipArchive;
- $zipFileName = 'downloaded_files.zip';
+ $zipFileName = $project->Nom . 'downloaded_files.zip';
  $zipFilePath = $tempDirectory . '/' . $zipFileName;
 
  if ($zip->open($zipFilePath, ZipArchive::CREATE) === true) {
