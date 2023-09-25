@@ -5,6 +5,7 @@ import {Navigate, useNavigate,useParams} from 'react-router-dom';
 import { Link } from "react-router-dom";
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
+import {encode} from 'html-entities';
 
 import "./datatable.scss";
 import axios from 'axios';
@@ -73,7 +74,7 @@ const Projects = () => {
       
     
     ];
-   
+
     const Select = (name,id,e) => {
       e.persist();
       sessionStorage.setItem('project_id',id);

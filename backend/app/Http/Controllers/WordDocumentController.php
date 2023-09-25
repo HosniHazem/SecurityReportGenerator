@@ -961,7 +961,7 @@ $trsol = $this->translateText($item3->solution, $targetLanguage); */
                 $templateProcessor->setValue('SRV_VULN_Metasploit' . '#' . $m, !empty($item3->exploit_framework_metasploit) ? htmlspecialchars($item3->exploit_framework_metasploit) : 'N/A');
                 $templateProcessor->setValue('SRV_VULN_Core_Impact' . '#' . $m, !empty($item3->exploit_framework_core) ? htmlspecialchars($item3->exploit_framework_core) : 'N/A');
                 $templateProcessor->setValue('SRV_VULN_CANVAS' . '#' . $m, !empty($item3->exploit_framework_canvas) ? htmlspecialchars($item3->exploit_framework_canvas) : 'N/A');                
-                $templateProcessor->setValue('SRV_VULN_Desc' . '#' . $m, htmlspecialchars($item3->description));
+                $templateProcessor->setValue('SRV_VULN_Desc' . '#' . $m,$item3->description);
                 $templateProcessor->setValue('SRV_VULN_ref' . '#' . $m, htmlspecialchars($item3->See));
                 $templateProcessor->setValue('SRV_VULN_Recomendations' . '#' . $m, htmlspecialchars($item3->solution));
                 $templateProcessor->setValue('SRV_VULN_available' . '#' . $m, htmlspecialchars($item3->exploit_available));
