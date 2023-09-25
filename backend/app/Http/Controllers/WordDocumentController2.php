@@ -23,33 +23,10 @@ use App\Models\Project; // Replace with your actual model
 use Illuminate\Support\Facades\Http;
 use Stichoza\GoogleTranslate\GoogleTranslate;
 
-class WordDocumentController extends Controller
+class WordDocumentController2 extends Controller
 {
 
 
-    public function translateText($text, $targetLanguage)
-    {
-        // Make a request to the translation API
-        $translationData = [
-            'q' => $text,
-            'source' => 'auto', // Automatically detect the source language
-            'target' => $targetLanguage,
-        ];
-        $response = Http::withOptions([
-            'verify' => false, // Disable SSL verification
-        ])->withHeaders([
-            'api_key' => 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
-        ])->post('https://libretranslate.de/translate', $translationData);
-
-
-        if ($response->successful()) {
-            $translatedText = $response->json()['translatedText'];
-            return $translatedText;
-        } else {
-            // Handle translation error
-            return 'Translation error';
-        }
-    }
 
     public function generateWordDocument(Request $request)
 

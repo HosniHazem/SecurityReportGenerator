@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AnomalieController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\WordDocumentController;
+use App\Http\Controllers\WordDocumentController2;
 use App\Http\Controllers\concatenateDocxFiles;
 use App\Http\Controllers\Sanctum\AuthController;
 use App\Http\Controllers\UserController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\NassusController;
 use App\Http\Controllers\MyController;
 use App\Http\Controllers\VmController;
 use App\Http\Controllers\UploadanomaliesController;
+use App\Http\Controllers\TestController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -27,8 +29,11 @@ use App\Http\Controllers\UploadanomaliesController;
 
 
 
+    Route::get('/test', [TestController::class,'get']);
+
     Route::get('/get_vm', [VmController::class,'index']);
     Route::post('/generate-word-document', [WordDocumentController::class,'generateWordDocument']);
+    Route::post('/generate-annexe', [WordDocumentController2::class,'generateWordDocument']);
     Route::get('/generate-concat', [concatenateDocxFiles::class,'mergeDocxFiles']);
     Route::get('/getScan', [NassusController::class,'GetAll']);
     Route::Post('/ExportAll', [NassusController::class,'ExportAll']);
