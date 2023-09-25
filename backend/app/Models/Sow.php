@@ -12,6 +12,7 @@ class Sow extends Model
     public $timestamps = false;
     protected  $table='sow';
 
+
   
   
 }

@@ -16,6 +16,7 @@ export default function SelectTextFields() {
   const project_id = sessionStorage.getItem('project_id');
   const [Folders, setFolders] = useState([]);
   const [Scans, setScans] = useState([]);
+  const [Host, setHost] = useState([]);
   const [VmSelected, setVmSelected] = useState();
   const [jsonData, setJsonData] = useState([]);
   const [checkedItems, setCheckedItems] = useState(() => {
@@ -33,6 +34,8 @@ export default function SelectTextFields() {
       if (res.status === 200) {
         setFolders(res.data.Folders.folders);
         setScans(res.data.Folders.scans);
+        setHost(res.data.info);
+
       }
     }).catch((error) => {
       console.error('Error sending data:', error);
@@ -40,7 +43,7 @@ export default function SelectTextFields() {
   }, []);
 
   const [Vm, setVm] = useState(); 
-
+console.log(Host);
   useEffect(() => {
     axios.get("http://webapp.smartskills.tn:8002/api/get_vm").then((res) => {
       if (res.status === 200) {
@@ -174,10 +177,7 @@ console.log(parsedData);
     const selectedIdsJSON = selectedIds.map((itemId) => ({
       value: itemId,
     }));
-    /* const combinedData = {
-      selectedIdsJSON: selectedIdsJSON,
-      VmSelected: VmSelected,
-    }; */
+  
      setExporting(true);
     axios.post('http://webapp.smartskills.tn:8002/api/ExportAll',selectedIdsJSON)
     .then((response) => {

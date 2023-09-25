@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
 use App\Models\Vuln;
+use App\Models\Sow;
 use App\Models\Plugins;
 use clsTbsZip;
 session_start();
@@ -38,6 +39,7 @@ class NassusController extends Controller
 
     public function ExportAll(Request $request)
     {
+       
         $csvDirectory ='C:\\xampp\\mysql\\data\\tactio2z_officekiller';
         $csvs = glob($csvDirectory . '/*.csv'); // Get a list of all PNG files in the directory
 
@@ -77,7 +79,46 @@ foreach ($jsonData as $item) {
         'scan' => $e,
         'file' => $responseData['file']
     );
+    $response = Http::withOptions([
+        'verify' => false, // Disable SSL verification
+    ])->withHeaders([
+        'X-ApiKeys' => 'accessKey=a507ad2749850e9acc8543f56284896b8792e9cf9b0dd54f8c35802e47c3fed5; secretKey=663fd55660cbdd8ccf1d603d4adf3d4b8c2d6394122c77ddea66ad311e77decb',
+    ])->get("https://10.0.33.58:8834/scans/{$e}");
 
+    // Decode the JSON response data
+    $responseData = json_decode($response->body(), true); // true to convert it to an associative array
+    foreach ($responseData['hosts'] as $host) { 
+ $one = $host['host_id'];
+ $response = Http::withOptions([
+    'verify' => false, // Disable SSL verification
+])->withHeaders([
+    'X-ApiKeys' => 'accessKey=a507ad2749850e9acc8543f56284896b8792e9cf9b0dd54f8c35802e47c3fed5; secretKey=663fd55660cbdd8ccf1d603d4adf3d4b8c2d6394122c77ddea66ad311e77decb',
+])->get("https://10.0.33.58:8834/scans/{$e}/hosts/{$one}");
+
+$responseData2 = json_decode($response->body(), true); // true to convert it to an associative array
+$host_ip = $responseData2['info']['host-ip'];
+$ip = Sow::where('IP_Host', $host_ip)
+->where('Type', 'Serveur')
+->get();
+if (!$ip->isEmpty()) {
+$ip_n=$ip[0];
+
+
+    // Check if 'host-fqdn' key exists in $responseData2
+    if (isset($responseData2['info']['host-fqdn']) && !empty($responseData2['info']['host-fqdn'])) {
+        $ip_n->Nom = $responseData2['info']['host-fqdn'];
+    } elseif (isset($responseData2['info']['netbios-name']) && !empty($responseData2['info']['netbios-name']) && $ip_n->Nom === null) {
+        $ip_n->Nom = $responseData2['info']['netbios-name'];
+    }
+
+    // Check if 'operating-system' key exists in $responseData2
+    if (isset($responseData2['info']['operating-system'])) {
+        $ip_n->field4 = $responseData2['info']['operating-system'];
+    }
+
+    $ip_n->update();
+}
+    }
     // Add the JSON object to the array
     $filesData[] = $data;
 
