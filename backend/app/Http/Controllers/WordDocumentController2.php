@@ -345,6 +345,47 @@ DB::raw('max(PASSED2) as PASSED2'))
 
         ///////Table2
 
+        $data2_serv = DB::table('vuln')
+        ->select(
+            'Risk',
+            'vuln.Host',
+            'plugins.synopsis',
+            'exploited_by_malware',
+            'exploit_available'
+        )
+        ->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
+        ->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
+        ->whereRaw('vuln.upload_id IN (SELECT ID from uploadanomalies WHERE ID_Projet = ?)', [$id])
+        ->where('sow.Type', '=', 'Serveur')
+        ->whereRaw('sow.IP_Host = vuln.Host')
+        ->where('sow.Projet', '=', $id)
+        ->whereRaw('vuln.Port NOT IN (SELECT Ports_List FROM PortsMapping)')
+        ->whereIn('Risk', ['Critical', 'High', 'Medium'])
+        ->orderBy('Risk', 'ASC')
+        ->get();
+    
+    // Organize the data into an object
+    $filteredData = [];
+    
+    foreach ($data2_serv as $item) {
+        $host = $item->Host;
+        $risk = $item->Risk;
+        
+        if (!isset($filteredData[$host])) {
+            $filteredData[$host] = [];
+        }
+    
+        if (!isset($filteredData[$host][$risk])) {
+            $filteredData[$host][$risk] = [];
+        }
+    
+        $filteredData[$host][$risk][] = [
+            'synopsis' => $item->synopsis,
+            'exploited_by_malware' => $item->exploited_by_malware,
+            'exploit_available' => $item->exploit_available,
+        ];
+    }
+        return $filteredData;
 
 $data2_serv = DB::table('vuln')
 ->select('Risk', 'plugins.synopsis', DB::raw('count(DISTINCT Risk, plugins.synopsis, vuln.Host) as count'), DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_available')
@@ -358,7 +399,6 @@ $data2_serv = DB::table('vuln')
 ->whereIn('Risk', ['Critical', 'High', 'Medium'])
 ->groupBy(['Risk', 'plugins.synopsis'])
 ->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
-->limit(20)
 ->get();
 
 $data2_db = DB::table('vuln')
@@ -374,7 +414,6 @@ DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'),'exploited_by_malware','exploit_av
 ->whereRaw('vuln.Port IN (SELECT Ports_List FROM PortsMapping WHERE Utilisation=\'DB\')')
 ->groupBy(['Risk','plugins.synopsis'])
 ->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC')
-->limit(20)
 ->get();
 
 
@@ -390,7 +429,6 @@ DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_
 ->whereIn('Risk', ['Critical', 'High', 'Medium'])
 ->groupBy(['Risk', 'plugins.synopsis'])
 ->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
-->limit(20)
 ->get();
 $data2_pc = DB::table('vuln')
 ->select('Risk', 'plugins.synopsis', DB::raw('count(DISTINCT Risk, plugins.synopsis, vuln.Host) as count'),
@@ -404,7 +442,6 @@ DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_
 ->whereIn('Risk', ['Critical', 'High', 'Medium'])
 ->groupBy(['Risk', 'plugins.synopsis'])
 ->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
-->limit(20)
 ->get();
 
 $data2_ext = DB::table('vuln')
@@ -419,7 +456,6 @@ DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_
 ->whereIn('Risk', ['Critical', 'High', 'Medium'])
 ->groupBy(['Risk', 'plugins.synopsis'])
 ->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
-->limit(20)
 ->get();
 
 $data2_apps = DB::table('vuln')
@@ -433,8 +469,7 @@ $data2_apps = DB::table('vuln')
     ->whereRaw('vuln.Port IN (SELECT Ports_List FROM PortsMapping WHERE UTILISATION=\'Apps\')')
     ->whereIn('Risk', ['Critical', 'High', 'Medium'])
     ->groupBy(['Risk', 'plugins.synopsis'])
-    ->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
-    ->limit(20)
+    ->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')  
     ->get();
 $data2_mails = DB::table('vuln')
     ->select('Risk', 'plugins.synopsis', DB::raw('count(DISTINCT Risk, plugins.synopsis, vuln.Host) as count'), DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_available')
@@ -447,8 +482,7 @@ $data2_mails = DB::table('vuln')
     ->whereRaw('vuln.Port IN (SELECT Ports_List FROM PortsMapping WHERE UTILISATION=\'Mail\')')
     ->whereIn('Risk', ['Critical', 'High', 'Medium'])
     ->groupBy(['Risk', 'plugins.synopsis'])
-    ->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
-    ->limit(20)
+    ->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC') 
     ->get();
 
 
@@ -466,7 +500,6 @@ $data2_voip = DB::table('vuln')
     ->whereIn('Risk', ['Critical', 'High', 'Medium'])
     ->groupBy(['Risk', 'plugins.synopsis'])
     ->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
-    ->limit(20)
     ->get();
 
 
@@ -495,7 +528,6 @@ $data2_voip = DB::table('vuln')
         ->whereIn('Risk',['Critical', 'High', 'Medium'])
         ->groupBy(['Risk','vuln.Synopsis'])
         ->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC')
-        ->limit(20)
         ->get();
 
         $data3_db = DB::table('vuln')
@@ -512,8 +544,7 @@ $data2_voip = DB::table('vuln')
         ->whereRaw('vuln.Port IN (SELECT Ports_List FROM PortsMapping WHERE UTILISATION=\'DB\')')
         ->whereIn('Risk',['Critical', 'High', 'Medium'])
         ->groupBy(['Risk','vuln.Synopsis'])
-        ->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC ')
-        ->limit(20)
+        ->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC ')   
         ->get();
 
 
@@ -531,11 +562,9 @@ $data2_voip = DB::table('vuln')
         ->where('sow.Type','=','R_S')
         ->whereRaw('sow.IP_Host = vuln.Host')
         ->where('sow.Projet','=',$id)
-
         ->whereIn('Risk',['Critical', 'High', 'Medium'])
         ->groupBy(['Risk','vuln.Synopsis'])
         ->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC')
-        ->limit(20)
         ->get();
 
         $data3_pc = DB::table('vuln')
@@ -551,8 +580,7 @@ $data2_voip = DB::table('vuln')
 
         ->whereIn('Risk',['Critical', 'High', 'Medium'])
         ->groupBy(['Risk','vuln.Synopsis'])
-        ->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC')
-        ->limit(20)
+        ->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC')  
         ->get();
 
 
@@ -568,8 +596,7 @@ $data2_voip = DB::table('vuln')
         ->where('sow.Projet','=',$id)
         ->whereIn('Risk',['Critical', 'High', 'Medium'])
         ->groupBy(['Risk','vuln.Synopsis'])
-        ->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC')
-        ->limit(20)
+        ->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC')  
         ->get();
 
 
@@ -587,7 +614,6 @@ $data2_voip = DB::table('vuln')
         ->whereIn('Risk',['Critical', 'High', 'Medium'])
         ->groupBy(['Risk','vuln.Synopsis'])
         ->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC')
-        ->limit(20)
         ->get();
 
 
@@ -605,8 +631,7 @@ $data2_voip = DB::table('vuln')
         ->whereRaw('vuln.Port IN (SELECT Ports_List FROM PortsMapping WHERE UTILISATION=\'Mail\')')
         ->whereIn('Risk',['Critical', 'High', 'Medium'])
         ->groupBy(['Risk','vuln.Synopsis'])
-        ->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC')
-        ->limit(20)
+        ->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC') 
         ->get();
 
 
@@ -624,8 +649,7 @@ $data2_voip = DB::table('vuln')
         ->whereRaw('vuln.Port IN (SELECT Ports_List FROM PortsMapping WHERE UTILISATION=\'Voip\')')
         ->whereIn('Risk',['Critical', 'High', 'Medium'])
         ->groupBy(['Risk','vuln.Synopsis'])
-        ->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC')
-        ->limit(20)
+        ->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC') 
         ->get();
 
 
@@ -840,9 +864,9 @@ $templateProcessor->setValue('DESC',  $project->description);
             foreach ($highRisk_serv as $item) {
                 $n2_h_serv++;
                 $exp = '';
-                if ($item->exploited_by_malware === 'true') {
+                if ($item->exploited_by_malware === 'vrai') {
                     $exp = 'exploité par malware';
-                } else if ($item->exploit_available === 'true') {
+                } else if ($item->exploit_available === 'vrai') {
                     $exp = 'exploit available ';
                 }
                 $itemValues = [
@@ -865,9 +889,9 @@ $templateProcessor->setValue('DESC',  $project->description);
             foreach ($mediumRisk_serv as $item) {
                 $n2_m_serv++;
                 $exp = '';
-                if ($item->exploited_by_malware === 'true') {
+                if ($item->exploited_by_malware === 'vrai') {
                     $exp = 'exploité par malware';
-                } else if ($item->exploit_available === 'true') {
+                } else if ($item->exploit_available === 'vrai') {
                     $exp = 'exploit available ';
                 }
                 $itemValues = [
@@ -890,9 +914,9 @@ $templateProcessor->setValue('DESC',  $project->description);
             foreach ($criticalRisk_serv as $item) {
                 $n2_c_serv++;
                 $exp = '';
-                if ($item->exploited_by_malware === 'true') {
+                if ($item->exploited_by_malware === 'vrai') {
                     $exp = 'exploité par malware';
-                } else if ($item->exploit_available === 'true') {
+                } else if ($item->exploit_available === 'vrai') {
                     $exp = 'exploit available ';
                 }
                 $itemValues = [

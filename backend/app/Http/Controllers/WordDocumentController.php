@@ -6,6 +6,8 @@ use Illuminate\Support\HtmlString;
 use Illuminate\Http\Request;
 use PhpOffice\PhpWord\Element\Image as PhpWordImage; // Alias for PhpWord Image class
 use PhpOffice\PhpWord\TemplateProcessor;
+use PhpOffice\PhpWord\Element\Chart;
+
 use App\Models\Vuln; // Replace with your actual model
 use App\Models\Sow; // Replace with your actual model
 
@@ -948,7 +950,8 @@ $templateProcessor->setValue('DESC',  $project->description);
             foreach ($data3 as $item3) {
 
                 $trieValue = str_pad($trieCounter, 3, '0', STR_PAD_LEFT);
-
+                
+               
 
 
 $pattern1 = "/[[:punct:]]+ *(\{\{1\}\})+/";
@@ -982,6 +985,10 @@ $text = preg_replace($pattern3, " ", $text2);
 
             }
         }
+
+        
+        // Replace the variable in the Word document template with the chart
+        $templateProcessor->setChartValue('myChart', $chart);
 
             $outputFileName = 'file' . $v . '.docx';
             $outputPath = public_path('storage/' . $outputFileName);
