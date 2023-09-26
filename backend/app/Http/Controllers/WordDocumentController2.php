@@ -32,7 +32,7 @@ class WordDocumentController2 extends Controller
 
 
     {
-
+        set_time_limit(5000);
         
        
         $id = $request->project_id;
@@ -1211,8 +1211,8 @@ $text = preg_replace($pattern3, " ", $text2);
             $exp = '';
             
             $itemValues = [
-                'id_h_serv' => $n2_h_serv,
-                'SRV_Risk_Factor_High' => $item->Risk,
+                'id_h2_serv' => $n2_h_serv,
+                'SRV_Risk_Factor_High_host' => $item->Risk,
                 'SRV_Synopsis_High' => $item->synopsis,
                 'SRV_vuln_port_host' => $item->ports,
                 'SRV_exploi_host' => $item->exploitability,
@@ -1231,8 +1231,8 @@ $text = preg_replace($pattern3, " ", $text2);
             $n2_m_serv++;
            
             $itemValues = [
-                'id_m_serv' => $n2_m_serv,
-                'SRV_Risk_Factor_Medium' => $item->Risk,
+                'id_m2_serv' => $n2_m_serv,
+                'SRV_Risk_Factor_Medium_host' => $item->Risk,
                 'SRV_Synopsis_Medium' => $item->synopsis,
                 'SRV_vuln_port_host' => $item->ports,
                 'SRV_exploi_host' => $item->exploitability,
@@ -1251,8 +1251,8 @@ $text = preg_replace($pattern3, " ", $text2);
             $n2_c_serv++;
           
             $itemValues = [
-                'id_c_serv' => $n2_c_serv,
-                'SRV_Risk_Factor_Critical' => $item->Risk,
+                'id_c2_serv' => $n2_c_serv,
+                'SRV_Risk_Factor_Critical_host' => $item->Risk,
                 'SRV_Synopsis_Critical' => $item->synopsis,
                 'SRV_vuln_port_host' => $item->ports,
                 'SRV_exploi_host' => $item->exploitability,
@@ -1269,8 +1269,8 @@ $text = preg_replace($pattern3, " ", $text2);
             $n2_l_serv++;
           
             $itemValues = [
-                'id_l_serv' => $n2_l_serv,
-                'SRV_Risk_Factor_Low' => $item->Risk,
+                'id_l2_serv' => $n2_l_serv,
+                'SRV_Risk_Factor_Low_host' => $item->Risk,
                 'SRV_Synopsis_Low' => $item->synopsis,
                 'SRV_vuln_port_host' => $item->ports,
                 'SRV_exploi_host' => $item->exploitability,
@@ -1305,7 +1305,7 @@ $text = preg_replace($pattern3, " ", $text2);
  // File paths for the two files you want to download
  $filePaths = [
      storage_path('app/file0.docx'),
-     storage_path('app/file1.docx'),
+     public_path('storage/file1.docx'),
  /*     storage_path('app/file2.docx'),
      storage_path('app/file3.docx'),
      storage_path('app/file4.docx'),
