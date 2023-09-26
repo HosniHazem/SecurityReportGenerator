@@ -52,7 +52,7 @@ const Projects = () => {
       {
         field: "action",
         headerName: "Action",
-        width: 160,
+        width: 400,
         renderCell: (params) => {
           const id=params.row.id;
           const name=params.row.Nom;
@@ -64,6 +64,8 @@ const Projects = () => {
       
               
                 <div className="deleteButton"  onClick={(e) => Export(id,e)}>Export</div>
+
+                <div className="deButton"  onClick={(e) => Export2(id,e)}>Export Annexe</div>
               </div>
           );
          
@@ -95,6 +97,51 @@ const Projects = () => {
       setExporting(true);
       
       axios.post(`http://webapp.smartskills.tn:8002/api/generate-word-document/`, dataToSend, {
+        responseType: 'blob', // Set responseType to 'blob' to indicate binary data
+      })
+        .then((response) => {
+          // Use response.data as the blob
+          const blob = new Blob([response.data], { type: 'application/octet-stream' });
+    
+          // Create a URL for the blob
+          const url = window.URL.createObjectURL(blob);
+    
+          // Create a temporary <a> element to trigger the download
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'downloaded_files.zip';
+          document.body.appendChild(a);
+          a.click();
+    
+          // Remove the temporary <a> element and revoke the URL to free up resources
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+    
+          setDownloading(false);
+          swal("Exported", "Successfully");
+        })
+        .catch((error) => {
+          // Handle errors
+          console.error('Error sending data:', error);
+          swal("Problem", "Detected");
+          setDownloading(false);
+        })
+        .finally(() => {
+          // Set exporting to false when export completes 
+          setExporting(false);
+        });
+    };
+    
+    const Export2 = (id, e) => {
+      e.persist();
+      setDownloading(true);
+      const project_id = sessionStorage.getItem('project_id');
+      const dataToSend = {
+        project_id: id,
+      };
+      setExporting(true);
+      
+      axios.post(`http://webapp.smartskills.tn:8002/api/generate-annexe/`, dataToSend, {
         responseType: 'blob', // Set responseType to 'blob' to indicate binary data
       })
         .then((response) => {

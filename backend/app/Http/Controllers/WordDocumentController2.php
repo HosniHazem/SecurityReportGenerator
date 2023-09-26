@@ -86,7 +86,7 @@ class WordDocumentController2 extends Controller
     ->groupBy('hostip')
     ->orderByRaw('Critical_Ex DESC, High_Ex DESC, Exp_Malware DESC, Medium_Ex DESC, Critical DESC, High DESC')
     ->get();
-
+/* 
     $data_db = DB::table(DB::raw('(SELECT
     vuln.`Host` as Hostip,
     sow.Nom as Nom,
@@ -340,52 +340,11 @@ DB::raw('max(PASSED2) as PASSED2'))
         ->setBindings([$id, $id])
     ->groupBy('Hostip', 'Nom', 'field4')
     ->orderByRaw('Critical_Ex DESC, High_Ex DESC, Exp_Malware DESC, Medium_Ex DESC, Critical DESC, High DESC')
-    ->get();
+    ->get(); */
 
 
         ///////Table2
 
-        $data2_serv = DB::table('vuln')
-        ->select(
-            'Risk',
-            'vuln.Host',
-            'plugins.synopsis',
-            'exploited_by_malware',
-            'exploit_available'
-        )
-        ->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
-        ->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
-        ->whereRaw('vuln.upload_id IN (SELECT ID from uploadanomalies WHERE ID_Projet = ?)', [$id])
-        ->where('sow.Type', '=', 'Serveur')
-        ->whereRaw('sow.IP_Host = vuln.Host')
-        ->where('sow.Projet', '=', $id)
-        ->whereRaw('vuln.Port NOT IN (SELECT Ports_List FROM PortsMapping)')
-        ->whereIn('Risk', ['Critical', 'High', 'Medium'])
-        ->orderBy('Risk', 'ASC')
-        ->get();
-    
-    // Organize the data into an object
-    $filteredData = [];
-    
-    foreach ($data2_serv as $item) {
-        $host = $item->Host;
-        $risk = $item->Risk;
-        
-        if (!isset($filteredData[$host])) {
-            $filteredData[$host] = [];
-        }
-    
-        if (!isset($filteredData[$host][$risk])) {
-            $filteredData[$host][$risk] = [];
-        }
-    
-        $filteredData[$host][$risk][] = [
-            'synopsis' => $item->synopsis,
-            'exploited_by_malware' => $item->exploited_by_malware,
-            'exploit_available' => $item->exploit_available,
-        ];
-    }
-        return $filteredData;
 
 $data2_serv = DB::table('vuln')
 ->select('Risk', 'plugins.synopsis', DB::raw('count(DISTINCT Risk, plugins.synopsis, vuln.Host) as count'), DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_available')
@@ -401,7 +360,7 @@ $data2_serv = DB::table('vuln')
 ->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
 ->get();
 
-$data2_db = DB::table('vuln')
+/* $data2_db = DB::table('vuln')
 ->select('Risk','plugins.synopsis',DB::raw('count(DISTINCT Risk,plugins.synopsis,vuln.Host) As count'),
 DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'),'exploited_by_malware','exploit_available')
 ->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
@@ -500,7 +459,7 @@ $data2_voip = DB::table('vuln')
     ->whereIn('Risk', ['Critical', 'High', 'Medium'])
     ->groupBy(['Risk', 'plugins.synopsis'])
     ->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
-    ->get();
+    ->get(); */
 
 
 
@@ -515,7 +474,8 @@ $data2_voip = DB::table('vuln')
 
 
         $data3_serv = DB::table('vuln')
-        ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score',
+        ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score','vuln.Plugin ID As Plugin_Id','plugins.age_of_vuln','vuln.Plugin Output As Plugin_Output',
+        DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) AS Port'),
         DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
         DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
         ->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
@@ -530,8 +490,9 @@ $data2_voip = DB::table('vuln')
         ->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC')
         ->get();
 
-        $data3_db = DB::table('vuln')
-        ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score',
+/*         $data3_db = DB::table('vuln')
+         ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score','vuln.Plugin ID As Plugin_Id','plugins.age_of_vuln','vuln.Plugin Output As Plugin_Output',
+        DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) AS Port'),
         DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
         DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
         ->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
@@ -553,7 +514,8 @@ $data2_voip = DB::table('vuln')
 
 
         $data3_rs = DB::table('vuln')
-        ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score',
+         ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score','vuln.Plugin ID As Plugin_Id','plugins.age_of_vuln','vuln.Plugin Output As Plugin_Output',
+        DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) AS Port'),
         DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
         DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
         ->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
@@ -568,7 +530,8 @@ $data2_voip = DB::table('vuln')
         ->get();
 
         $data3_pc = DB::table('vuln')
-        ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score',
+         ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score','vuln.Plugin ID As Plugin_Id','plugins.age_of_vuln','vuln.Plugin Output As Plugin_Output',
+        DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) AS Port'),
         DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
         DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
         ->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
@@ -585,7 +548,8 @@ $data2_voip = DB::table('vuln')
 
 
         $data3_ext = DB::table('vuln')
-        ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score',
+         ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score','vuln.Plugin ID As Plugin_Id','plugins.age_of_vuln','vuln.Plugin Output As Plugin_Output',
+        DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) AS Port'),
         DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
         DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
         ->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
@@ -601,7 +565,8 @@ $data2_voip = DB::table('vuln')
 
 
         $data3_apps = DB::table('vuln')
-        ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score',
+         ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score','vuln.Plugin ID As Plugin_Id','plugins.age_of_vuln','vuln.Plugin Output As Plugin_Output',
+        DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) AS Port'),
         DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
         DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
         ->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
@@ -619,7 +584,8 @@ $data2_voip = DB::table('vuln')
 
 
         $data3_mails = DB::table('vuln')
-        ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score',
+         ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score','vuln.Plugin ID As Plugin_Id','plugins.age_of_vuln','vuln.Plugin Output As Plugin_Output',
+        DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) AS Port'),
         DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
         DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
         ->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
@@ -637,7 +603,8 @@ $data2_voip = DB::table('vuln')
 
 
         $data3_voip = DB::table('vuln')
-        ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score',
+         ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score','vuln.Plugin ID As Plugin_Id','plugins.age_of_vuln','vuln.Plugin Output As Plugin_Output',
+        DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) AS Port'),
         DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
         DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
         ->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
@@ -650,28 +617,216 @@ $data2_voip = DB::table('vuln')
         ->whereIn('Risk',['Critical', 'High', 'Medium'])
         ->groupBy(['Risk','vuln.Synopsis'])
         ->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC') 
+        ->get(); */
+
+        $data21_serv = DB::table('vuln')
+        ->select('vuln.Host', 'vuln.Name','Risk','plugins.synopsis',
+            DB::raw("IF( plugins.exploited_by_malware='true' , 'exploitable par malware', IF( plugins.exploit_available = 'true', 'exploit disponible', NULL)) AS exploitability"),
+            DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) as ports'),
+            'plugins.age_of_vuln')
+        ->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
+        ->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
+        ->whereIn('vuln.upload_id', function($query) use ($id) {
+            $query->select('ID')
+                  ->from('uploadanomalies')
+                  ->where('ID_Projet', '=', $id);
+         })
+        ->where('sow.Type', '=', 'Serveur')
+        ->whereColumn('sow.IP_Host', 'vuln.Host')
+        ->where('sow.Projet', '=', $id)
+        ->whereNotIn('vuln.Port', function($query) {
+            $query->select('Ports_List')
+                  ->from('PortsMapping');
+        })
+        ->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low']) 
+        ->groupBy('vuln.Host', 'vuln.Name')
+        ->orderBy('vuln.Host')
+        ->orderByDesc('exploitability')
+        ->orderByDesc('Risk')
         ->get();
 
+  /*       $data21_db = DB::table('vuln')
+        ->select('vuln.Host', 'vuln.Name','Risk','plugins.synopsis',
+            DB::raw("IF( plugins.exploited_by_malware='true' , 'exploitable par malware', IF( plugins.exploit_available = 'true', 'exploit disponible', NULL)) AS exploitability"),
+            DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) as ports'),
+            'plugins.age_of_vuln')
+        ->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
+        ->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
+        ->whereIn('vuln.upload_id', function($query) use ($id) {
+            $query->select('ID')
+                  ->from('uploadanomalies')
+                  ->where('ID_Projet', '=', $id);
+         })
+        ->where('sow.Type', '=', 'Serveur')
+        ->whereColumn('sow.IP_Host', 'vuln.Host')
+        ->where('sow.Projet', '=', $id)
+        ->whereIn('vuln.Port', function($query) {
+            $query->select('Ports_List')
+                  ->from('PortsMapping')
+                  ->where('Utilisation', '=', 'DB');
+        })
+        ->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low']) 
+        ->groupBy('vuln.Host', 'vuln.Name')
+        ->orderBy('vuln.Host')
+        ->orderByDesc('exploitability')
+        ->orderByDesc('Risk')
+        ->get();
+
+        $data21_pc = DB::table('vuln')
+        ->select('vuln.Host', 'vuln.Name','Risk','plugins.synopsis',
+            DB::raw("IF( plugins.exploited_by_malware='true' , 'exploitable par malware', IF( plugins.exploit_available = 'true', 'exploit disponible', NULL)) AS exploitability"),
+            DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) as ports'),
+            'plugins.age_of_vuln')
+        ->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
+        ->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
+        ->whereIn('vuln.upload_id', function($query) use ($id) {
+            $query->select('ID')
+                  ->from('uploadanomalies')
+                  ->where('ID_Projet', '=', $id);
+         })
+        ->where('sow.Type', '=', 'PC')
+        ->whereColumn('sow.IP_Host', 'vuln.Host')
+        ->where('sow.Projet', '=', $id)
+        ->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low']) 
+        ->groupBy('vuln.Host', 'vuln.Name')
+        ->orderBy('vuln.Host')
+        ->orderByDesc('exploitability')
+        ->orderByDesc('Risk')
+        ->get();
+
+        $data21_ext = DB::table('vuln')
+        ->select('vuln.Host', 'vuln.Name','Risk','plugins.synopsis',
+            DB::raw("IF( plugins.exploited_by_malware='true' , 'exploitable par malware', IF( plugins.exploit_available = 'true', 'exploit disponible', NULL)) AS exploitability"),
+            DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) as ports'),
+            'plugins.age_of_vuln')
+        ->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
+        ->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
+        ->where('sow.Type', '=', 'EXT')
+        ->whereColumn('sow.IP_Host', 'vuln.Host')
+        ->where('sow.Projet', '=', $id)
+        ->whereNotIn('vuln.Port', function($query) {
+            $query->select('Ports_List')
+                  ->from('PortsMapping');
+        })
+        ->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low']) 
+        ->groupBy('vuln.Host', 'vuln.Name')
+        ->orderBy('vuln.Host')
+        ->orderByDesc('exploitability')
+        ->orderByDesc('Risk')
+        ->get();
+
+        $data21_apps = DB::table('vuln')
+        ->select('vuln.Host', 'vuln.Name','Risk','plugins.synopsis',
+            DB::raw("IF( plugins.exploited_by_malware='true' , 'exploitable par malware', IF( plugins.exploit_available = 'true', 'exploit disponible', NULL)) AS exploitability"),
+            DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) as ports'),
+            'plugins.age_of_vuln')
+        ->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
+        ->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
+        ->whereIn('vuln.upload_id', function($query) use ($id) {
+            $query->select('ID')
+                  ->from('uploadanomalies')
+                  ->where('ID_Projet', '=', $id);
+         })
+        ->where('sow.Type', '=', 'Apps')
+        ->whereColumn('sow.IP_Host', 'vuln.Host')
+        ->where('sow.Projet', '=', $id)
+        ->whereIn('vuln.Port', function($query) {
+            $query->select('Ports_List')
+                  ->from('PortsMapping')
+                  ->where('Utilisation', '=', 'Apps');
+        })
+        ->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low']) 
+        ->groupBy('vuln.Host', 'vuln.Name')
+        ->orderBy('vuln.Host')
+        ->orderByDesc('exploitability')
+        ->orderByDesc('Risk')
+        ->get();
+
+        $data21_mails = DB::table('vuln')
+        ->select('vuln.Host', 'vuln.Name','Risk','plugins.synopsis',
+            DB::raw("IF( plugins.exploited_by_malware='true' , 'exploitable par malware', IF( plugins.exploit_available = 'true', 'exploit disponible', NULL)) AS exploitability"),
+            DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) as ports'),
+            'plugins.age_of_vuln')
+        ->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
+        ->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
+        ->whereIn('vuln.upload_id', function($query) use ($id) {
+            $query->select('ID')
+                  ->from('uploadanomalies')
+                  ->where('ID_Projet', '=', $id);
+         })
+        ->where('sow.Type', '=', 'Apps')
+        ->whereColumn('sow.IP_Host', 'vuln.Host')
+        ->where('sow.Projet', '=', $id)
+        ->whereIn('vuln.Port', function($query) {
+            $query->select('Ports_List')
+                  ->from('PortsMapping')
+                  ->where('Utilisation', '=', 'Mail');
+        })
+        ->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low']) 
+        ->groupBy('vuln.Host', 'vuln.Name')
+        ->orderBy('vuln.Host')
+        ->orderByDesc('exploitability')
+        ->orderByDesc('Risk')
+        ->get();
+
+        $data21_voip = DB::table('vuln')
+        ->select('vuln.Host', 'vuln.Name','Risk','plugins.synopsis',
+            DB::raw("IF( plugins.exploited_by_malware='true' , 'exploitable par malware', IF( plugins.exploit_available = 'true', 'exploit disponible', NULL)) AS exploitability"),
+            DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) as ports'),
+            'plugins.age_of_vuln')
+        ->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
+        ->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
+        ->whereIn('vuln.upload_id', function($query) use ($id) {
+            $query->select('ID')
+                  ->from('uploadanomalies')
+                  ->where('ID_Projet', '=', $id);
+         })
+        ->where('sow.Type', '=', 'Apps')
+        ->whereColumn('sow.IP_Host', 'vuln.Host')
+        ->where('sow.Projet', '=', $id)
+        ->whereIn('vuln.Port', function($query) {
+            $query->select('Ports_List')
+                  ->from('PortsMapping')
+                  ->where('Utilisation', '=', 'Voip');
+        })
+        ->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low']) 
+        ->groupBy('vuln.Host', 'vuln.Name')
+        ->orderBy('vuln.Host')
+        ->orderByDesc('exploitability')
+        ->orderByDesc('Risk')
+        ->get();
+        $data21_rs = DB::table('vuln')
+        ->select('vuln.Host', 'vuln.Name','Risk','plugins.synopsis',
+            DB::raw("IF( plugins.exploited_by_malware='true' , 'exploitable par malware', IF( plugins.exploit_available = 'true', 'exploit disponible', NULL)) AS exploitability"),
+            DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) as ports'),
+            'plugins.age_of_vuln')
+        ->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
+        ->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
+        ->whereIn('vuln.upload_id', function($query) use ($id) {
+            $query->select('ID')
+                  ->from('uploadanomalies')
+                  ->where('ID_Projet', '=', $id);
+         })
+        ->where('sow.Type', '=', 'R_S')
+        ->whereColumn('sow.IP_Host', 'vuln.Host')
+        ->where('sow.Projet', '=', $id)
+        ->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low']) 
+        ->groupBy('vuln.Host', 'vuln.Name')
+        ->orderBy('vuln.Host')
+        ->orderByDesc('exploitability')
+        ->orderByDesc('Risk')
+        ->get(); */
 
             // Fetch data from the database based on the received 'project_id'
             $project =Project::find($id);
             $customer =Customer::find($project->customer_id);
-            
-       /*      if ($project==='en'){
-            $targetLanguage = 'en'; // English
-        }else {
-            $targetLanguage = 'fr'; // frensh
-        }
-            */
+
         
     
 
             $templatePath2 = public_path('storage/app/file0.docx');
             $templateProcessor2 = new TemplateProcessor($templatePath2);
-         /*    $imageData = file_get_contents($customer->Logo);
-            $localImagePath = public_path('images/logo.png'); // Specify the local path to save the image
-            file_put_contents($localImagePath, $imageData);
-            $templateProcessor2->setImageValue('icon', $localImagePath); */
+
             $templateProcessor2->setValue('SN',  $customer->SN);
             $templateProcessor2->setValue('LN',  $customer->LN);
             $templateProcessor2->setValue('PRJ',  $project->Nom);
@@ -687,46 +842,53 @@ $data2_voip = DB::table('vuln')
             'data1' => [$data_serv],
             'data2' => [$data2_serv],
             'data3' => [$data3_serv],
+            'data4' => [$data21_serv],
         ];
 
-        $val_rs = [
+    /*     $val_rs = [
             'data1' => [$data_rs],
             'data2' => [$data2_rs],
             'data3' => [$data3_rs],
+            'data4' => [$data21_rs],
         ];
         $val_db = [
             'data1' => [$data_db],
             'data2' => [$data2_db],
             'data3' => [$data3_db],
+            'data4' => [$data21_db],
         ];
         $val_pc = [
             'data1' => [$data_pc],
             'data2' => [$data2_pc],
             'data3' => [$data3_pc],
+            'data4' => [$data21_pc],
         ];
         $val_ext = [
             'data1' => [$data_ext],
             'data2' => [$data2_ext],
             'data3' => [$data3_ext],
+            'data4' => [$data21_pc],
         ];
         $val_apps = [
             'data1' => [$data_apps],
             'data2' => [$data2_apps],
             'data3' => [$data3_apps],
+            'data4' => [$data21_apps],
         ];
         $val_voip = [
             'data1' => [$data_voip],
             'data2' => [$data2_voip],
             'data3' => [$data3_voip],
+            'data4' => [$data21_voip],
         ];
         $val_mails = [
             'data1' => [$data_mails],
             'data2' => [$data2_mails],
             'data3' => [$data3_mails],
-        ];
+            'data4' => [$data21_mails],
+        ]; */
 
-        $all = [$val_serv,$val_rs, $val_db, $val_pc, $val_ext, $val_apps, $val_voip, $val_mails];
-
+        $all = [$val_serv/* ,$val_rs, $val_db, $val_pc, $val_ext, $val_apps, $val_voip, $val_mails */];
 
 
         $v = 1;
@@ -735,7 +897,7 @@ $data2_voip = DB::table('vuln')
 
 
 
-            $templatePath1 = public_path('1.docx');
+            $templatePath1 = public_path('2.docx');
             $templateProcessor1 = new TemplateProcessor($templatePath1);
             $dataLength = $it['data3'][0]->count();
             $templateProcessor1->cloneBlock('Block_Vun', $dataLength, true, true);
@@ -839,6 +1001,7 @@ $templateProcessor->setValue('DESC',  $project->description);
             $highRisk_serv = [];
             $criticalRisk_serv = [];
             $mediumRisk_serv = [];
+            $lowRisk_serv = [];
 
             foreach ($it['data2'] as $item) {
                 foreach ($item as $item2) {
@@ -852,6 +1015,9 @@ $templateProcessor->setValue('DESC',  $project->description);
                             break;
                         case 'Medium':
                             $mediumRisk_serv[] = $item2;
+                            break;
+                        case 'Low':
+                            $lowRisk_serv[] = $item2;
                             break;
                         // Add more cases if needed
                     }
@@ -931,11 +1097,35 @@ $templateProcessor->setValue('DESC',  $project->description);
                 
                 $values2_c_serv[] = $itemValues;
             }
+            $n2_l_serv = $n2_c_serv;
+            $values2_l_serv = [];
+
+            foreach ($lowRisk_serv as $item) {
+                $n2_l_serv++;
+                $exp = '';
+                if ($item->exploited_by_malware === 'vrai') {
+                    $exp = 'exploité par malware';
+                } else if ($item->exploit_available === 'vrai') {
+                    $exp = 'exploit available ';
+                }
+                $itemValues = [
+                    'id_l_serv' => $n2_l_serv,
+                    'SRV_Risk_Factor_Low' => $item->Risk,
+                    'SRV_Synopsis_Low' => $item->synopsis,
+                    'SRV_count' => $item->count,
+                    'SRV_exploi' => $exp,
+                    'SRV_nbr_Low' => Str::limit($item->nbr, 50, '...'),
+                ];
+          
+                
+                $values2_c_serv[] = $itemValues;
+            }
 
             $templateProcessor->cloneRowAndSetValues('id', $values_serv);
             $templateProcessor->cloneRowAndSetValues('id_h_serv', $values2_h_serv);
             $templateProcessor->cloneRowAndSetValues('id_c_serv', $values2_c_serv);
             $templateProcessor->cloneRowAndSetValues('id_m_serv', $values2_m_serv);
+            $templateProcessor->cloneRowAndSetValues('id_l_serv', $values2_l_serv);
 
 
 
@@ -966,6 +1156,10 @@ $text = preg_replace($pattern3, " ", $text2);
                 $templateProcessor->setValue('SRV_VULN_ID' . '#' . $m, htmlspecialchars($trieValue));
                 $templateProcessor->setValue('SRV_VULN_RISK' . '#' . $m, htmlspecialchars($item3->Risk));
                 $templateProcessor->setValue('SRV_VULN_CVSS' . '#' . $m, $item3->Score);
+                $templateProcessor->setValue('SRV_VULN_pluginID' . '#' . $m, htmlspecialchars($item3->Plugin_Id));
+                $templateProcessor->setValue('SRV_VULN_PluginOutput' . '#' . $m, htmlspecialchars($item3->Plugin_Output));
+                $templateProcessor->setValue('SRV_VULN_Hosts_ports' . '#' . $m, htmlspecialchars($item3->Port));
+                $templateProcessor->setValue('SRV_VULN_Age' . '#' . $m, htmlspecialchars($item3->age_of_vuln));
                 $templateProcessor->setValue('SRV_VULN_Synopsis' . '#' . $m, htmlspecialchars($item3->synopsis));
                 $templateProcessor->setValue('SRV_VULN_Name' . '#' . $m, htmlspecialchars($item3->Name));
                 $templateProcessor->setValue('SRV_VULN_Hosts' . '#' . $m, htmlspecialchars($item3->Elt_Impactes));
@@ -983,6 +1177,115 @@ $text = preg_replace($pattern3, " ", $text2);
 
             }
         }
+        $highRisk_serv = [];
+        $criticalRisk_serv = [];
+        $mediumRisk_serv = [];
+        $lowRisk_serv = [];
+
+        foreach ($it['data4'] as $item) {
+            foreach ($item as $item2) {
+
+                switch ($item2->Risk) { // Access object property using -> notation
+                    case 'High':
+                        $highRisk_serv[] = $item2;
+                        break;
+                    case 'Critical':
+                        $criticalRisk_serv[] = $item2;
+                        break;
+                    case 'Medium':
+                        $mediumRisk_serv[] = $item2;
+                        break;
+                    case 'Low':
+                        $lowRisk_serv[] = $item2;
+                        break;
+                    // Add more cases if needed
+                }
+            }
+        }
+
+        $n2_h_serv = 0;
+        $values3_h_serv = [];
+
+        foreach ($highRisk_serv as $item) {
+            $n2_h_serv++;
+            $exp = '';
+            
+            $itemValues = [
+                'id_h_serv' => $n2_h_serv,
+                'SRV_Risk_Factor_High' => $item->Risk,
+                'SRV_Synopsis_High' => $item->synopsis,
+                'SRV_vuln_port_host' => $item->ports,
+                'SRV_exploi_host' => $item->exploitability,
+                'SRV_vuln_age_host' => $item->age_of_vuln,
+            ];
+            
+         
+            $values3_h_serv[] = $itemValues;
+        }
+
+
+        $n2_m_serv = $n2_h_serv;
+        $values3_m_serv = [];
+
+        foreach ($mediumRisk_serv as $item) {
+            $n2_m_serv++;
+           
+            $itemValues = [
+                'id_m_serv' => $n2_m_serv,
+                'SRV_Risk_Factor_Medium' => $item->Risk,
+                'SRV_Synopsis_Medium' => $item->synopsis,
+                'SRV_vuln_port_host' => $item->ports,
+                'SRV_exploi_host' => $item->exploitability,
+                'SRV_vuln_age_host' => $item->age_of_vuln,
+            ];
+            
+        
+            
+            $values3_m_serv[] = $itemValues;
+        }
+
+        $n2_c_serv = $n2_m_serv;
+        $values3_c_serv = [];
+
+        foreach ($criticalRisk_serv as $item) {
+            $n2_c_serv++;
+          
+            $itemValues = [
+                'id_c_serv' => $n2_c_serv,
+                'SRV_Risk_Factor_Critical' => $item->Risk,
+                'SRV_Synopsis_Critical' => $item->synopsis,
+                'SRV_vuln_port_host' => $item->ports,
+                'SRV_exploi_host' => $item->exploitability,
+                'SRV_vuln_age_host' => $item->age_of_vuln,
+            ];
+      
+            
+            $values3_c_serv[] = $itemValues;
+        }
+        $n2_l_serv = $n2_c_serv;
+        $values3_l_serv = [];
+      
+        foreach ($lowRisk_serv as $item) {
+            $n2_l_serv++;
+          
+            $itemValues = [
+                'id_l_serv' => $n2_l_serv,
+                'SRV_Risk_Factor_Low' => $item->Risk,
+                'SRV_Synopsis_Low' => $item->synopsis,
+                'SRV_vuln_port_host' => $item->ports,
+                'SRV_exploi_host' => $item->exploitability,
+                'SRV_vuln_age_host' => $item->age_of_vuln,
+            ];
+      
+            
+            $values3_c_serv[] = $itemValues;
+        }
+
+        $templateProcessor->cloneRowAndSetValues('id_h2_serv', $values3_h_serv);
+        $templateProcessor->cloneRowAndSetValues('id_c2_serv', $values3_c_serv);
+        $templateProcessor->cloneRowAndSetValues('id_m2_serv', $values3_m_serv);
+        $templateProcessor->cloneRowAndSetValues('id_l2_serv', $values3_l_serv);
+
 
             $outputFileName = 'file' . $v . '.docx';
             $outputPath = public_path('storage/' . $outputFileName);
@@ -994,59 +1297,21 @@ $text = preg_replace($pattern3, " ", $text2);
 
 
 
-        $filePath = public_path('/storage/');
-        $filesName = ['file1.docx', 'file2.docx', 'file3.docx', 'file4.docx', 'file5.docx', 'file6.docx', 'file7.docx']; // Replace with your file names
-
-        $zip = new clsTbsZip();
-        $content = [];
-        $r = '';
-
-        // Iterate through the DOCX files
-        for ($i = 1; $i < count($filesName); $i++) {
-            // Open the document
-            $zip->Open($filePath . $filesName[$i]);
-            $content[$i] = $zip->FileRead('word/document.xml');
-            $zip->Close();
-
-            // Extract the content of the document
-            $p = strpos($content[$i], '<w:body');
-            if ($p === false) {
-                echo ("Tag <w:body> not found in document ." . $filesName[$i]);
-            }
-            $p = strpos($content[$i], '>', $p);
-            $content[$i] = substr($content[$i], $p + 1);
-            $p = strpos($content[$i], '</w:body>');
-            if ($p === false) {
-                echo ("Tag <w:body> not found in document ." . $filesName[$i]);
-            }
-            $content[$i] = substr($content[$i], 0, $p);
-            $r .= $content[$i];
-        }
-
-        // Insert after the first document
-        $zip->Open($filePath . $filesName[0]);
-        $content2 = $zip->FileRead('word/document.xml');
-        $p = strpos($content2, '</w:body>');
-        if ($p === false) {
-            echo ("Tag <w:body> not found in document ." . $filesName[0]);
-        }
-        $content2 = substr_replace($content2, $r, $p, 0);
-        $zip->FileReplace('word/document.xml', $content2, TBSZIP_STRING);
-
-        // Save the merged DOCX as 'merge.docx' in the storage folder
-        $zip->Flush(TBSZIP_FILE, storage_path('app/merge.docx'));
-
-
 
 
 
  // Create a unique temporary directory to store the zip file
  $tempDirectory = storage_path('app/temp');
-
  // File paths for the two files you want to download
  $filePaths = [
-     storage_path('app/merge.docx'),
      storage_path('app/file0.docx'),
+     storage_path('app/file1.docx'),
+ /*     storage_path('app/file2.docx'),
+     storage_path('app/file3.docx'),
+     storage_path('app/file4.docx'),
+     storage_path('app/file5.docx'),
+     storage_path('app/file6.docx'),
+     storage_path('app/file7.docx'), */
  ];
 
  // Create a zip archive

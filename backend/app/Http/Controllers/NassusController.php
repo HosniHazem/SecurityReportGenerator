@@ -272,6 +272,8 @@ else {
             'cvss_score_source',
             'cvss_temporal_vector',
             'exploit_framework_core',
+            'exploit_framework_metasploit',
+            'exploit_framework_canvas',
             'risk_factor',
             'cvss_temporal_score',
             'plugin_publication_date',

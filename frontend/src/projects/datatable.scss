@@ -87,6 +87,13 @@
         border: 1px dotted rgba(0,128,0);
         cursor: pointer;
       }
+      .deButton {
+        padding: 2px 5px;
+        border-radius: 5px;
+        color: rgb(198, 98, 98);
+        border: 1px dotted rgb(198, 98, 98);
+        cursor: pointer;
+      }
     }
   }
   .loading {

@@ -372,7 +372,8 @@ DB::raw('max(PASSED2) as PASSED2'))
 
 
 $data2_serv = DB::table('vuln')
-->select('Risk', 'plugins.synopsis', DB::raw('count(DISTINCT Risk, plugins.synopsis, vuln.Host) as count'), DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_available')
+->select('Risk', 'plugins.synopsis', DB::raw('count(DISTINCT Risk, plugins.synopsis, vuln.Host) as count'),
+ DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_available')
 ->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
 ->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
 ->whereRaw('vuln.upload_id IN (SELECT ID from uploadanomalies WHERE ID_Projet = ?)', [$id])
@@ -380,6 +381,7 @@ $data2_serv = DB::table('vuln')
 ->whereRaw('sow.IP_Host = vuln.Host')
 ->where('sow.Projet', '=', $id)
 ->whereRaw('vuln.Port NOT IN (SELECT Ports_List FROM PortsMapping)')
+
 ->whereIn('Risk', ['Critical', 'High', 'Medium'])
 ->groupBy(['Risk', 'plugins.synopsis'])
 ->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
@@ -507,7 +509,7 @@ $data2_voip = DB::table('vuln')
 
 
         $data3_serv = DB::table('vuln')
-        ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score',
+        ->select('vuln.Risk','plugins.name','plugins.cvss3_base_score AS Score',
         DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
         DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
         ->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
@@ -524,7 +526,7 @@ $data2_voip = DB::table('vuln')
         ->get();
 
         $data3_db = DB::table('vuln')
-        ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score',
+        ->select('vuln.Risk','plugins.name','plugins.cvss3_base_score AS Score',
         DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
         DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
         ->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
@@ -547,7 +549,7 @@ $data2_voip = DB::table('vuln')
 
 
         $data3_rs = DB::table('vuln')
-        ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score',
+        ->select('vuln.Risk','plugins.name','plugins.cvss3_base_score AS Score',
         DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
         DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
         ->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
@@ -564,7 +566,7 @@ $data2_voip = DB::table('vuln')
         ->get();
 
         $data3_pc = DB::table('vuln')
-        ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score',
+        ->select('vuln.Risk','plugins.name','plugins.cvss3_base_score AS Score',
         DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
         DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
         ->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
@@ -582,7 +584,7 @@ $data2_voip = DB::table('vuln')
 
 
         $data3_ext = DB::table('vuln')
-        ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score',
+        ->select('vuln.Risk','plugins.name','plugins.cvss3_base_score AS Score',
         DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
         DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
         ->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
@@ -599,7 +601,7 @@ $data2_voip = DB::table('vuln')
 
 
         $data3_apps = DB::table('vuln')
-        ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score',
+        ->select('vuln.Risk','plugins.name','plugins.cvss3_base_score AS Score',
         DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
         DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
         ->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
@@ -618,7 +620,7 @@ $data2_voip = DB::table('vuln')
 
 
         $data3_mails = DB::table('vuln')
-        ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score',
+        ->select('vuln.Risk','plugins.name','plugins.cvss3_base_score AS Score',
         DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
         DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
         ->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
@@ -637,7 +639,7 @@ $data2_voip = DB::table('vuln')
 
 
         $data3_voip = DB::table('vuln')
-        ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score',
+        ->select('vuln.Risk','plugins.name','plugins.cvss3_base_score AS Score',
         DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
         DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
         ->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
@@ -727,7 +729,6 @@ $data2_voip = DB::table('vuln')
         ];
 
         $all = [$val_serv,$val_rs, $val_db, $val_pc, $val_ext, $val_apps, $val_voip, $val_mails];
-
 
 
         $v = 1;
@@ -969,7 +970,7 @@ $text = preg_replace($pattern3, " ", $text2);
                 $templateProcessor->setValue('SRV_VULN_RISK' . '#' . $m, htmlspecialchars($item3->Risk));
                 $templateProcessor->setValue('SRV_VULN_CVSS' . '#' . $m, $item3->Score);
                 $templateProcessor->setValue('SRV_VULN_Synopsis' . '#' . $m, htmlspecialchars($item3->synopsis));
-                $templateProcessor->setValue('SRV_VULN_Name' . '#' . $m, htmlspecialchars($item3->Name));
+                $templateProcessor->setValue('SRV_VULN_Name' . '#' . $m, htmlspecialchars($item3->name));
                 $templateProcessor->setValue('SRV_VULN_Hosts' . '#' . $m, htmlspecialchars($item3->Elt_Impactes));
                 $templateProcessor->setValue('SRV_VULN_Metasploit' . '#' . $m, !empty($item3->exploit_framework_metasploit) ? htmlspecialchars($item3->exploit_framework_metasploit) : 'N/A');
                 $templateProcessor->setValue('SRV_VULN_Core_Impact' . '#' . $m, !empty($item3->exploit_framework_core) ? htmlspecialchars($item3->exploit_framework_core) : 'N/A');
@@ -985,11 +986,6 @@ $text = preg_replace($pattern3, " ", $text2);
 
             }
         }
-
-        
-        // Replace the variable in the Word document template with the chart
-        $templateProcessor->setChartValue('myChart', $chart);
-
             $outputFileName = 'file' . $v . '.docx';
             $outputPath = public_path('storage/' . $outputFileName);
             $templateProcessor->saveAs($outputPath);
