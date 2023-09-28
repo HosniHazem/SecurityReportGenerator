@@ -28,38 +28,37 @@ use Stichoza\GoogleTranslate\GoogleTranslate;
 class WordDocumentController extends Controller
 {
 
-
-    public function translateText($text, $targetLanguage)
+    public static function getPourcentage ($source, $index, $ttl_hosts)
     {
-        // Make a request to the translation API
-        $translationData = [
-            'q' => $text,
-            'source' => 'auto', // Automatically detect the source language
-            'target' => $targetLanguage,
-        ];
-        $response = Http::withOptions([
-            'verify' => false, // Disable SSL verification
-        ])->withHeaders([
-            'api_key' => 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
-        ])->post('https://libretranslate.de/translate', $translationData);
+        $v_Global=0;
+        if($source[$index][0] > 0)
+        $v_Global = 75 + round(25 * ($source[$index][0]/$ttl_hosts));
+        elseif ($source[$index][1] > 0) $v_Global = 50 + round(25 * ($source[$index][1]/$ttl_hosts));
+        elseif ($source[$index][2] > 0) $v_Global = 25 + round(25 * ($source[$index][2]/$ttl_hosts));
+        else $v_Global = round(25 * ($source[$index][3]/$ttl_hosts));
+        return $v_Global;
 
-
-        if ($response->successful()) {
-            $translatedText = $response->json()['translatedText'];
-            return $translatedText;
-        } else {
-            // Handle translation error
-            return 'Translation error';
-        }
     }
+
 
     public function generateWordDocument(Request $request)
 
 
     {
 
-        
-       
+        $matrix_stats[0][0]=0;
+        $matrix_stats[0][1]=0;
+        $matrix_stats[0][2]=0;
+        $matrix_stats[0][3]=0;
+        $matrix_stats[1][0]=0;
+        $matrix_stats[1][1]=0;
+        $matrix_stats[1][2]=0;
+        $matrix_stats[1][3]=0;
+        $matrix_stats[2][0]=0;
+        $matrix_stats[2][1]=0;
+        $matrix_stats[2][2]=0;
+        $matrix_stats[2][3]=0;
+
         $id = $request->project_id;
 
         $docxDirectory = public_path('storage');
@@ -659,30 +658,17 @@ $data2_voip = DB::table('vuln')
             // Fetch data from the database based on the received 'project_id'
             $project =Project::find($id);
             $customer =Customer::find($project->customer_id);
-            
+
        /*      if ($project==='en'){
             $targetLanguage = 'en'; // English
         }else {
             $targetLanguage = 'fr'; // frensh
         }
             */
-        
-    
 
-            $templatePath2 = public_path('storage/app/file0.docx');
-            $templateProcessor2 = new TemplateProcessor($templatePath2);
-         /*    $imageData = file_get_contents($customer->Logo);
-            $localImagePath = public_path('images/logo.png'); // Specify the local path to save the image
-            file_put_contents($localImagePath, $imageData);
-            $templateProcessor2->setImageValue('icon', $localImagePath); */
-            $templateProcessor2->setValue('SN',  $customer->SN);
-            $templateProcessor2->setValue('LN',  $customer->LN);
-            $templateProcessor2->setValue('PRJ',  $project->Nom);
-            $templateProcessor2->setValue('Y',  $project->year);
-            $templateProcessor2->setValue('URL',  $project->URL);
-            $templateProcessor2->setValue('DESC',  $project->description);
-            $outputPath2 = storage_path('app/file0.docx');
-            $templateProcessor2->saveAs($outputPath2);
+
+
+
 
 
 
@@ -730,8 +716,14 @@ $data2_voip = DB::table('vuln')
 
         $all = [$val_serv,$val_rs, $val_db, $val_pc, $val_ext, $val_apps, $val_voip, $val_mails];
 
-
         $v = 1;
+        $ttl_malware = 0;
+        $ttl_exploitable = 0;
+        $ttl_critical= 0;
+        $ttl_high = 0;
+        $ttl_medium = 0;
+        $ttl_low = 0;
+        $ttl_hosts=0;
         foreach ($all as $it) {
 
 
@@ -792,6 +784,8 @@ $templateProcessor->setValue('DESC',  $project->description);
             $cc_serv = 0;
             $mlw_serv = 0;
             $values_serv=[];
+
+
             foreach ($it['data1'] as $item) {
            foreach ($item as $item2)
            {
@@ -836,6 +830,21 @@ $templateProcessor->setValue('DESC',  $project->description);
             $templateProcessor->setValue('TLT_SRV_CR_Ex', $cex_serv);
             $templateProcessor->setValue('TLT_SRV_HI_Ex', $hex_serv);
             $templateProcessor->setValue('TLT_SRV_MO_Ex', $mex_serv);
+            $ttl_malware += $mlw_serv;
+            $ttl_exploitable += $cex_serv+$hex_serv+$mex_serv;
+$l_serv = 0;
+
+            $matrix_stats[$v][0]= $c_serv;
+            $matrix_stats[$v][1]=$h_serv;
+            $matrix_stats[$v][2]=$m_serv;
+            $matrix_stats[$v][3]=$l_serv;
+
+
+            $matrix_stats[0][0]+= $c_serv;
+            $matrix_stats[0][1]+=$h_serv;
+            $matrix_stats[0][2]+=$m_serv;
+            $matrix_stats[0][3]+=$l_serv;
+            $ttl_hosts += $n_serv;
         ////////
 
             $highRisk_serv = [];
@@ -879,8 +888,8 @@ $templateProcessor->setValue('DESC',  $project->description);
                     'SRV_exploi' => $exp,
                     'SRV_nbr_High' => Str::limit($item->nbr, 50, '...'),
                 ];
-                
-             
+
+
                 $values2_h_serv[] = $itemValues;
             }
 
@@ -904,9 +913,9 @@ $templateProcessor->setValue('DESC',  $project->description);
                     'SRV_exploi' => $exp,
                     'SRV_nbr_Medium' => Str::limit($item->nbr, 50, '...'),
                 ];
-                
-            
-                
+
+
+
                 $values2_m_serv[] = $itemValues;
             }
 
@@ -929,8 +938,8 @@ $templateProcessor->setValue('DESC',  $project->description);
                     'SRV_exploi' => $exp,
                     'SRV_nbr_Critical' => Str::limit($item->nbr, 50, '...'),
                 ];
-          
-                
+
+
                 $values2_c_serv[] = $itemValues;
             }
 
@@ -951,19 +960,19 @@ $templateProcessor->setValue('DESC',  $project->description);
             foreach ($data3 as $item3) {
 
                 $trieValue = str_pad($trieCounter, 3, '0', STR_PAD_LEFT);
-                
-               
+
+
 
 
 $pattern1 = "/[[:punct:]]+ *(\{\{1\}\})+/";
-$pattern2 = "/(\{\{1\}\})+ *-/"; 
+$pattern2 = "/(\{\{1\}\})+ *-/";
 $pattern3 = "/(\{\{1\}\})+/";
 $replacement = "</w:t></w:r><w:r><w:br/><w:t>";
 $te = htmlspecialchars($item3->description);
 
 $text1 = preg_replace($pattern1, $replacement, $te);
  $text2 = preg_replace($pattern2, $replacement, $text1);
-$text = preg_replace($pattern3, " ", $text2); 
+$text = preg_replace($pattern3, " ", $text2);
 
                 $trieCounter++;
                 $templateProcessor->setValue('SRV_VULN_ID' . '#' . $m, htmlspecialchars($trieValue));
@@ -974,7 +983,7 @@ $text = preg_replace($pattern3, " ", $text2);
                 $templateProcessor->setValue('SRV_VULN_Hosts' . '#' . $m, htmlspecialchars($item3->Elt_Impactes));
                 $templateProcessor->setValue('SRV_VULN_Metasploit' . '#' . $m, !empty($item3->exploit_framework_metasploit) ? htmlspecialchars($item3->exploit_framework_metasploit) : 'N/A');
                 $templateProcessor->setValue('SRV_VULN_Core_Impact' . '#' . $m, !empty($item3->exploit_framework_core) ? htmlspecialchars($item3->exploit_framework_core) : 'N/A');
-                $templateProcessor->setValue('SRV_VULN_CANVAS' . '#' . $m, !empty($item3->exploit_framework_canvas) ? htmlspecialchars($item3->exploit_framework_canvas) : 'N/A');                
+                $templateProcessor->setValue('SRV_VULN_CANVAS' . '#' . $m, !empty($item3->exploit_framework_canvas) ? htmlspecialchars($item3->exploit_framework_canvas) : 'N/A');
                 $templateProcessor->setValue('SRV_VULN_Desc' . '#' . $m, $text);
                 $templateProcessor->setValue('SRV_VULN_ref' . '#' . $m, htmlspecialchars($item3->See));
                 $templateProcessor->setValue('SRV_VULN_Recomendations' . '#' . $m, htmlspecialchars($item3->solution));
@@ -992,7 +1001,63 @@ $text = preg_replace($pattern3, " ", $text2);
             $v++;
         }
 
+        $templatePath2 = public_path('storage/app/file0.docx');
+        $templateProcessor2 = new TemplateProcessor($templatePath2);
+         $imageData = file_get_contents($customer->Logo);
+        $localImagePath = public_path('images/logo.png'); // Specify the local path to save the image
+        file_put_contents($localImagePath, $imageData);
+        $templateProcessor2->setImageValue('icon', $localImagePath);
 
+
+
+        $templateProcessor2->setImageValue('V_Global', public_path('images/'. self::getPourcentage($matrix_stats, 0, $ttl_hosts).".png"));
+
+        $templateProcessor2->setImageValue('V_serv',  public_path('images/'. self::getPourcentage($matrix_stats, 1, $ttl_hosts).".png"));
+        $templateProcessor2->setImageValue('V_apps',  public_path('images/'. self::getPourcentage($matrix_stats, 2, $ttl_hosts).".png"));
+        $templateProcessor2->setImageValue('V_RF',  public_path('images/'. self::getPourcentage($matrix_stats, 3, $ttl_hosts).".png"));
+        $templateProcessor2->setImageValue('V_AUT',  public_path('images/'. self::getPourcentage($matrix_stats, 4, $ttl_hosts).".png"));
+
+
+        $templateProcessor2->setValue('Malw',  $ttl_malware);
+        $templateProcessor2->setValue('Expl',  $ttl_exploitable);
+        $templateProcessor2->setValue('Nbr_Vuln',  $ttl_critical+$ttl_high+$ttl_medium+$ttl_low);
+        $templateProcessor2->setValue('Max_Age_Vuln',  "+730j");
+
+        $templateProcessor2->setValue('Malw_SRV',  74);
+        $templateProcessor2->setValue('Malw_Apps',  0);
+        $templateProcessor2->setValue('Malw_RS',  8);
+        $templateProcessor2->setValue('Malw_Others',  3921);
+
+        $templateProcessor2->setValue('Expl_SRV',  233);
+        $templateProcessor2->setValue('Expl_Apps',  2);
+        $templateProcessor2->setValue('Expl_RS',  88);
+        $templateProcessor2->setValue('Expl_Others',  909);
+
+
+
+        $templateProcessor2->setValue('Crit_SRV',  "");
+        $templateProcessor2->setValue('Crit_Apps',  "");
+        $templateProcessor2->setValue('Crit_RS',  "");
+        $templateProcessor2->setValue('Crit_Others',  "");
+
+
+
+
+
+
+
+        $templateProcessor2->setValue('SN',  $customer->SN);
+        $templateProcessor2->setValue('LN',  $customer->LN);
+        $templateProcessor2->setValue('PRJ',  $project->Nom);
+        $templateProcessor2->setValue('Y',  $project->year);
+        $templateProcessor2->setValue('URL',  $project->URL);
+        $templateProcessor2->setValue('DESC',  $project->description);
+
+
+
+
+        $outputPath2 = storage_path('app/file0.docx');
+        $templateProcessor2->saveAs($outputPath2);
 
 
 
