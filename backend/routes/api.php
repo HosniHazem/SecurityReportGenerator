@@ -34,6 +34,7 @@ use App\Http\Controllers\TestController;
     Route::get('/get_vm', [VmController::class,'index']);
     Route::post('/generate-word-document', [WordDocumentController::class,'generateWordDocument']);
     Route::post('/generate-annexe', [WordDocumentController2::class,'generateWordDocument']);
+    Route::post('/generate-annexe3', [WordDocumentController3::class,'generateWordDocument']);
     Route::get('/generate-concat', [concatenateDocxFiles::class,'mergeDocxFiles']);
     Route::get('/getScan', [NassusController::class,'GetAll']);
     Route::Post('/ExportAll', [NassusController::class,'ExportAll']);
