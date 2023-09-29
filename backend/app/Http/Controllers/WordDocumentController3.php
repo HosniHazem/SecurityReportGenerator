@@ -23,7 +23,7 @@ use App\Models\Project; // Replace with your actual model
 use Illuminate\Support\Facades\Http;
 use Stichoza\GoogleTranslate\GoogleTranslate;
 
-class WordDocumentController2 extends Controller
+class WordDocumentController3 extends Controller
 {
     public static   $AnnexesTitles = array("","Serveurs","Solution Réseau", "Bases de donnees", "Poste de travail",  "Actifs externe", "Applications", "Solution VOIP", "Solution MAILS");
     public static   $AnnexesLetters = array("","B","C", "D", "E",  "F", "G", "H", "I");

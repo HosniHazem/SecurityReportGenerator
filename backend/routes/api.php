@@ -5,6 +5,7 @@ use App\Http\Controllers\AnomalieController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\WordDocumentController;
 use App\Http\Controllers\WordDocumentController2;
+use App\Http\Controllers\WordDocumentController3;
 use App\Http\Controllers\concatenateDocxFiles;
 use App\Http\Controllers\Sanctum\AuthController;
 use App\Http\Controllers\UserController;
