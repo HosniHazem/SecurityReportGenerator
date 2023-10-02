@@ -1,770 +1,135 @@
 <?php
-/*
-$data_serv = DB::table(DB::raw('(SELECT
-vuln.`Host` as Hostip,
-sow.Nom as Nom,
-sow.field4 as field4,
-COUNT(IF( `exploited_by_malware` = \'true\' , 1, NULL)) AS Exp_Malware,
-COUNT(IF(vuln.`Risk` = \'Critical\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS Critical_Ex,
-COUNT(IF(vuln.`Risk` = \'High\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS High_Ex,
-COUNT(IF(vuln.`Risk` = \'Medium\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS Medium_Ex,
-COUNT(IF(vuln.`Risk` = \'Critical\', 1, NULL)) AS Critical,
-COUNT(IF(vuln.`Risk` = \'High\', 1, NULL)) AS High,
-COUNT(IF(vuln.`Risk` = \'Medium\', 1, NULL)) AS Mediu,
-COUNT(IF(vuln.`Risk` = \'Low\', 1, NULL)) AS Low,
-COUNT(IF(vuln.`Risk` = \'FAILED\', 1, NULL)) AS FAILED2,
-COUNT(IF(vuln.`Risk` = \'PASSED\', 1, NULL)) AS PASSED2
-FROM vuln
-LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
-RIGHT JOIN sow ON vuln.`Host` = sow.IP_Host
-WHERE vuln.upload_id in (SELECT `ID` from uploadanomalies WHERE `ID_Projet`= ?) AND sow.Type=\'Serveur\' AND sow.IP_Host = vuln.Host AND sow.Projet=?
-AND vuln.Port NOT IN (SELECT `Ports_List` FROM PortsMapping)
-GROUP BY
-`Host` ,  vuln.Name) t'))
-->select('Hostip', 'Nom', 'field4', DB::raw('COUNT(IF(Exp_Malware>0,1,NULL)) as Exp_Malware'),
-DB::raw('COUNT(IF(Critical_Ex>0,1,NULL)) as Critical_Ex'),
-DB::raw('COUNT(IF(High_Ex>0,1,NULL)) as High_Ex'),
-DB::raw('COUNT(IF(Medium_Ex>0,1,NULL)) as Medium_Ex'),
-DB::raw('COUNT(IF(Critical>0,1,NULL)) as Critical'),
-DB::raw('COUNT(IF(High>0,1,NULL)) as High'),
-DB::raw('COUNT(IF(Mediu>0,1,NULL)) as Mediu'),
-DB::raw('COUNT(IF(Low>0,1,NULL)) as Low'),
-DB::raw('max(FAILED2) as FAILED2'),
-DB::raw('max(PASSED2) as PASSED2'))
-->setBindings([$id, $id])
-->groupBy('hostip')
-->orderByRaw('Critical_Ex DESC, High_Ex DESC, Exp_Malware DESC, Medium_Ex DESC, Critical DESC, High DESC')
-->get();
 
-$data_db = DB::table(DB::raw('(SELECT
-vuln.`Host` as Hostip,
-sow.Nom as Nom,
-sow.field4 as field4 ,
-COUNT(IF( `exploited_by_malware` = \'true\' , 1, NULL)) AS Exp_Malware,
-COUNT(IF(vuln.`Risk` = \'Critical\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS Critical_Ex,
-COUNT(IF(vuln.`Risk` = \'High\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS High_Ex,
-COUNT(IF(vuln.`Risk` = \'Medium\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS Medium_Ex,
-COUNT(IF(vuln.`Risk` = \'Critical\', 1, NULL)) AS Critical,
-COUNT(IF(vuln.`Risk` = \'High\', 1, NULL)) AS High,
-COUNT(IF(vuln.`Risk` = \'Medium\', 1, NULL)) AS Mediu,
-COUNT(IF(vuln.`Risk` = \'Low\', 1, NULL)) AS Low,
-COUNT(IF(vuln.`Risk` = \'FAILED\', 1, NULL)) AS FAILED2,
-COUNT(IF(vuln.`Risk` = \'PASSED\', 1, NULL)) AS PASSED2
-FROM vuln
-LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
-RIGHT JOIN sow ON vuln.`Host` = sow.IP_Host
-WHERE vuln.upload_id in (SELECT `ID` from uploadanomalies WHERE `ID_Projet`=?) AND sow.Type=\'Serveur\' AND sow.IP_Host = vuln.Host AND sow.Projet=?
-AND vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation=\'DB\')
-GROUP BY
-`Host` ,  vuln.Name) t'))
-->select('Hostip', 'Nom', 'field4', DB::raw('COUNT(IF(Exp_Malware>0,1,NULL)) as Exp_Malware'),
-DB::raw('COUNT(IF(Critical_Ex>0,1,NULL)) as Critical_Ex'),
-DB::raw('COUNT(IF(High_Ex>0,1,NULL)) as High_Ex'),
-DB::raw('COUNT(IF(Medium_Ex>0,1,NULL)) as Medium_Ex'),
-DB::raw('COUNT(IF(Critical>0,1,NULL)) as Critical'),
-DB::raw('COUNT(IF(High>0,1,NULL)) as High'),
-DB::raw('COUNT(IF(Mediu>0,1,NULL)) as Mediu'),
-DB::raw('COUNT(IF(Low>0,1,NULL)) as Low'),
-DB::raw('max(FAILED2) as FAILED2'),
-DB::raw('max(PASSED2) as PASSED2'))
-->setBindings([$id, $id])
-->whereRaw('(0,0,0,0,0,0,0) <> (Exp_Malware, Critical_Ex, High_Ex, Medium_Ex, Critical, High, Mediu)')
-->groupBy('Hostip', 'Nom', 'field4')
-->orderByRaw('Critical_Ex DESC, High_Ex DESC, Exp_Malware DESC, Medium_Ex DESC, Critical DESC, High DESC')
-->get();
+$DefaultQuery = array (
+    0=>
+    <<<HERE0
+    SELECT Hostip Hosts_IP,
+    Nom as Hosts_Name,
+    field4 as Hosts_OS,
+    COUNT(IF(Exp_Malware>0,1,NULL)) as Hosts_MLW,
+    COUNT(IF(Critical_Ex>0,1,NULL)) as Hosts_ExC,
+    COUNT(IF(High_Ex>0,1,NULL)) as Hosts_ExH,
+    COUNT(IF(Medium_Ex>0,1,NULL)) as Hosts_ExM,
+    COUNT(IF(Low_Ex>0,1,NULL)) as Hosts_ExL,
+    COUNT(IF(Critical>0,1,NULL)) as Hosts_CR,
+    COUNT(IF(High>0,1,NULL)) as Hosts_HI,
+    COUNT(IF(Mediu>0,1,NULL)) as Hosts_MD,
+    COUNT(IF(Low>0,1,NULL)) as Hosts_LW,
+    max(FAILED2) as Hosts_NC, max(PASSED2) as Hosts_CF
+
+    FROM (
+    SELECT
+    vuln.`Host` as Hostip,
+        sow.Nom as Nom,
+        sow.field4,
+        COUNT(IF( `exploited_by_malware` = 'true' , 1, NULL)) AS Exp_Malware,
+        COUNT(IF(vuln.`Risk` = 'Critical' AND ( `exploit_available` = 'true' ), 1, NULL)) AS Critical_Ex,
+        COUNT(IF(vuln.`Risk` = 'High' AND ( `exploit_available` = 'true' ), 1, NULL)) AS High_Ex,
+        COUNT(IF(vuln.`Risk` = 'Medium' AND ( `exploit_available` = 'true' ), 1, NULL)) AS Medium_Ex,
+        COUNT(IF(vuln.`Risk` = 'Low' AND ( `exploit_available` = 'true' ), 1, NULL)) AS Low_Ex,
+        COUNT(IF(vuln.`Risk` = 'Critical', 1, NULL)) AS Critical,
+        COUNT(IF(vuln.`Risk` = 'High', 1, NULL)) AS High,
+        COUNT(IF(vuln.`Risk` = 'Medium', 1, NULL)) AS Mediu,
+        COUNT(IF(vuln.`Risk` = 'Low', 1, NULL)) AS Low,
+        COUNT(IF(vuln.`Risk` = 'FAILED', 1, NULL)) AS FAILED2,
+        COUNT(IF(vuln.`Risk` = 'PASSED', 1, NULL)) AS PASSED2
+    FROM vuln
+    LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
+    RIGHT JOIN sow ON vuln.`Host` = sow.IP_Host
+        WHERE vuln.upload_id in (SELECT `ID`from uploadanomalies WHERE `ID_Projet`=?) and sow.Type="CLAUSENUMBER1"   and sow.IP_Host = vuln.Host and sow.Projet=?
+        CLAUSENUMBER2
+    GROUP BY
+    `Host` ,  vuln.Name
+    ) t
+    GROUP BY hostip
+    ORDER BY  Critical_Ex DESC, High_Ex DESC, Exp_Malware DESC,Medium_Ex DESC,Critical  DESC,High  DESC CLAUSENUMBER3;
+    HERE0,
+    1 => <<<HERE1
+    SELECT  Risk AS VulnSummary_Risk,
+    plugins.Synopsis AS VulnSummary_Synopsis_ToBeClean,
+    plugins.name AS VulnSummary_Name_ToBeClean,
+    count(DISTINCT Risk,plugins.Synopsis,vuln.Host) AS VulnSummary_Count,
+    IF( plugins.exploited_by_malware='true' , 'exploitable par malware', IF( plugins.exploit_available = 'true', "exploit disponible", NULL)) AS VulnSummary_Exploitability,
+    REPLACE (GROUP_CONCAT(DISTINCT HOST LIMIT 3), ",", "\n") AS VulnSummary_Hosts
+    FROM vuln
+    LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
+    RIGHT JOIN sow ON vuln.`Host` = sow.IP_Host
+    WHERE vuln.upload_id in (SELECT `ID`from uploadanomalies WHERE `ID_Projet`=?) and sow.Type="CLAUSENUMBER1" and sow.Projet=?
+    CLAUSENUMBER2
+    AND `Risk` in ('Critical', 'High', 'Medium', 'Low')
+    group by `Risk`,vuln.`Synopsis`
+    ORDER BY  exploited_by_malware DESC, exploit_available DESC,`Risk` DESC CLAUSENUMBER3;
+    HERE1,
+    2 =><<<HERE2
+    SELECT
+    vuln.Host AS VulnPerHost_host_ip,
+    vuln.Host AS VulnPerHost_host,
+    Risk AS VulnPerHost_Risk,
+    plugins.synopsis AS VulnPerHost_Synopsis_ToBeClean,
+    plugins.name AS VulnPerHost_Name_ToBeClean,
+    IF( plugins.exploited_by_malware='true' , 'exploitable par malware', IF( plugins.exploit_available = 'true', "exploit disponible", NULL)) AS VulnPerHost_exploi,
+     GROUP_CONCAT(DISTINCT vuln.Port) as VulnPerHost_port,
+    plugins.age_of_vuln AS VulnPerHost_age
+    FROM vuln
+    LEFT JOIN plugins ON vuln.`Plugin ID` = plugins.id
+    RIGHT JOIN sow ON vuln.Host = sow.IP_Host
+        WHERE vuln.upload_id in (SELECT `ID`from uploadanomalies WHERE ID_Projet=?) and sow.Type='CLAUSENUMBER1'  and sow.Projet=?
+        CLAUSENUMBER2 AND Risk in ('Critical', 'High', 'Medium', 'Low')
+    GROUP BY Host, vuln.Name
+    ORDER BY  VulnPerHost_host,VulnPerHost_exploi DESC,VulnPerHost_Risk DESC CLAUSENUMBER3
+    HERE2,
+    3 =>  <<<HERE3
+    SELECT
+    ROW_NUMBER() OVER() AS VulnDetails_ID,
+    vuln.Risk AS VulnDetails_RISK,
+    plugins.name VulnDetails_Name_ToBeClean,
+    plugins.cvss3_base_score  AS VulnDetails_CVSS,
+    GROUP_CONCAT(DISTINCT vuln.Host) AS VulnDetails_Hosts,
+    GROUP_CONCAT(DISTINCT vuln.Port) AS VulnDetails_Hosts_ports,
+    plugins.description AS VulnDetails_Desc_ToBeClean,
+    vuln.`Plugin ID` AS VulnDetails_pluginID,
+    plugins.synopsis AS VulnDetails_Synopsis_ToBeClean,
+    plugins.solution AS VulnDetails_Recomendations_ToBeClean,
+    plugins.see_also AS VulnDetails_ref_ToBeClean,
+    `vuln`.`Plugin Output` AS VulnDetails_PluginOutput_ToBeClean,
+    plugins.exploit_available AS VulnDetails_available,
+    plugins.exploit_framework_metasploit AS VulnDetails_Metasploit,
+    plugins.exploit_framework_canvas AS VulnDetails_CANVAS,
+    plugins.exploit_framework_core AS VulnDetails_Core_Impact,
+    plugins.age_of_vuln AS VulnDetails_Age,
+    plugins.exploited_by_malware AS VulnDetails_malware
+    FROM vuln
+    LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
+    RIGHT JOIN sow ON vuln.`Host` = sow.IP_Host
+    WHERE vuln.upload_id in (SELECT `ID`from uploadanomalies WHERE `ID_Projet`=?) and sow.Type="CLAUSENUMBER1"   and sow.IP_Host = vuln.Host and sow.Projet=?
+    CLAUSENUMBER2
+    AND `Risk` in ('Critical', 'High', 'Medium')
+    group by `Risk`,plugins.`synopsis`
+    ORDER BY  exploited_by_malware DESC, exploit_available DESC,`Risk` DESC CLAUSENUMBER3
+    HERE3
+);
+
+
+$RowOfColoring = array(0=>null, 1=>"VulnSummary_Risk", 2=>"VulnPerHost_Risk", 3=>null);
+$keyToDuplicateRows = array(0=>"Hosts_Name", 1=>"VulnSummary_Risk", 2=>"VulnPerHost_host_ip", 3=>"VulnDetails_ID");
+$prefixTLT = array(0=>"TLT_", 1=>null, 2=>null, 3=>null);
+$ColoredRowsArrays= array (
+    0=>null,
+    1=> array("Critical", "High", "Medium", "Low"),
+    2=> array("Critical", "High", "Medium", "Low"),
+    3=>null);
+$SqlQueriesMarks = array(
+    "0" =>array(0=>"CLAUSENUMBER1", 1=>"CLAUSENUMBER2", 2=>"CLAUSENUMBER3"),
+    "1" => array(0=>"Serveur", 1=>"AND vuln.Port NOT IN (SELECT `Ports_List` FROM PortsMapping)", 2=>""),
+    "2" => array(0=>"R_S", 1=>"", 2=>""),
+    "3" => array(0=>"Serveur", 1=>"AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='DB')", 2=>""),
+    "4" => array(0=>"PC", 1=>"", 2=>""),
+    "5" => array(0=>"Ext", 1 =>"", 2=>""),
+    "6" => array(0=>"Apps", 1=>"AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='Apps')", 3=>""),
+    "7" => array(0=>"Serveur", 1=>"AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='Mail')", 3=>""),
+    "8" => array(0=>"Serveur", 1=>"AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='Voip')", 3=>""),
+
+
+);
 
-$data_rs = DB::table(DB::raw('(SELECT
-vuln.`Host` as Hostip,
-sow.Nom as Nom,
-sow.field4 as field4,
-COUNT(IF( `exploited_by_malware` = \'true\' , 1, NULL)) AS Exp_Malware,
-COUNT(IF(vuln.`Risk` = \'Critical\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS Critical_Ex,
-COUNT(IF(vuln.`Risk` = \'High\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS High_Ex,
-COUNT(IF(vuln.`Risk` = \'Medium\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS Medium_Ex,
-COUNT(IF(vuln.`Risk` = \'Critical\', 1, NULL)) AS Critical,
-COUNT(IF(vuln.`Risk` = \'High\', 1, NULL)) AS High,
-COUNT(IF(vuln.`Risk` = \'Medium\', 1, NULL)) AS Mediu,
-COUNT(IF(vuln.`Risk` = \'Low\', 1, NULL)) AS Low,
-COUNT(IF(vuln.`Risk` = \'FAILED\', 1, NULL)) AS FAILED2,
-COUNT(IF(vuln.`Risk` = \'PASSED\', 1, NULL)) AS PASSED2
-FROM vuln
-LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
-RIGHT JOIN sow ON vuln.`Host` = sow.IP_Host
-WHERE vuln.upload_id in (SELECT `ID` from uploadanomalies WHERE `ID_Projet`=?) AND sow.Type=\'R_S\' AND sow.IP_Host = vuln.Host AND sow.Projet=?
-GROUP BY
-`Host` ,  vuln.Name) t'))
-->select('Hostip', 'Nom', 'field4', DB::raw('COUNT(IF(Exp_Malware>0,1,NULL)) as Exp_Malware'),
-DB::raw('COUNT(IF(Critical_Ex>0,1,NULL)) as Critical_Ex'),
-DB::raw('COUNT(IF(High_Ex>0,1,NULL)) as High_Ex'),
-DB::raw('COUNT(IF(Medium_Ex>0,1,NULL)) as Medium_Ex'),
-DB::raw('COUNT(IF(Critical>0,1,NULL)) as Critical'),
-DB::raw('COUNT(IF(High>0,1,NULL)) as High'),
-DB::raw('COUNT(IF(Mediu>0,1,NULL)) as Mediu'),
-DB::raw('COUNT(IF(Low>0,1,NULL)) as Low'),
-DB::raw('max(FAILED2) as FAILED2'),
-DB::raw('max(PASSED2) as PASSED2'))
-->setBindings([$id, $id])
-->groupBy('hostip')
-->orderByRaw('Critical_Ex DESC, High_Ex DESC, Exp_Malware DESC, Medium_Ex DESC, Critical DESC, High DESC')
-->get();
-$data_pc = DB::table(DB::raw('(SELECT
-vuln.`Host` as Hostip,
-sow.Nom as Nom,
-sow.field4 as field4,
-COUNT(IF( `exploited_by_malware` = \'true\' , 1, NULL)) AS Exp_Malware,
-COUNT(IF(vuln.`Risk` = \'Critical\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS Critical_Ex,
-COUNT(IF(vuln.`Risk` = \'High\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS High_Ex,
-COUNT(IF(vuln.`Risk` = \'Medium\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS Medium_Ex,
-COUNT(IF(vuln.`Risk` = \'Critical\', 1, NULL)) AS Critical,
-COUNT(IF(vuln.`Risk` = \'High\', 1, NULL)) AS High,
-COUNT(IF(vuln.`Risk` = \'Medium\', 1, NULL)) AS Mediu,
-COUNT(IF(vuln.`Risk` = \'Low\', 1, NULL)) AS Low,
-COUNT(IF(vuln.`Risk` = \'FAILED\', 1, NULL)) AS FAILED2,
-COUNT(IF(vuln.`Risk` = \'PASSED\', 1, NULL)) AS PASSED2
-FROM vuln
-LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
-RIGHT JOIN sow ON vuln.`Host` = sow.IP_Host
-WHERE vuln.upload_id in (SELECT `ID` from uploadanomalies WHERE `ID_Projet`=?) AND sow.Type=\'PC\' AND sow.IP_Host = vuln.Host AND sow.Projet=?
-GROUP BY
-`Host` ,  vuln.Name) t'))
-->select('Hostip', 'Nom', 'field4', DB::raw('COUNT(IF(Exp_Malware>0,1,NULL)) as Exp_Malware'),
-DB::raw('COUNT(IF(Critical_Ex>0,1,NULL)) as Critical_Ex'),
-DB::raw('COUNT(IF(High_Ex>0,1,NULL)) as High_Ex'),
-DB::raw('COUNT(IF(Medium_Ex>0,1,NULL)) as Medium_Ex'),
-DB::raw('COUNT(IF(Critical>0,1,NULL)) as Critical'),
-DB::raw('COUNT(IF(High>0,1,NULL)) as High'),
-DB::raw('COUNT(IF(Mediu>0,1,NULL)) as Mediu'),
-DB::raw('COUNT(IF(Low>0,1,NULL)) as Low'),
-DB::raw('max(FAILED2) as FAILED2'),
-DB::raw('max(PASSED2) as PASSED2'))
-->setBindings([$id, $id])
-->groupBy('hostip')
-->orderByRaw('Critical_Ex DESC, High_Ex DESC, Exp_Malware DESC, Medium_Ex DESC, Critical DESC, High DESC')
-->get();
-
-$data_ext = DB::table(DB::raw('(SELECT
-vuln.`Host` as Hostip,
-sow.Nom as Nom,
-sow.field4 as field4,
-COUNT(IF( `exploited_by_malware` = \'true\' , 1, NULL)) AS Exp_Malware,
-COUNT(IF(vuln.`Risk` = \'Critical\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS Critical_Ex,
-COUNT(IF(vuln.`Risk` = \'High\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS High_Ex,
-COUNT(IF(vuln.`Risk` = \'Medium\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS Medium_Ex,
-COUNT(IF(vuln.`Risk` = \'Critical\', 1, NULL)) AS Critical,
-COUNT(IF(vuln.`Risk` = \'High\', 1, NULL)) AS High,
-COUNT(IF(vuln.`Risk` = \'Medium\', 1, NULL)) AS Mediu,
-COUNT(IF(vuln.`Risk` = \'Low\', 1, NULL)) AS Low,
-COUNT(IF(vuln.`Risk` = \'FAILED\', 1, NULL)) AS FAILED2,
-COUNT(IF(vuln.`Risk` = \'PASSED\', 1, NULL)) AS PASSED2
-FROM vuln
-LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
-RIGHT JOIN sow ON vuln.`Host` = sow.IP_Host
-WHERE vuln.upload_id in (SELECT `ID` from uploadanomalies WHERE `ID_Projet`=?) AND sow.Type=\'EXT\' AND sow.IP_Host = vuln.Host AND sow.Projet=?
-GROUP BY
-`Host` ,  vuln.Name) t'))
-->select('Hostip', 'Nom', 'field4', DB::raw('COUNT(IF(Exp_Malware>0,1,NULL)) as Exp_Malware'),
-DB::raw('COUNT(IF(Critical_Ex>0,1,NULL)) as Critical_Ex'),
-DB::raw('COUNT(IF(High_Ex>0,1,NULL)) as High_Ex'),
-DB::raw('COUNT(IF(Medium_Ex>0,1,NULL)) as Medium_Ex'),
-DB::raw('COUNT(IF(Critical>0,1,NULL)) as Critical'),
-DB::raw('COUNT(IF(High>0,1,NULL)) as High'),
-DB::raw('COUNT(IF(Mediu>0,1,NULL)) as Mediu'),
-DB::raw('COUNT(IF(Low>0,1,NULL)) as Low'),
-DB::raw('max(FAILED2) as FAILED2'),
-DB::raw('max(PASSED2) as PASSED2'))
-->setBindings([$id, $id])
-->groupBy('hostip')
-->orderByRaw('Critical_Ex DESC, High_Ex DESC, Exp_Malware DESC, Medium_Ex DESC, Critical DESC, High DESC')
-->get();
-
-
-
-$data_apps = DB::table(DB::raw('(SELECT
-vuln.`Host` as Hostip,
-sow.Nom as Nom,
-sow.field4 as field4,
-COUNT(IF( `exploited_by_malware` = \'true\' , 1, NULL)) AS Exp_Malware,
-COUNT(IF(vuln.`Risk` = \'Critical\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS Critical_Ex,
-COUNT(IF(vuln.`Risk` = \'High\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS High_Ex,
-COUNT(IF(vuln.`Risk` = \'Medium\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS Medium_Ex,
-COUNT(IF(vuln.`Risk` = \'Critical\', 1, NULL)) AS Critical,
-COUNT(IF(vuln.`Risk` = \'High\', 1, NULL)) AS High,
-COUNT(IF(vuln.`Risk` = \'Medium\', 1, NULL)) AS Mediu,
-COUNT(IF(vuln.`Risk` = \'Low\', 1, NULL)) AS Low,
-COUNT(IF(vuln.`Risk` = \'FAILED\', 1, NULL)) AS FAILED2,
-COUNT(IF(vuln.`Risk` = \'PASSED\', 1, NULL)) AS PASSED2
-FROM vuln
-LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
-RIGHT JOIN sow ON vuln.`Host` = sow.IP_Host
-WHERE vuln.upload_id in (SELECT `ID` from uploadanomalies WHERE `ID_Projet`=?) AND sow.Type=\'Apps\' AND sow.IP_Host = vuln.Host AND sow.Projet=?
-AND vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation=\'Apps\')
-GROUP BY
-`Host` ,  vuln.Name) t'))
-->select('Hostip', 'Nom', 'field4', DB::raw('COUNT(IF(Exp_Malware>0,1,NULL)) as Exp_Malware'),
-DB::raw('COUNT(IF(Critical_Ex>0,1,NULL)) as Critical_Ex'),
-DB::raw('COUNT(IF(High_Ex>0,1,NULL)) as High_Ex'),
-DB::raw('COUNT(IF(Medium_Ex>0,1,NULL)) as Medium_Ex'),
-DB::raw('COUNT(IF(Critical>0,1,NULL)) as Critical'),
-DB::raw('COUNT(IF(High>0,1,NULL)) as High'),
-DB::raw('COUNT(IF(Mediu>0,1,NULL)) as Mediu'),
-DB::raw('COUNT(IF(Low>0,1,NULL)) as Low'),
-DB::raw('max(FAILED2) as FAILED2'),
-DB::raw('max(PASSED2) as PASSED2'))
-->setBindings([$id, $id])
-->groupBy('Hostip', 'Nom', 'field4')
-->orderByRaw('Critical_Ex DESC, High_Ex DESC, Exp_Malware DESC, Medium_Ex DESC, Critical DESC, High DESC')
-->get();
-
-
-
-$data_mails = DB::table(DB::raw('(SELECT
-vuln.`Host` as Hostip,
-sow.Nom as Nom,
-sow.field4 as field4,
-COUNT(IF( `exploited_by_malware` = \'true\' , 1, NULL)) AS Exp_Malware,
-COUNT(IF(vuln.`Risk` = \'Critical\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS Critical_Ex,
-COUNT(IF(vuln.`Risk` = \'High\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS High_Ex,
-COUNT(IF(vuln.`Risk` = \'Medium\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS Medium_Ex,
-COUNT(IF(vuln.`Risk` = \'Critical\', 1, NULL)) AS Critical,
-COUNT(IF(vuln.`Risk` = \'High\', 1, NULL)) AS High,
-COUNT(IF(vuln.`Risk` = \'Medium\', 1, NULL)) AS Mediu,
-COUNT(IF(vuln.`Risk` = \'Low\', 1, NULL)) AS Low,
-COUNT(IF(vuln.`Risk` = \'FAILED\', 1, NULL)) AS FAILED2,
-COUNT(IF(vuln.`Risk` = \'PASSED\', 1, NULL)) AS PASSED2
-FROM vuln
-LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
-RIGHT JOIN sow ON vuln.`Host` = sow.IP_Host
-WHERE vuln.upload_id in (SELECT `ID` from uploadanomalies WHERE `ID_Projet`=?) AND sow.Type=\'Serveur\' AND sow.IP_Host = vuln.Host AND sow.Projet=?
-AND vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation=\'Mail\')
-GROUP BY
-`Host` ,  vuln.Name) t'))
-->select('Hostip', 'Nom', 'field4', DB::raw('COUNT(IF(Exp_Malware>0,1,NULL)) as Exp_Malware'),
-DB::raw('COUNT(IF(Critical_Ex>0,1,NULL)) as Critical_Ex'),
-DB::raw('COUNT(IF(High_Ex>0,1,NULL)) as High_Ex'),
-DB::raw('COUNT(IF(Medium_Ex>0,1,NULL)) as Medium_Ex'),
-DB::raw('COUNT(IF(Critical>0,1,NULL)) as Critical'),
-DB::raw('COUNT(IF(High>0,1,NULL)) as High'),
-DB::raw('COUNT(IF(Mediu>0,1,NULL)) as Mediu'),
-DB::raw('COUNT(IF(Low>0,1,NULL)) as Low'),
-DB::raw('max(FAILED2) as FAILED2'),
-DB::raw('max(PASSED2) as PASSED2'))
-->setBindings([$id, $id])
-->groupBy('Hostip', 'Nom', 'field4')
-->orderByRaw('Critical_Ex DESC, High_Ex DESC, Exp_Malware DESC, Medium_Ex DESC, Critical DESC, High DESC')
-->get();
-
-
-
-$data_voip = DB::table(DB::raw('(SELECT
-vuln.`Host` as Hostip,
-sow.Nom as Nom,
-sow.field4 as field4,
-COUNT(IF( `exploited_by_malware` = \'true\' , 1, NULL)) AS Exp_Malware,
-COUNT(IF(vuln.`Risk` = \'Critical\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS Critical_Ex,
-COUNT(IF(vuln.`Risk` = \'High\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS High_Ex,
-COUNT(IF(vuln.`Risk` = \'Medium\' AND ( `exploit_available` = \'true\' ), 1, NULL)) AS Medium_Ex,
-COUNT(IF(vuln.`Risk` = \'Critical\', 1, NULL)) AS Critical,
-COUNT(IF(vuln.`Risk` = \'High\', 1, NULL)) AS High,
-COUNT(IF(vuln.`Risk` = \'Medium\', 1, NULL)) AS Mediu,
-COUNT(IF(vuln.`Risk` = \'Low\', 1, NULL)) AS Low,
-COUNT(IF(vuln.`Risk` = \'FAILED\', 1, NULL)) AS FAILED2,
-COUNT(IF(vuln.`Risk` = \'PASSED\', 1, NULL)) AS PASSED2
-FROM vuln
-LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
-RIGHT JOIN sow ON vuln.`Host` = sow.IP_Host
-WHERE vuln.upload_id in (SELECT `ID` from uploadanomalies WHERE `ID_Projet`=?) AND sow.Type=\'Serveur\' AND sow.IP_Host = vuln.Host AND sow.Projet=?
-AND vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation=\'voip\')
-GROUP BY
-`Host` ,  vuln.Name) t'))
-->select('Hostip', 'Nom', 'field4', DB::raw('COUNT(IF(Exp_Malware>0,1,NULL)) as Exp_Malware'),
-DB::raw('COUNT(IF(Critical_Ex>0,1,NULL)) as Critical_Ex'),
-DB::raw('COUNT(IF(High_Ex>0,1,NULL)) as High_Ex'),
-DB::raw('COUNT(IF(Medium_Ex>0,1,NULL)) as Medium_Ex'),
-DB::raw('COUNT(IF(Critical>0,1,NULL)) as Critical'),
-DB::raw('COUNT(IF(High>0,1,NULL)) as High'),
-DB::raw('COUNT(IF(Mediu>0,1,NULL)) as Mediu'),
-DB::raw('COUNT(IF(Low>0,1,NULL)) as Low'),
-DB::raw('max(FAILED2) as FAILED2'),
-DB::raw('max(PASSED2) as PASSED2'))
-->setBindings([$id, $id])
-->groupBy('Hostip', 'Nom', 'field4')
-->orderByRaw('Critical_Ex DESC, High_Ex DESC, Exp_Malware DESC, Medium_Ex DESC, Critical DESC, High DESC')
-->get();
-
-
-///////Table2
-
-
-$data2_serv = DB::table('vuln')
-->select('Risk', 'plugins.synopsis', DB::raw('count(DISTINCT Risk, plugins.synopsis, vuln.Host) as count'), DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_available')
-->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
-->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
-->whereRaw('vuln.upload_id IN (SELECT ID from uploadanomalies WHERE ID_Projet = ?)', [$id])
-->where('sow.Type', '=', 'Serveur')
-->whereRaw('sow.IP_Host = vuln.Host')
-->where('sow.Projet', '=', $id)
-->whereRaw('vuln.Port NOT IN (SELECT Ports_List FROM PortsMapping)')
-->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low'])
-->groupBy(['Risk', 'plugins.synopsis'])
-->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
-->get();
-
-$data2_db = DB::table('vuln')
-->select('Risk','plugins.synopsis',DB::raw('count(DISTINCT Risk,plugins.synopsis,vuln.Host) As count'),
-DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'),'exploited_by_malware','exploit_available')
-->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
-->rightJoin('sow','vuln.Host','=','sow.IP_Host')
-->whereRaw('vuln.upload_id IN (SELECT `ID`from uploadanomalies WHERE ID_Projet = ?)', [$id])
-->where('sow.Type','=','Serveur')
-->whereRaw('sow.IP_Host = vuln.Host')
-->where('sow.Projet','=',$id)
-->whereIn('Risk',['Critical', 'High', 'Medium', 'Low'])
-->whereRaw('vuln.Port IN (SELECT Ports_List FROM PortsMapping WHERE Utilisation=\'DB\')')
-->groupBy(['Risk','plugins.synopsis'])
-->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC')
-->get();
-
-
-$data2_rs = DB::table('vuln')
-->select('Risk', 'plugins.synopsis', DB::raw('count(DISTINCT Risk, plugins.synopsis, vuln.Host) as count'),
-DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_available')
-->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
-->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
-->whereRaw('vuln.upload_id IN (SELECT ID from uploadanomalies WHERE ID_Projet = ?)', [$id])
-->where('sow.Type', '=', 'R_S')
-->whereRaw('sow.IP_Host = vuln.Host')
-->where('sow.Projet', '=', $id)
-->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low'])
-->groupBy(['Risk', 'plugins.synopsis'])
-->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
-->get();
-$data2_pc = DB::table('vuln')
-->select('Risk', 'plugins.synopsis', DB::raw('count(DISTINCT Risk, plugins.synopsis, vuln.Host) as count'),
-DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_available')
-->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
-->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
-->whereRaw('vuln.upload_id IN (SELECT ID from uploadanomalies WHERE ID_Projet = ?)', [$id])
-->where('sow.Type', '=', 'PC')
-->whereRaw('sow.IP_Host = vuln.Host')
-->where('sow.Projet', '=', $id)
-->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low'])
-->groupBy(['Risk', 'plugins.synopsis'])
-->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
-->get();
-
-$data2_ext = DB::table('vuln')
-->select('Risk', 'plugins.synopsis', DB::raw('count(DISTINCT Risk, plugins.synopsis, vuln.Host) as count'),
-DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_available')
-->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
-->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
-->whereRaw('vuln.upload_id IN (SELECT ID from uploadanomalies WHERE ID_Projet = ?)', [$id])
-->where('sow.Type', '=', 'EXT')
-->whereRaw('sow.IP_Host = vuln.Host')
-->where('sow.Projet', '=', $id)
-->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low'])
-->groupBy(['Risk', 'plugins.synopsis'])
-->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
-->get();
-
-$data2_apps = DB::table('vuln')
-->select('Risk', 'plugins.synopsis', DB::raw('count(DISTINCT Risk, plugins.synopsis, vuln.Host) as count'), DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_available')
-->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
-->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
-->whereRaw('vuln.upload_id IN (SELECT ID from uploadanomalies WHERE ID_Projet = ?)', [$id])
-->where('sow.Type', '=', 'Apps')
-->whereRaw('sow.IP_Host = vuln.Host')
-->where('sow.Projet', '=', $id)
-->whereRaw('vuln.Port IN (SELECT Ports_List FROM PortsMapping WHERE UTILISATION=\'Apps\')')
-->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low'])
-->groupBy(['Risk', 'plugins.synopsis'])
-->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
-->get();
-$data2_mails = DB::table('vuln')
-->select('Risk', 'plugins.synopsis', DB::raw('count(DISTINCT Risk, plugins.synopsis, vuln.Host) as count'), DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_available')
-->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
-->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
-->whereRaw('vuln.upload_id IN (SELECT ID from uploadanomalies WHERE ID_Projet = ?)', [$id])
-->where('sow.Type', '=', 'Apps')
-->whereRaw('sow.IP_Host = vuln.Host')
-->where('sow.Projet', '=', $id)
-->whereRaw('vuln.Port IN (SELECT Ports_List FROM PortsMapping WHERE UTILISATION=\'Mail\')')
-->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low'])
-->groupBy(['Risk', 'plugins.synopsis'])
-->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
-->get();
-
-
-
-$data2_voip = DB::table('vuln')
-->select('Risk', 'plugins.synopsis', DB::raw('count(DISTINCT Risk, plugins.synopsis, vuln.Host) as count'),
-DB::raw('GROUP_CONCAT(DISTINCT HOST) AS nbr'), 'exploited_by_malware', 'exploit_available')
-->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
-->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
-->whereRaw('vuln.upload_id IN (SELECT ID from uploadanomalies WHERE ID_Projet = ?)', [$id])
-->where('sow.Type', '=', 'Apps')
-->whereRaw('sow.IP_Host = vuln.Host')
-->where('sow.Projet', '=', $id)
-->whereRaw('vuln.Port IN (SELECT Ports_List FROM PortsMapping WHERE UTILISATION=\'Voip\')')
-->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low'])
-->groupBy(['Risk', 'plugins.synopsis'])
-->orderByRaw('exploited_by_malware DESC, exploit_available DESC, Risk ASC, nbr DESC')
-->get();
-
-
-
-
-
-
-
-
-
-
-//////////////table3
-
-
-$data3_serv = DB::table('vuln')
-->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score','vuln.Plugin ID As Plugin_Id','plugins.age_of_vuln','vuln.Plugin Output As Plugin_Output',
-DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) AS Port'),
-DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
-DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
-->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
-->rightJoin('sow','vuln.Host','=','sow.IP_Host')
-->whereRaw('vuln.upload_id IN (SELECT ID from uploadanomalies WHERE ID_Projet=?)', [$id])
-->where('sow.Type','=','Serveur')
-->whereRaw('sow.IP_Host = vuln.Host')
-->where('sow.Projet','=',$id)
-->whereRaw('vuln.Port NOT IN (SELECT Ports_List FROM PortsMapping)')
-->whereIn('Risk',['Critical', 'High', 'Medium','Low'])
-->groupBy(['Risk','vuln.Synopsis'])
-->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC')
-->get();
-
- $data3_db = DB::table('vuln')
- ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score','vuln.Plugin ID As Plugin_Id','plugins.age_of_vuln','vuln.Plugin Output As Plugin_Output',
-DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) AS Port'),
-DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
-DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
-->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
-->rightJoin('sow','vuln.Host','=','sow.IP_Host')
-->whereRaw('vuln.upload_id IN (SELECT ID from uploadanomalies WHERE ID_Projet=?)', [$id])
-->where('sow.Type','=','Serveur')
-->whereRaw('sow.IP_Host = vuln.Host')
-->where('sow.Projet','=',$id)
-->whereRaw('vuln.Port IN (SELECT Ports_List FROM PortsMapping)')
-->whereRaw('vuln.Port IN (SELECT Ports_List FROM PortsMapping WHERE UTILISATION=\'DB\')')
-->whereIn('Risk',['Critical', 'High', 'Medium', 'Low'])
-->groupBy(['Risk','vuln.Synopsis'])
-->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC ')
-->get();
-
-
-
-
-
-
-$data3_rs = DB::table('vuln')
- ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score','vuln.Plugin ID As Plugin_Id','plugins.age_of_vuln','vuln.Plugin Output As Plugin_Output',
-DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) AS Port'),
-DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
-DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
-->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
-->rightJoin('sow','vuln.Host','=','sow.IP_Host')
-->whereRaw('vuln.upload_id IN (SELECT ID from uploadanomalies WHERE ID_Projet=?)', [$id])
-->where('sow.Type','=','R_S')
-->whereRaw('sow.IP_Host = vuln.Host')
-->where('sow.Projet','=',$id)
-->whereIn('Risk',['Critical', 'High', 'Medium', 'Low'])
-->groupBy(['Risk','vuln.Synopsis'])
-->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC')
-->get();
-
-$data3_pc = DB::table('vuln')
- ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score','vuln.Plugin ID As Plugin_Id','plugins.age_of_vuln','vuln.Plugin Output As Plugin_Output',
-DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) AS Port'),
-DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
-DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
-->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
-->rightJoin('sow','vuln.Host','=','sow.IP_Host')
-->whereRaw('vuln.upload_id IN (SELECT ID from uploadanomalies WHERE ID_Projet=?)', [$id])
-->where('sow.Type','=','PC')
-->whereRaw('sow.IP_Host = vuln.Host')
-->where('sow.Projet','=',$id)
-
-->whereIn('Risk',['Critical', 'High', 'Medium', 'Low'])
-->groupBy(['Risk','vuln.Synopsis'])
-->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC')
-->get();
-
-
-$data3_ext = DB::table('vuln')
- ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score','vuln.Plugin ID As Plugin_Id','plugins.age_of_vuln','vuln.Plugin Output As Plugin_Output',
-DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) AS Port'),
-DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
-DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
-->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
-->rightJoin('sow','vuln.Host','=','sow.IP_Host')
-->whereRaw('vuln.upload_id IN (SELECT ID from uploadanomalies WHERE ID_Projet=?)', [$id])
-->where('sow.Type','=','EXT')
-->whereRaw('sow.IP_Host = vuln.Host')
-->where('sow.Projet','=',$id)
-->whereIn('Risk',['Critical', 'High', 'Medium', 'Low'])
-->groupBy(['Risk','vuln.Synopsis'])
-->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC')
-->get();
-
-
-$data3_apps = DB::table('vuln')
- ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score','vuln.Plugin ID As Plugin_Id','plugins.age_of_vuln','vuln.Plugin Output As Plugin_Output',
-DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) AS Port'),
-DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
-DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
-->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
-->rightJoin('sow','vuln.Host','=','sow.IP_Host')
-->whereRaw('vuln.upload_id IN (SELECT ID from uploadanomalies WHERE ID_Projet=?)', [$id])
-->where('sow.Type','=','Apps')
-->whereRaw('sow.IP_Host = vuln.Host')
-->where('sow.Projet','=',$id)
-->whereRaw('vuln.Port IN (SELECT Ports_List FROM PortsMapping WHERE UTILISATION=\'Apps\')')
-->whereIn('Risk',['Critical', 'High', 'Medium', 'Low'])
-->groupBy(['Risk','vuln.Synopsis'])
-->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC')
-->get();
-
-
-
-$data3_mails = DB::table('vuln')
- ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score','vuln.Plugin ID As Plugin_Id','plugins.age_of_vuln','vuln.Plugin Output As Plugin_Output',
-DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) AS Port'),
-DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
-DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
-->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
-->rightJoin('sow','vuln.Host','=','sow.IP_Host')
-->whereRaw('vuln.upload_id IN (SELECT ID from uploadanomalies WHERE ID_Projet=?)', [$id])
-->where('sow.Type','=','Serveur')
-->whereRaw('sow.IP_Host = vuln.Host')
-->where('sow.Projet','=',$id)
-->whereRaw('vuln.Port IN (SELECT Ports_List FROM PortsMapping WHERE UTILISATION=\'Mail\')')
-->whereIn('Risk',['Critical', 'High', 'Medium', 'Low'])
-->groupBy(['Risk','vuln.Synopsis'])
-->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC')
-->get();
-
-
-
-$data3_voip = DB::table('vuln')
- ->select('vuln.Risk','vuln.Name','plugins.cvss3_base_score AS Score','vuln.Plugin ID As Plugin_Id','plugins.age_of_vuln','vuln.Plugin Output As Plugin_Output',
-DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) AS Port'),
-DB::raw('GROUP_CONCAT(DISTINCT vuln.Host) AS Elt_Impactes'),
-DB::raw('COUNT(*) AS nbr'),'vuln.Plugin ID','plugins.synopsis','plugins.description','plugins.solution','plugins.see_also AS See','plugins.exploit_available','plugins.exploit_framework_metasploit','plugins.exploit_framework_canvas','plugins.exploit_framework_core','plugins.exploited_by_malware','plugins.age_of_vuln')
-->leftJoin('plugins','vuln.Plugin ID','=','plugins.id')
-->rightJoin('sow','vuln.Host','=','sow.IP_Host')
-->whereRaw('vuln.upload_id IN (SELECT ID from uploadanomalies WHERE ID_Projet=?)', [$id])
-->where('sow.Type','=','Serveur')
-->whereRaw('sow.IP_Host = vuln.Host')
-->where('sow.Projet','=',$id)
-->whereRaw('vuln.Port IN (SELECT Ports_List FROM PortsMapping WHERE UTILISATION=\'Voip\')')
-->whereIn('Risk',['Critical', 'High', 'Medium', 'Low'])
-->groupBy(['Risk','vuln.Synopsis'])
-->orderByRaw('exploited_by_malware DESC,exploit_available DESC,Risk ASC,nbr DESC')
-->get();*/
-
-$data21_serv = DB::table('vuln')
-->select('vuln.Host', 'vuln.Name','Risk','plugins.synopsis',
-    DB::raw("IF( plugins.exploited_by_malware='true' , 'exploitable par malware', IF( plugins.exploit_available = 'true', 'exploit disponible', NULL)) AS exploitability"),
-    DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) as ports'),
-    'plugins.age_of_vuln')
-->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
-->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
-->whereIn('vuln.upload_id', function($query) use ($id) {
-    $query->select('ID')
-          ->from('uploadanomalies')
-          ->where('ID_Projet', '=', $id);
- })
-->where('sow.Type', '=', 'Serveur')
-->whereColumn('sow.IP_Host', 'vuln.Host')
-->where('sow.Projet', '=', $id)
-->whereNotIn('vuln.Port', function($query) {
-    $query->select('Ports_List')
-          ->from('PortsMapping');
-})
-->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low'])
-->groupBy('vuln.Host', 'vuln.Name')
-->orderBy('vuln.Host')
-->orderByDesc('exploitability')
-->orderByDesc('Risk')
-->get();
-/*
-
-
-
-
-
- $data21_db = DB::table('vuln')
-->select('vuln.Host', 'vuln.Name','Risk','plugins.synopsis',
-    DB::raw("IF( plugins.exploited_by_malware='true' , 'exploitable par malware', IF( plugins.exploit_available = 'true', 'exploit disponible', NULL)) AS exploitability"),
-    DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) as ports'),
-    'plugins.age_of_vuln')
-->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
-->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
-->whereIn('vuln.upload_id', function($query) use ($id) {
-    $query->select('ID')
-          ->from('uploadanomalies')
-          ->where('ID_Projet', '=', $id);
- })
-->where('sow.Type', '=', 'Serveur')
-->whereColumn('sow.IP_Host', 'vuln.Host')
-->where('sow.Projet', '=', $id)
-->whereIn('vuln.Port', function($query) {
-    $query->select('Ports_List')
-          ->from('PortsMapping')
-          ->where('Utilisation', '=', 'DB');
-})
-->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low'])
-->groupBy('vuln.Host', 'vuln.Name')
-->orderBy('vuln.Host')
-->orderByDesc('exploitability')
-->orderByDesc('Risk')
-->get();
-
-$data21_pc = DB::table('vuln')
-->select('vuln.Host', 'vuln.Name','Risk','plugins.synopsis',
-    DB::raw("IF( plugins.exploited_by_malware='true' , 'exploitable par malware', IF( plugins.exploit_available = 'true', 'exploit disponible', NULL)) AS exploitability"),
-    DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) as ports'),
-    'plugins.age_of_vuln')
-->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
-->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
-->whereIn('vuln.upload_id', function($query) use ($id) {
-    $query->select('ID')
-          ->from('uploadanomalies')
-          ->where('ID_Projet', '=', $id);
- })
-->where('sow.Type', '=', 'PC')
-->whereColumn('sow.IP_Host', 'vuln.Host')
-->where('sow.Projet', '=', $id)
-->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low'])
-->groupBy('vuln.Host', 'vuln.Name')
-->orderBy('vuln.Host')
-->orderByDesc('exploitability')
-->orderByDesc('Risk')
-->get();
-
-$data21_ext = DB::table('vuln')
-->select('vuln.Host', 'vuln.Name','Risk','plugins.synopsis',
-    DB::raw("IF( plugins.exploited_by_malware='true' , 'exploitable par malware', IF( plugins.exploit_available = 'true', 'exploit disponible', NULL)) AS exploitability"),
-    DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) as ports'),
-    'plugins.age_of_vuln')
-->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
-->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
-->where('sow.Type', '=', 'EXT')
-->whereColumn('sow.IP_Host', 'vuln.Host')
-->where('sow.Projet', '=', $id)
-->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low'])
-->groupBy('vuln.Host', 'vuln.Name')
-->orderBy('vuln.Host')
-->orderByDesc('exploitability')
-->orderByDesc('Risk')
-->get();
-
-$data21_apps = DB::table('vuln')
-->select('vuln.Host', 'vuln.Name','Risk','plugins.synopsis',
-    DB::raw("IF( plugins.exploited_by_malware='true' , 'exploitable par malware', IF( plugins.exploit_available = 'true', 'exploit disponible', NULL)) AS exploitability"),
-    DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) as ports'),
-    'plugins.age_of_vuln')
-->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
-->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
-->whereIn('vuln.upload_id', function($query) use ($id) {
-    $query->select('ID')
-          ->from('uploadanomalies')
-          ->where('ID_Projet', '=', $id);
- })
-->where('sow.Type', '=', 'Apps')
-->whereColumn('sow.IP_Host', 'vuln.Host')
-->where('sow.Projet', '=', $id)
-->whereIn('vuln.Port', function($query) {
-    $query->select('Ports_List')
-          ->from('PortsMapping')
-          ->where('Utilisation', '=', 'Apps');
-})
-->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low'])
-->groupBy('vuln.Host', 'vuln.Name')
-->orderBy('vuln.Host')
-->orderByDesc('exploitability')
-->orderByDesc('Risk')
-->get();
-
-$data21_mails = DB::table('vuln')
-->select('vuln.Host', 'vuln.Name','Risk','plugins.synopsis',
-    DB::raw("IF( plugins.exploited_by_malware='true' , 'exploitable par malware', IF( plugins.exploit_available = 'true', 'exploit disponible', NULL)) AS exploitability"),
-    DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) as ports'),
-    'plugins.age_of_vuln')
-->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
-->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
-->whereIn('vuln.upload_id', function($query) use ($id) {
-    $query->select('ID')
-          ->from('uploadanomalies')
-          ->where('ID_Projet', '=', $id);
- })
-->where('sow.Type', '=', 'Serveur')
-->whereColumn('sow.IP_Host', 'vuln.Host')
-->where('sow.Projet', '=', $id)
-->whereIn('vuln.Port', function($query) {
-    $query->select('Ports_List')
-          ->from('PortsMapping')
-          ->where('Utilisation', '=', 'Mail');
-})
-->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low'])
-->groupBy('vuln.Host', 'vuln.Name')
-->orderBy('vuln.Host')
-->orderByDesc('exploitability')
-->orderByDesc('Risk')
-->get();
-
-$data21_voip = DB::table('vuln')
-->select('vuln.Host', 'vuln.Name','Risk','plugins.synopsis',
-    DB::raw("IF( plugins.exploited_by_malware='true' , 'exploitable par malware', IF( plugins.exploit_available = 'true', 'exploit disponible', NULL)) AS exploitability"),
-    DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) as ports'),
-    'plugins.age_of_vuln')
-->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
-->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
-->whereIn('vuln.upload_id', function($query) use ($id) {
-    $query->select('ID')
-          ->from('uploadanomalies')
-          ->where('ID_Projet', '=', $id);
- })
-->where('sow.Type', '=', 'Serveur')
-->whereColumn('sow.IP_Host', 'vuln.Host')
-->where('sow.Projet', '=', $id)
-->whereIn('vuln.Port', function($query) {
-    $query->select('Ports_List')
-          ->from('PortsMapping')
-          ->where('Utilisation', '=', 'Voip');
-})
-->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low'])
-->groupBy('vuln.Host', 'vuln.Name')
-->orderBy('vuln.Host')
-->orderByDesc('exploitability')
-->orderByDesc('Risk')
-->get();
-$data21_rs = DB::table('vuln')
-->select('vuln.Host', 'vuln.Name','Risk','plugins.synopsis',
-    DB::raw("IF( plugins.exploited_by_malware='true' , 'exploitable par malware', IF( plugins.exploit_available = 'true', 'exploit disponible', NULL)) AS exploitability"),
-    DB::raw('GROUP_CONCAT(DISTINCT vuln.Port) as ports'),
-    'plugins.age_of_vuln')
-->leftJoin('plugins', 'vuln.Plugin ID', '=', 'plugins.id')
-->rightJoin('sow', 'vuln.Host', '=', 'sow.IP_Host')
-->whereIn('vuln.upload_id', function($query) use ($id) {
-    $query->select('ID')
-          ->from('uploadanomalies')
-          ->where('ID_Projet', '=', $id);
- })
-->where('sow.Type', '=', 'R_S')
-->whereColumn('sow.IP_Host', 'vuln.Host')
-->where('sow.Projet', '=', $id)
-->whereIn('Risk', ['Critical', 'High', 'Medium', 'Low'])
-->groupBy('vuln.Host', 'vuln.Name')
-->orderBy('vuln.Host')
-->orderByDesc('exploitability')
-->orderByDesc('Risk')
-->get();
-*/
 ?>
