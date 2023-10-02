@@ -64,101 +64,107 @@ class WordDocumentController3 extends Controller
         }
     }
 
+    private static function generateGlobalTableOfRowsWithTwoLevels( $templateProcessor,$query, $prjID, $KeyToDuplicateRows, $ColoredRowsArrays,$ColoredField, $prefixStats)
+    {
+        $AllRows=  DB::select($query,[$prjID,$prjID]);
 
-    private static function generateGlobalTableOfRows( $templateProcessor,$query, $prjID, $KeyToDuplicateRows, $ColoredRowsArrays,$ColoredField, $prefixStats, $TwoLevelsTables)
+           $TwoLevelsTablesAllRows = [];
+           for ($i=0;$i<count($AllRows);$i++)
+           {
+               foreach($AllRows[$i] as $key=>$value)
+                   {
+
+                       if(is_string($value) && str_contains($key, "ToBeClean"))   $AllRows[$i]->$key= self::cleanNewLineProblem($AllRows[$i]->$key, str_contains($key,"ref"));
+                   }
+
+                   $TwoLevelsTablesAllRows[$AllRows[$i]->$KeyToDuplicateRows] [$AllRows[$i]->$ColoredField][]=$AllRows[$i];
+           }
+           if($i>0)
+
+           {
+            $singleRow=$AllRows[0];
+
+            $templateProcessor->cloneRow($KeyToDuplicateRows,  count($TwoLevelsTablesAllRows));
+            $hostNumber=0;
+            foreach ($TwoLevelsTablesAllRows as $HostSection)
+            {
+                $hostNumber++;
+
+
+                foreach($ColoredRowsArrays as $colorRow)
+                {
+
+                    if(isset($HostSection[$colorRow]))
+                    {
+                                $templateProcessor->cloneRow($colorRow."_".$ColoredField."#".$hostNumber,  count($HostSection[$colorRow]));
+                                $templateProcessor->setValue($KeyToDuplicateRows."_ip#".$hostNumber, $HostSection[$colorRow][0]->$KeyToDuplicateRows );
+
+
+                            $order=1;
+                            foreach($HostSection[$colorRow] as $HostOneVuln)
+                            {
+
+                                foreach ($HostOneVuln as $key => $value)
+                                {
+                               //     var_dump($HostOneVuln); exit;
+
+                                    $templateProcessor->setValue($colorRow."_".$key."#".$hostNumber."#".$order,  $value);
+                                    $templateProcessor->setValue($key."#".$hostNumber."#".$order,  $value);
+                                }
+                                $order++;
+                            }
+                    }
+                    else $templateProcessor->cloneRowAndSetValues($colorRow."_".$ColoredField."#".$hostNumber, []);
+
+                }
+
+            }
+           }
+
+
+           return count($AllRows);
+    }
+
+
+
+
+
+
+
+
+
+
+
+    private static function generateGlobalTableOfRows( $templateProcessor,$query, $prjID, $KeyToDuplicateRows, $ColoredRowsArrays,$ColoredField, $prefixStats)
     {
 
 //var_dump($query);exit;
        $AllRows=  DB::select($query,[$prjID,$prjID]);
-
+    //   var_dump($AllRows);exit;
        $AllRowsPerColor=[];
-       $TwoLevelsTablesAllRows = [];
+
         for ($i=0;$i<count($AllRows);$i++)
         {
             foreach($AllRows[$i] as $key=>$value)
                 {
+
                     if(is_string($value) && str_contains($key, "ToBeClean"))   $AllRows[$i]->$key= self::cleanNewLineProblem($AllRows[$i]->$key, str_contains($key,"ref"));
                 }
 
 
             if(isset($ColoredField))
             {
-                    if(isset($TwoLevelsTables))
-                    {
-                        $TwoLevelsTablesAllRows[$AllRows[$i]->$KeyToDuplicateRows] [$AllRows[$i]->$ColoredField][]=$AllRows[$i];
-                    }
-                    else
-                    {
+
                         $newField=  $AllRows[$i]->$ColoredField."_" . $ColoredField ;
                         $AllRows[$i]->$newField=$AllRows[$i]->$ColoredField;
                         $AllRowsPerColor[$AllRows[$i]->$ColoredField][]=$AllRows[$i];
-                    }
-                }
+
+             }
         }
 
      //   var_dump($TwoLevelsTablesAllRows); exit;
         if($i>0) $singleRow=$AllRows[0];
 
-        if(isset($TwoLevelsTables)) {
-                    $templateProcessor->cloneRow($KeyToDuplicateRows,  count($TwoLevelsTablesAllRows));
-
-                    $hostNumber=0;
-
-                    foreach ($TwoLevelsTablesAllRows as $HostSection)
-                    {
-                        ++$hostNumber;
-                        $hostUpdated=0;
-                        foreach($HostSection as $VulnOfHostPerRistTab)
-                        {
-                            $i=0;
-                            foreach ($VulnOfHostPerRistTab as $VulnOfHostOrig)
-                            {
-                                $VulnOfHost = clone $VulnOfHostOrig;
-                                foreach ($VulnOfHost as $k=>$v)
-                                {
-                                    $newField = $k ."#".$hostNumber ;
-                            //        var_dump($VulnOfHost->$ColoredField,$k,$newField ,$v,  $HostSection[$VulnOfHost->$ColoredField][$i]);
-                                     if ( str_contains ($k, $ColoredField)) $newField =$VulnOfHost->$ColoredField . "_" .  $newField;
-                                    $HostSection[$VulnOfHost->$ColoredField][$i]->$newField=$v;
-                               //     var_dump($VulnOfHost->$ColoredField,$k,$newField ,$v,  $HostSection[$VulnOfHost->$ColoredField][$i]);
-                                    if($hostUpdated==0)
-                                    {$templateProcessor->setValue("VulnPerHost_host#".$hostNumber,$HostSection[$VulnOfHost->$ColoredField][$i]->$KeyToDuplicateRows );
-                                    var_dump("VulnPerHost_host#".$hostNumber,$HostSection[$VulnOfHost->$ColoredField][$i]->$KeyToDuplicateRows);
-                                    $hostUpdated=1;
-                                    }
-                                }
-
-                                $i++;
-
-                            }
-                       //     exit;
-
-                        }
-
-
-                    }
-
- //  var_dump($TwoLevelsTablesAllRows); return 99;
-$kk=0;
-foreach ($TwoLevelsTablesAllRows as $HostSection)
-                    {
-                        ++$hostNumber;
-
-                                    foreach($ColoredRowsArrays as $colorRow)
-                                    {
-                                    if (isset( $HostSection[$colorRow]))
-                                    {
-                                        $kk++;
-                                     var_dump($colorRow."_".$ColoredField."#".$hostNumber,  $HostSection[$colorRow]);
-                                    $templateProcessor->cloneRowAndSetValues($colorRow."_".$ColoredField."#".$hostNumber,  $HostSection[$colorRow]);
-                                 //   if($kk==2) return 5;
-                                    }
-                                //   else  $templateProcessor->cloneRowAndSetValues($colorRow."_".$ColoredField."#".$hostNumber,  []);
-                                }
-
-                }
-        return  999;
-                }
 
               //  var_dump("_".$ColoredField, $AllRowsPerColor); exit;
        if(isset($ColoredField))
@@ -195,8 +201,8 @@ foreach ($TwoLevelsTablesAllRows as $HostSection)
             $project =Project::find($prj_id);
             $customer =Customer::find($project->customer_id);
             $arrayConfig=array(
-                "3.docx" => array(2),
-       //         "4.docx" => array(3),
+                "3.docx" => array(0,1,2),
+                "4.docx" => array(3),
             );
 
             foreach($annex_id as $Annex)
@@ -208,12 +214,12 @@ foreach ($TwoLevelsTablesAllRows as $HostSection)
                     $nbrOfRowsAddedToFile=0;
                     $templatePath = public_path($tmplate);
                     $templateProcessor = new TemplateProcessor($templatePath);
-               //     self::preparePagesDeGarde($templateProcessor, $Annex,$customer, $project );
+                    self::preparePagesDeGarde($templateProcessor, $Annex,$customer, $project );
                     foreach($listOfDocParts as $i)
                         {
                             $isitComplex=null;
-                            if ($i==2) $isitComplex="Yes";
-                            $nbrOfRowsAddedToFile+= self::generateGlobalTableOfRows($templateProcessor,str_replace($SqlQueriesMarks[0], $SqlQueriesMarks[$Annex], $DefaultQuery[$i]), $prj_id,$keyToDuplicateRows[$i], $ColoredRowsArrays[$i],$RowOfColoring[$i], $prefixTLT[$i],$isitComplex);
+                            if ($i==2)  $nbrOfRowsAddedToFile+= self::generateGlobalTableOfRowsWithTwoLevels($templateProcessor,str_replace($SqlQueriesMarks[0], $SqlQueriesMarks[$Annex], $DefaultQuery[$i]), $prj_id,$keyToDuplicateRows[$i], $ColoredRowsArrays[$i],$RowOfColoring[$i], $prefixTLT[$i]);
+                           else $nbrOfRowsAddedToFile+= self::generateGlobalTableOfRows($templateProcessor,str_replace($SqlQueriesMarks[0], $SqlQueriesMarks[$Annex], $DefaultQuery[$i]), $prj_id,$keyToDuplicateRows[$i], $ColoredRowsArrays[$i],$RowOfColoring[$i], $prefixTLT[$i]);
                         }
                 $outputFileName = $prj_id .'_tchRpt_Annx_' . self::$AnnexesLetters[$Annex] .$iteration."_".self::$AnnexesTitles[$Annex]."_".$customer->SN. '.docx';
                 $outputPath = public_path('storage/' . $outputFileName);

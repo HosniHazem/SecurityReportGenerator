@@ -111,7 +111,7 @@ $DefaultQuery = array (
 
 
 $RowOfColoring = array(0=>null, 1=>"VulnSummary_Risk", 2=>"VulnPerHost_Risk", 3=>null);
-$keyToDuplicateRows = array(0=>"Hosts_Name", 1=>"VulnSummary_Risk", 2=>"VulnPerHost_host_ip", 3=>"VulnDetails_ID");
+$keyToDuplicateRows = array(0=>"Hosts_Name", 1=>"VulnSummary_Risk", 2=>"VulnPerHost_host", 3=>"VulnDetails_ID");
 $prefixTLT = array(0=>"TLT_", 1=>null, 2=>null, 3=>null);
 $ColoredRowsArrays= array (
     0=>null,
