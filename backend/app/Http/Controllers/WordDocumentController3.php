@@ -67,10 +67,11 @@ class WordDocumentController3 extends Controller
     private static function generateGlobalTableOfRowsWithTwoLevels( $templateProcessor,$query, $prjID, $KeyToDuplicateRows, $ColoredRowsArrays,$ColoredField, $prefixStats)
     {
         $AllRows=  DB::select($query,[$prjID,$prjID]);
-
+//print_r( $AllRows);exit;
            $TwoLevelsTablesAllRows = [];
            for ($i=0;$i<count($AllRows);$i++)
            {
+
                foreach($AllRows[$i] as $key=>$value)
                    {
 
@@ -193,7 +194,10 @@ class WordDocumentController3 extends Controller
     public function generateWordDocument(Request $request)
     {
         set_time_limit(5000);
+        //ini_set('memory_limit', '1G');
+
         $annex_id =  $request->annex_id;
+    //    var_dump(get_object_vars($request)); exit;
         include ("sqlRequests.php");
         $listOfFile=[];
         foreach($request->project_id as $prj_id)

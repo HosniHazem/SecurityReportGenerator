@@ -21,12 +21,14 @@ export default function SelectTextFields() {
   const [jsonData, setJsonData] = useState([]);
   const [checkedItems, setCheckedItems] = useState(() => {
     // Initialize checkedItems with all items checked by default
+
     const initialCheckedItems = {};
     jsonData.forEach((item) => {
       initialCheckedItems[item.id] = true;
     });
     return initialCheckedItems;
   });
+
   const [exporting, setExporting] = useState(false); 
 
   useEffect(() => {
@@ -43,7 +45,7 @@ export default function SelectTextFields() {
   }, []);
 
   const [Vm, setVm] = useState(); 
-console.log(Host);
+
   useEffect(() => {
     axios.get("http://webapp.smartskills.local:8002/api/get_vm").then((res) => {
       if (res.status === 200) {
@@ -76,7 +78,6 @@ console.log(Host);
     // Store the folder name in session storage
     sessionStorage.setItem('description', folderName);
 
-    // Rest of your code...
   }
     // Initialize checkedItems with all items checked for the selected scans
     const initialCheckedItems = {};
@@ -86,7 +87,7 @@ console.log(Host);
   
 
     setJsonData(scansForSelectedFolder);
-    setCheckedItems(initialCheckedItems); // Set initial checked state
+    setCheckedItems(initialCheckedItems); 
   };
 
   const handleVmChange = (event) => {
@@ -108,47 +109,22 @@ console.log(Host);
   };
 
   const handleExport = (event) => {
-    event.preventDefault(); // Prevent form submission and page refresh
+    // Prevent form submission and page refresh
+    event.preventDefault(); 
     let parsedData = {};
     const Label = sessionStorage.getItem('project_name');
     const description = sessionStorage.getItem('description');
-
-
-
-    let Data = {
-      Source: 'Nessus' ,
-      ID_Projet: project_id,
-      Label : Label,
-      Description : description
-    };
-
-    axios.post('http://webapp.smartskills.local:8002/api/uploadanomalie',Data)
-    .then((response) => {
-      if(response.data.status===200){
-        sessionStorage.setItem('createdId',response.data.createdId);
-      }
-      })
-      .catch((error) => {
-        // Handle errors
-        console.error('Error sending data:', error);
-      });
-   
-
-
-
-
-
     const Export_links = sessionStorage.getItem('Export_links');
-    const createdId = sessionStorage.getItem('createdId');
-   
 
  // Initialize parsedData as an empty object
 parsedData.links = JSON.parse(Export_links);
-parsedData.createdId = createdId;
 parsedData.project_id = project_id;
+parsedData.Label = Label;
+parsedData.description = description;
 
 console.log(parsedData);
-    setExporting(true);
+
+     setExporting(true);
     axios.post('http://webapp.smartskills.local:8002/api/ImportAll',parsedData)
     .then((response) => {
       if(response.data.status===200){
@@ -166,10 +142,10 @@ console.log(parsedData);
     }) 
     .finally(() => {
       // Set exporting to false when export completes (whether successful or not)
-      setExporting(false);
+      setExporting(false); 
       
     });   
-  
+   
   };
   const handleImport = (event) => {
     event.preventDefault(); // Prevent form submission and page refresh

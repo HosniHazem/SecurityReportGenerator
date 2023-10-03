@@ -23,6 +23,8 @@ class TestController extends Controller
     public function get()
     {
         $id = 2;
+        $csvContent=file_get_contents("c:/tmp/288.csv");
+        file_put_contents("c:/tmp/cclean288.csv", preg_replace('/[\x00-\x09\x11\x12\x14-\x1F\x7F]/u', '', $csvContent));
 
 /*
         $data_serv = DB::table(DB::raw('(SELECT
@@ -103,7 +105,7 @@ class TestController extends Controller
         ->orderByDesc('exploitability')
         ->orderByDesc('Risk')
         ->get();*/
-
+/*
 $string= "L’hôte Windows distant ne dispose pas de la mise à jour de sécurité KB4025339. Il est donc {{1}} affecté par plusieurs vulnérabilités : {{1}} {{1}} - Une vulnérabilité de divulgation d'informations existe dans la {{1}} console Windows Performance Monitor en raison d'un {{1}} incorrect. analyse d'une entrée XML contenant une référence à une entité externe {{1}}. Un attaquant distant non authentifié {{1}} peut exploiter cela, en convainquant un utilisateur de créer un {{1}} ensemble de collecteurs de données et d'importer un fichier XML {{1}} spécialement conçu, pour divulguer des fichiers arbitraires via un fichier XML externe. Déclaration d'entité {{1}} (XXE). (CVE-2017-0170) {{1}} {{1}} - Il existe une vulnérabilité d'exécution de code à distance dans l'Explorateur Windows {{1}} en raison d'une mauvaise gestion des fichiers exécutables {{1}} et des partages lors des opérations de changement de nom. Un attaquant distant {{1}} non authentifié peut exploiter cela, en convainquant un utilisateur {{1}} d'ouvrir un fichier spécialement conçu, pour exécuter du code {{1}} arbitraire dans le contexte de l'utilisateur actuel. (CVE-2017-8463) {{1}} {{1}} - Plusieurs vulnérabilités d'élévation de privilèges existent dans {{1}} le composant Microsoft Graphics en raison d'une mauvaise gestion {{1}} des objets en mémoire. Un attaquant local peut {{1}} les exploiter, via une application spécialement conçue, pour {{1}} exécuter du code arbitraire en mode noyau. (CVE-2017-8467, {{1}} CVE-2017-8556, CVE-2017-8573, CVE-2017-8574, {{1}} CVE-2017-8577, CVE-2017-8578, CVE-2017 -8580) {{1}} {{1}} - Une vulnérabilité de divulgation d'informations existe dans Win32k {{1}} en raison d'une mauvaise gestion des objets en mémoire. Un attaquant local {{1}} peut exploiter cela, via une application {{1}} spécialement conçue, pour divulguer des informations sensibles. {{1}} (CVE-2017-8486) {{1}} {{1}} - Une vulnérabilité de contournement de sécurité existe dans Microsoft {{1}} Windows lors du traitement des échanges de tickets Kerberos en raison d\'un échec {{1}} pour empêcher la falsification du champ SNAME. Un {{1}} homme dans le";
 
 
@@ -126,10 +128,10 @@ $string= "L’hôte Windows distant ne dispose pas de la mise à jour de sécuri
         $string = preg_replace( $pattern31 , " ", $string);
 
 
-        $string = preg_replace('/[\x00-\x1F\x7F]/u', '', $string);*/
+        $string = preg_replace('/[\x00-\x1F\x7F]/u', '', $string);
         $replacement = "</w:t></w:r><w:r><w:br/><w:t>";
-        $string = preg_replace($pattern11,'${1}'. $replacement, $string);
-        return $string;
+        $string = preg_replace($pattern11,'${1}'. $replacement, $string);*/
+        return "";
 
 
 

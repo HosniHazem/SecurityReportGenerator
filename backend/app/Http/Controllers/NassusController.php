@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
 use App\Models\Vuln;
 use App\Models\Sow;
+use App\Models\Uploadanomalies;
 use App\Models\Plugins;
 use clsTbsZip;
 session_start();
@@ -18,14 +19,103 @@ session_start();
 class NassusController extends Controller
 {
 
+    public static   $toBeCleanAndTranslatedArray = array(
+        'name',
+        'description',
+        'solution',
+        'synopsis',
+        'see_also'
+    );
+
+    public static function PrepareForUploadToDB ($fieldName, $string)
+    {
+
+
+
+        if(in_array($fieldName , self::$toBeCleanAndTranslatedArray) )
+        {
+            $pattern1 = "/([[:punct:]]+ *)(\n)+/";
+            $pattern2 = "/(\n)+( *-)/";
+            $pattern3 = "/(\n)+/";
+            $replacement = "{{1}}";
+
+            $string = preg_replace($pattern1, '${1}'." ", $string);
+            $string = preg_replace($pattern2, $replacement.'${2}', $string);
+            $string = preg_replace($pattern3, $replacement.'${2}', $string);
+            $string = preg_replace('/[\x00-\x1F\x7F]/u', '', $string);
+        }
+        return $string;
+    }
+
+
+    public function __construct()
+    {
+        $this->apiKeys = [
+            'accessKey' => 'a507ad2749850e9acc8543f56284896b8792e9cf9b0dd54f8c35802e47c3fed5',
+            'secretKey' => '663fd55660cbdd8ccf1d603d4adf3d4b8c2d6394122c77ddea66ad311e77decb',
+        ];
+
+        $this->nessusBaseUrl = 'https://10.0.33.58:8834';
+    }
+    private function getApiKeysHeader()
+    {
+        return "accessKey={$this->apiKeys['accessKey']}; secretKey={$this->apiKeys['secretKey']}";
+    }
+
+
+
+    // Helper function to map attributes from Nessus response to Plugins model
+    private function mapAttributes($item, $attributesToMap)
+    {
+        $attributesToMap = [
+            'id',
+            'fname',
+            'name',
+            'plugin_name',
+            'description',
+            'solution',
+            'script_version',
+            'script_copyright',
+            'cvss3_vector',
+            'cvss_score_source',
+            'cvss_temporal_vector',
+            'exploit_framework_core',
+            'exploit_framework_metasploit',
+            'exploit_framework_canvas',
+            'risk_factor',
+            'cvss_temporal_score',
+            'plugin_publication_date',
+            'metasploit_name',
+            'exploited_by_malware',
+            'cvss3_base_score',
+            'cvss_vector',
+            'plugin_type',
+            'synopsis',
+            'see_also',
+            'exploit_available',
+            'cvss_base_score',
+            'stig_severity',
+            'age_of_vuln',
+            'cvssV3_impactScore',
+            'exploit_code_maturity',
+            'family_name',
+        ];
+
+        foreach ($attributesToMap as $attribute) {
+            if (isset($attributesToMap[$attribute])) {
+                $item->{$attribute} = $attributesToMap[$attribute];
+            }
+        }
+    }
+
+
     public function GetAll(Request $request)
     {
         $response = Http::withOptions([
             'verify' => false, // Disable SSL verification
         ])->withHeaders([
-            'X-ApiKeys' => 'accessKey=a507ad2749850e9acc8543f56284896b8792e9cf9b0dd54f8c35802e47c3fed5; secretKey=663fd55660cbdd8ccf1d603d4adf3d4b8c2d6394122c77ddea66ad311e77decb',
-        ])->get('https://10.0.33.58:8834/scans');
-
+            'X-ApiKeys' => $this->getApiKeysHeader(),
+        ])->get("{$this->nessusBaseUrl}/scans");
         // Decode the JSON response data
         $responseData = json_decode($response->body(), true); // true to convert it to an associative array
 
@@ -39,7 +129,7 @@ class NassusController extends Controller
 
     public function ExportAll(Request $request)
     {
-       
+        set_time_limit(5000);
         $csvDirectory ='C:\\xampp\\mysql\\data\\tactio2z_officekiller';
         $csvs = glob($csvDirectory . '/*.csv'); // Get a list of all PNG files in the directory
 
@@ -54,8 +144,8 @@ foreach ($jsonData as $item) {
     $response = Http::withOptions([
         'verify' => false, // Disable SSL verification
     ])->withHeaders([
-        'X-ApiKeys' => 'accessKey=a507ad2749850e9acc8543f56284896b8792e9cf9b0dd54f8c35802e47c3fed5; secretKey=663fd55660cbdd8ccf1d603d4adf3d4b8c2d6394122c77ddea66ad311e77decb',
-    ])->post("https://10.0.33.58:8834/scans/{$e}/export", [
+        'X-ApiKeys' => $this->getApiKeysHeader(),
+    ])->post("{$this->nessusBaseUrl}/scans/{$e}/export", [
         'format' => 'csv',
         'template_id' => 'false',
         'reportContents.hostSections.scan_information'=> 'true',
@@ -82,18 +172,18 @@ foreach ($jsonData as $item) {
     $response = Http::withOptions([
         'verify' => false, // Disable SSL verification
     ])->withHeaders([
-        'X-ApiKeys' => 'accessKey=a507ad2749850e9acc8543f56284896b8792e9cf9b0dd54f8c35802e47c3fed5; secretKey=663fd55660cbdd8ccf1d603d4adf3d4b8c2d6394122c77ddea66ad311e77decb',
-    ])->get("https://10.0.33.58:8834/scans/{$e}");
+        'X-ApiKeys' => $this->getApiKeysHeader(),
+    ])->get("{$this->nessusBaseUrl}/scans/{$e}");
 
     // Decode the JSON response data
     $responseData = json_decode($response->body(), true); // true to convert it to an associative array
-    foreach ($responseData['hosts'] as $host) { 
+    foreach ($responseData['hosts'] as $host) {
  $one = $host['host_id'];
  $response = Http::withOptions([
     'verify' => false, // Disable SSL verification
 ])->withHeaders([
-    'X-ApiKeys' => 'accessKey=a507ad2749850e9acc8543f56284896b8792e9cf9b0dd54f8c35802e47c3fed5; secretKey=663fd55660cbdd8ccf1d603d4adf3d4b8c2d6394122c77ddea66ad311e77decb',
-])->get("https://10.0.33.58:8834/scans/{$e}/hosts/{$one}");
+    'X-ApiKeys' => $this->getApiKeysHeader(),
+])->get("{$this->nessusBaseUrl}/scans/{$e}/hosts/{$one}");
 
 $responseData2 = json_decode($response->body(), true); // true to convert it to an associative array
 $host_ip = $responseData2['info']['host-ip'];
@@ -134,178 +224,130 @@ $filesJson = json_encode($filesData);
 
 
 
-
     public function ImportAll(Request $request)
     {
+        set_time_limit(5000);
         $json = $request->all();
-
         $jsonData = $json['links'];
-        $createdId = $json['createdId'];
+        $prj_id = $json['project_id'];
+        $lab = $json['Label'];
+        $des = $json['description'];
+
         $verif = 'true';
+/////Upload Anomalie Creation
+        $upload =new Uploadanomalies();
+        $upload->Upload_Date=date('Y-m-d');
+        $upload->Source='Nessus';
+        $upload->Label=$lab;
+        $upload->Description=$des;
+        $upload->ID_Projet= $prj_id;
+        $upload->save();
 
-         // Create an array to store the readiness status for each item
-
+ $createdId = $upload->id;
         foreach ($jsonData as $item) {
+            $i = $item["file"];
+            $e = $item["scan"];
 
-            $i=$item["file"];
-            $e=$item["scan"];
-
+            // Check the status of the exported file
             $response = Http::withOptions([
-                'verify' => false, // Disable SSL verification
+                'verify' => false,
             ])->withHeaders([
-                'X-ApiKeys' => 'accessKey=a507ad2749850e9acc8543f56284896b8792e9cf9b0dd54f8c35802e47c3fed5; secretKey=663fd55660cbdd8ccf1d603d4adf3d4b8c2d6394122c77ddea66ad311e77decb',
-            ])->get("https://10.0.33.58:8834/scans/{$e}/export/{$i}/status");
+                'X-ApiKeys' => $this->getApiKeysHeader(),
+            ])->get("{$this->nessusBaseUrl}/scans/{$e}/export/{$i}/status");
 
- $responseData = json_decode($response->body(), true);
-
-if($response->successful())
-{
-
-    } else {
-        $verif = 'false';
-    }
-
-
-        }
-
- if ($verif === 'false') {
-        return response()->json(['message' => 'not done', 'status' => 404]);
-    }
-else {
-    $csvPaths = [];
-        foreach ($jsonData as $item) {
-
-            $i=$item["file"];
-            $e=$item["scan"];
-
-            $response = Http::withOptions([
-                'verify' => false, // Disable SSL verification
-            ])->withHeaders([
-                'X-ApiKeys' => 'accessKey=a507ad2749850e9acc8543f56284896b8792e9cf9b0dd54f8c35802e47c3fed5; secretKey=663fd55660cbdd8ccf1d603d4adf3d4b8c2d6394122c77ddea66ad311e77decb',
-            ])->get("https://10.0.33.58:8834/scans/{$e}/export/{$i}/download");
+            $responseData = json_decode($response->body(), true);
 
             if ($response->successful()) {
-                // Save the CSV content to a file in the storage/csv folder
-                $csvContent = $response->body();
-                $customPath = 'C:\\xampp\\mysql\\data\\tactio2z_officekiller';
-
-            // Build the full path to save the file
-            $csvPath = "{$customPath}/{$e}.csv";
-
-            // Save the CSV content to the custom path
-            file_put_contents($csvPath, $csvContent);
-            $csvPaths[] = [
-                'name' => $e . '.csv',
-                'scan' => $e,
-                'file' => $i,
-            ];
-
-
+                // Handle success
+            } else {
+                $verif = 'false';
             }
         }
-         foreach ($csvPaths as $csvPath) {
-            $path = $csvPath['name'];
-            $sc = $csvPath['scan'];
-            $fi = $csvPath['file'];
 
-             $loadDataSQL = "LOAD DATA INFILE '{$path}' IGNORE
-             INTO TABLE vuln
-             FIELDS TERMINATED BY ','
-             ENCLOSED BY '\"'
-             LINES TERMINATED BY '\r\n'
-             IGNORE 1 LINES
-              (`Plugin ID`,CVE,`CVSS v2.0 Base Score`,Risk,Host,Protocol,Port,Name,Synopsis,Description,Solution,`See Also`,`Plugin Output`)
-              SET upload_id={$createdId}, scan={$sc} , file={$fi}
-              ;";
+        if ($verif === 'false') {
+            return response()->json(['message' => 'not done', 'status' => 404]);
+        } else {
+            $csvPaths = [];
+            foreach ($jsonData as $item) {
+                $i = $item["file"];
+                $e = $item["scan"];
 
-        // Execute query
-        DB::statement($loadDataSQL);
-          }
+                // Download the exported CSV file
+                $response = Http::withOptions([
+                    'verify' => false,
+                ])->withHeaders([
+                    'X-ApiKeys' => $this->getApiKeysHeader(),
+                ])->get("{$this->nessusBaseUrl}/scans/{$e}/export/{$i}/download");
 
+                if ($response->successful()) {
+                    // Save the CSV content to a file
+                    $csvContent = $response->body();
+                    $customPath = 'C:\\xampp\\mysql\\data\\tactio2z_officekiller';
+                    $csvPath = "{$customPath}/{$e}.csv";
+                    file_put_contents($csvPath, preg_replace('/[\x00-\x09\x11\x12\x14-\x1F\x7F]/u', '', $csvContent));
+                   // file_put_contents($csvPath,  $csvContent);
 
-          $pluginIds = DB::table('vuln as v')
-          ->select('v.Plugin ID as PluginID')
-          ->distinct()
-          ->whereNotIn('v.Plugin ID', function($query) {
-            $query->select('id')
-                  ->from('plugins');
-          })
-          ->get();
-          foreach ($pluginIds as $plugin) {
-
-           $pid =  $plugin->PluginID;
-
-           $response = Http::withOptions([
-            'verify' => false, // Disable SSL verification
-        ])->withHeaders([
-            'X-ApiKeys' => 'accessKey=a507ad2749850e9acc8543f56284896b8792e9cf9b0dd54f8c35802e47c3fed5; secretKey=663fd55660cbdd8ccf1d603d4adf3d4b8c2d6394122c77ddea66ad311e77decb',
-        ])->get("https://10.0.33.58:8834/plugins/plugin/{$pid}");
-
-
-        $responseData = json_decode($response->body(), true);
-        $attributes = $responseData['attributes'];
-
-        // making a one json file
-        $Finale_data = [];
-        $Finale_data["id"] = $responseData['id'];
-        $Finale_data["name"] = $responseData['name'];
-        $Finale_data["family_name"] = $responseData['family_name'];
-
-        foreach ($attributes as $attribute) {
-            $Finale_data[$attribute['attribute_name']] = $attribute['attribute_value'];
-        }
-
-
-        $item = new Plugins();
-
-        // Define a list of attributes to map
-        $attributesToMap = [
-            'id',
-            'fname',
-            'name',
-            'plugin_name',
-            'description',
-            'solution',
-            'script_version',
-            'script_copyright',
-            'cvss3_vector',
-            'cvss_score_source',
-            'cvss_temporal_vector',
-            'exploit_framework_core',
-            'exploit_framework_metasploit',
-            'exploit_framework_canvas',
-            'risk_factor',
-            'cvss_temporal_score',
-            'plugin_publication_date',
-            'metasploit_name',
-            'exploited_by_malware',
-            'cvss3_base_score',
-            'cvss_vector',
-            'plugin_type',
-            'synopsis',
-            'see_also',
-            'exploit_available',
-            'cvss_base_score',
-            'stig_severity',
-            'age_of_vuln',
-            'cvssV3_impactScore',
-            'exploit_code_maturity',
-            'family_name',
-        ];
-
-        foreach ($attributesToMap as $attribute) {
-            if (isset($Finale_data[$attribute])) {
-                $item->{$attribute} = $Finale_data[$attribute];
+                    $csvPaths[] = [
+                        'name' => $e . '.csv',
+                        'scan' => $e,
+                        'file' => $i,
+                    ];
+                }
             }
-        }
-        // Save the model
-        $item->save();
 
+            foreach ($csvPaths as $csvPath) {
+                $path = $csvPath['name'];
+                $sc = $csvPath['scan'];
+                $fi = $csvPath['file'];
 
+                // Load CSV data into the database
+                $loadDataSQL = "LOAD DATA INFILE '{$path}' IGNORE
+                    INTO TABLE vuln
+                    FIELDS TERMINATED BY ','
+                    ENCLOSED BY '\"'
+                    LINES TERMINATED BY '\r\n'
+                    IGNORE 1 LINES
+                    (`Plugin ID`,CVE,`CVSS v2.0 Base Score`,Risk,Host,Protocol,Port,Name,Synopsis,Description,Solution,`See Also`,`Plugin Output`)
+                    SET upload_id={$createdId}, scan={$sc} , file={$fi};";
+
+                DB::statement($loadDataSQL);
+                var_dump( DB);exit;
+            }
+
+            // Get plugin IDs not present in the local database
+          /*   $pluginIds = DB::table('vuln as v')
+                ->select('v.Plugin ID as PluginID')
+                ->distinct()
+                ->whereNotIn('v.Plugin ID', function ($query) {
+                    $query->select('id')
+                        ->from('plugins');
+                })
+                ->get(); */
+                $pluginIds =  DB::select(" SELECT DISTINCT 'Plugin ID'  as PluginID FROM vuln  WHERE 'Plugin ID' NOT IN (SELECT DISTINCT id FROM  plugins)");
+            foreach ($pluginIds as $plugin) {
+                $pid = $plugin->PluginID;
+
+                // Get information about the plugin from Nessus
+                $response = Http::withOptions([
+                    'verify' => false,
+                ])->withHeaders([
+                    'X-ApiKeys' => $this->getApiKeysHeader(),
+                ])->get("{$this->nessusBaseUrl}/plugins/plugin/{$pid}");
+
+                $responseData = json_decode($response->body(), true);
+                $attributes = $responseData['attributes'];
+
+                // Create a Plugins model and map relevant attributes
+                $item = new Plugins();
+                $this->mapAttributes($item, $attributes);
+
+                // Save the model
+                $item->save();
+            }
+
+            return response()->json(['message' => 'done', 'status' => 200]);
         }
-        return response()->json(['message'=>'done','status' => 200]);
     }
 
-    }
 
 }
