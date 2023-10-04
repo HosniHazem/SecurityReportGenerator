@@ -64,49 +64,7 @@ class NassusController extends Controller
 
 
 
-    // Helper function to map attributes from Nessus response to Plugins model
-    private function mapAttributes($item, $attributesToMap)
-    {
-        $attributesToMap = [
-            'id',
-            'fname',
-            'name',
-            'plugin_name',
-            'description',
-            'solution',
-            'script_version',
-            'script_copyright',
-            'cvss3_vector',
-            'cvss_score_source',
-            'cvss_temporal_vector',
-            'exploit_framework_core',
-            'exploit_framework_metasploit',
-            'exploit_framework_canvas',
-            'risk_factor',
-            'cvss_temporal_score',
-            'plugin_publication_date',
-            'metasploit_name',
-            'exploited_by_malware',
-            'cvss3_base_score',
-            'cvss_vector',
-            'plugin_type',
-            'synopsis',
-            'see_also',
-            'exploit_available',
-            'cvss_base_score',
-            'stig_severity',
-            'age_of_vuln',
-            'cvssV3_impactScore',
-            'exploit_code_maturity',
-            'family_name',
-        ];
 
-        foreach ($attributesToMap as $attribute) {
-            if (isset($attributesToMap[$attribute])) {
-                $item->{$attribute} = $attributesToMap[$attribute];
-            }
-        }
-    }
 
 
     public function GetAll(Request $request)
@@ -301,6 +259,7 @@ $filesJson = json_encode($filesData);
                 $fi = $csvPath['file'];
 
                 // Load CSV data into the database
+
                 $loadDataSQL = "LOAD DATA INFILE '{$path}' IGNORE
                     INTO TABLE vuln
                     FIELDS TERMINATED BY ','
@@ -311,7 +270,9 @@ $filesJson = json_encode($filesData);
                     SET upload_id={$createdId}, scan={$sc} , file={$fi};";
 
                 DB::statement($loadDataSQL);
-                var_dump( DB);exit;
+
+
+               // var_dump( DB);exit;
             }
 
             // Get plugin IDs not present in the local database
@@ -337,12 +298,61 @@ $filesJson = json_encode($filesData);
                 $responseData = json_decode($response->body(), true);
                 $attributes = $responseData['attributes'];
 
-                // Create a Plugins model and map relevant attributes
-                $item = new Plugins();
-                $this->mapAttributes($item, $attributes);
+          // making a one json file
+        $Finale_data = [];
+        $Finale_data["id"] = $responseData['id'];
+        $Finale_data["name"] = $responseData['name'];
+        $Finale_data["family_name"] = $responseData['family_name'];
 
-                // Save the model
-                $item->save();
+        foreach ($attributes as $attribute) {
+            $Finale_data[$attribute['attribute_name']] = $attribute['attribute_value'];
+        }
+
+
+        $item = new Plugins();
+
+        // Define a list of attributes to map
+        $attributesToMap = [
+            'id',
+            'fname',
+            'name',
+            'plugin_name',
+            'description',
+            'solution',
+            'script_version',
+            'script_copyright',
+            'cvss3_vector',
+            'cvss_score_source',
+            'cvss_temporal_vector',
+            'exploit_framework_core',
+            'exploit_framework_metasploit',
+            'exploit_framework_canvas',
+            'risk_factor',
+            'cvss_temporal_score',
+            'plugin_publication_date',
+            'metasploit_name',
+            'exploited_by_malware',
+            'cvss3_base_score',
+            'cvss_vector',
+            'plugin_type',
+            'synopsis',
+            'see_also',
+            'exploit_available',
+            'cvss_base_score',
+            'stig_severity',
+            'age_of_vuln',
+            'cvssV3_impactScore',
+            'exploit_code_maturity',
+            'family_name',
+        ];
+
+        foreach ($attributesToMap as $attribute) {
+            if (isset($Finale_data[$attribute])) {
+                $item->{$attribute} = $Finale_data[$attribute];
+            }
+        }
+        // Save the model
+        $item->save();
             }
 
             return response()->json(['message' => 'done', 'status' => 200]);

@@ -200,8 +200,10 @@ class WordDocumentController3 extends Controller
     //    var_dump(get_object_vars($request)); exit;
         include ("sqlRequests.php");
         $listOfFile=[];
+        $returnedArray = [];
         foreach($request->project_id as $prj_id)
         {
+            $returnedArray [] = $prj_id;
             $project =Project::find($prj_id);
             $customer =Customer::find($project->customer_id);
             $arrayConfig=array(
@@ -212,9 +214,12 @@ class WordDocumentController3 extends Controller
             foreach($annex_id as $Annex)
             {
                 $iteration=0;
+                $returnedArray[$prj_id][]=self::$AnnexesLetters[$Annex];
+
                 foreach($arrayConfig as $tmplate => $listOfDocParts)
                 {
                     $iteration++;
+
                     $nbrOfRowsAddedToFile=0;
                     $templatePath = public_path($tmplate);
                     $templateProcessor = new TemplateProcessor($templatePath);
@@ -227,6 +232,7 @@ class WordDocumentController3 extends Controller
                         }
                 $outputFileName = $prj_id .'_tchRpt_Annx_' . self::$AnnexesLetters[$Annex] .$iteration."_".self::$AnnexesTitles[$Annex]."_".$customer->SN. '.docx';
                 $outputPath = public_path('storage/' . $outputFileName);
+                $returnedArray[$prj_id][self::$AnnexesLetters[$Annex]][] = $nbrOfRowsAddedToFile;
                 if($nbrOfRowsAddedToFile>0)
                     {
                         $templateProcessor->saveAs($outputPath);
@@ -238,8 +244,10 @@ class WordDocumentController3 extends Controller
 
         }
 
+        print_r($returnedArray);
         print_r($listOfFile);
-       return ;
+
+       return $returnedArray;
 
     }
 static function preparePagesDeGarde($templateProcessor, $annex_id,$customer, $project )
@@ -247,10 +255,10 @@ static function preparePagesDeGarde($templateProcessor, $annex_id,$customer, $pr
 
     $templateProcessor->setValue('SRV_TITLE', self::$AnnexesTitles[$annex_id]);
     $templateProcessor->setValue('SRV_LETTER', self::$AnnexesLetters[$annex_id]);
-    $imageData = file_get_contents($customer->Logo);
+/*      $imageData = file_get_contents($customer->Logo);
     $localImagePath = public_path('images/'.basename($customer->Logo)); // Specify the local path to save the image
     file_put_contents($localImagePath, $imageData);
-    $templateProcessor->setImageValue('icon', $localImagePath);
+    $templateProcessor->setImageValue('icon', $localImagePath); */
     $templateProcessor->setValue('SN',  $customer->SN);
     $templateProcessor->setValue('LN',  $customer->LN);
     $templateProcessor->setValue('PRJ',  $project->Nom);
