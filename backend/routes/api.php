@@ -3,6 +3,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AnomalieController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\WordDocumentController;
 use App\Http\Controllers\WordDocumentController2;
 use App\Http\Controllers\WordDocumentController3;
@@ -46,5 +47,17 @@ use App\Http\Controllers\TestController;
     Route::Get('/getProject', [UploadanomaliesController::class,'get']);
 
 
+    Route::post('/imageProfil', [CustomerController::class, 'uploadimage']);
 
+    Route::get('Project', [ProjectController::class,'index']);
+    Route::get('LastOne', [ProjectController::class,'default']);
+    Route::delete('Project/{id}/delete', [ProjectController::class,'destroy']);
+    Route::put('Project/{id}/update', [ProjectController::class,'update']);
+    Route::post('Project/create',[ProjectController::class,'store']);
 
+    Route::get('Customer/{id}/show', [CustomerController::class,'show']);
+    Route::get('Customer', [CustomerController::class,'index']);
+    Route::get('LastOne', [CustomerController::class,'default']);
+    Route::delete('Customer/{id}/delete', [CustomerController::class,'destroy']);
+    Route::put('Customer/{id}/update', [CustomerController::class,'update']);
+    Route::post('Customer/create',[CustomerController::class,'store']);
