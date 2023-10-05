@@ -49,6 +49,7 @@ use App\Http\Controllers\TestController;
 
     Route::post('/imageProfil', [CustomerController::class, 'uploadimage']);
 
+    Route::get('Project/{id}/show', [ProjectController::class,'show']);
     Route::get('Project', [ProjectController::class,'index']);
     Route::get('LastOne', [ProjectController::class,'default']);
     Route::delete('Project/{id}/delete', [ProjectController::class,'destroy']);

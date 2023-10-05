@@ -6,6 +6,7 @@ import CreateCustomer from './customer/CreateCustomer';
 import AddCustomer from './customer/AddCustomer';
 import AddProject from './projects/AddProject';
 import UpdateCustomer from './customer/UpdateCustomer';
+import UpdateProject from './projects/UpdateProject';
 
 
 function App() {
@@ -33,6 +34,9 @@ function App() {
   } />
                     <Route exact path='/updatecustomer/:id' element={
       <UpdateCustomer />
+  } />
+                    <Route exact path='/updateproject/:id' element={
+      <UpdateProject />
   } />
               
             </Routes>

@@ -89,7 +89,7 @@ function AddCustom() {
           {
               
               swal("Created","Customer","success");
-             navigate('/');
+             navigate('/customer_create');
           }
           else if(res.data.status === 404)
           {

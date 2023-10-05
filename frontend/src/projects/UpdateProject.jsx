@@ -1,5 +1,5 @@
 import React,{ useState,useEffect } from "react";
-import { useNavigate   } from 'react-router-dom';
+import { useNavigate,useParams} from 'react-router-dom';
 import {
   Button,
   Grid,
@@ -8,7 +8,7 @@ import { styled } from '@mui/system'
 import { ValidatorForm} from 'react-material-ui-form-validator'
 import axios from 'axios';
 import swal from 'sweetalert';
-import { Span } from '../projects/Typography'
+import { Span } from './Typography'
 import { MDBInput } from "mdbreact";
 import TextField from '@mui/material/TextField';
 import "./Add.css";
@@ -27,25 +27,29 @@ const Container = styled('div')(({ theme }) => ({
 }))
 
 
-function AddProject() {
+function UpdateProject() {
+
+
+  const { id } = useParams();
     const navigate = useNavigate();
     const [value, setValue] = React.useState(null);
-    const [ProjectInput, setProject] = useState({
-      Nom:null,
-      URL:null,
-      Description:null,
-      customer_id:null,
-      year:null,
-      error_list: [],
-      });
-      const [Customer, setCustomer] = useState([]);
-
+    const [ProjectInput, setProject] = useState([]);
+    const [Customer, setCustomer] = useState([]);
+    const [Fich, setFich] = useState(null);
+      useEffect(() => {
+        axios.get(`http://webapp.smartskills.tn:8002/api/Project/${id}/show`).then((res) => {
+          if(res.data.status === 200){
+            setProject(res.data.Project);
+     } else if(res.data.status === 404){
+      
+     }
+        });
+      }, [id]);
       const handleInput = (e) => {
         e.persist();
        
         setProject({...ProjectInput, [e.target.name]: e.target.value });
     }
-
     useEffect(() => {
       axios.get(`http://webapp.smartskills.tn:8002/api/Customer`,).then((res) => {
         if(res.status === 200){
@@ -53,35 +57,31 @@ function AddProject() {
    }
       });
     }, []);
-   
 
       const [error,setError] = useState([]);
 
-   
 
-
-
-      const AddProject = (e) => {
-
+      const UpdateProject = (e) => {
+      
           e.preventDefault();
           
          
-              const  data = {
+          const  data = {
 
-                  Nom: ProjectInput.Nom,
-                  URL: ProjectInput.URL,
-                  Description: ProjectInput.Description,
-                  customer_id: ProjectInput.customer_id,
-                  year: ProjectInput.year,
+            Nom: ProjectInput.Nom,
+            URL: ProjectInput.URL,
+            Description: ProjectInput.Description,
+            customer_id: ProjectInput.customer_id,
+            year: ProjectInput.year,
 
-              }
+        }
 console.log(data);
-      axios.post(`http://webapp.smartskills.tn:8002/api/Project/create`, data).then(res=>{
+      axios.put(`http://webapp.smartskills.tn:8002/api/Project/${id}/update`, data).then(res=>{
           if(res.data.status === 200)
           {
               
-              swal("Created","Project","success");
-             navigate('/');
+              swal("Updated","Project","success");
+             navigate('/customer_create');
           }
           else if(res.data.status === 404)
           {
@@ -100,7 +100,7 @@ console.log(data);
     <Container >
     <div className="Container">
 
-        <ValidatorForm onSubmit={AddProject} onError={() => null} encType="multipart/form-data">
+        <ValidatorForm onSubmit={UpdateProject} onError={() => null} encType="multipart/form-data">
          
                   <label htmlFor="exampleFormControlInput1" className="item">Nom :</label>
                       <input type="text" name="Nom" onChange={handleInput}  className="form-control" htmlFor="exampleFormControlInput1" value={ProjectInput.Nom}  />
@@ -117,7 +117,7 @@ console.log(data);
                         name="customer_id"
                         className="form-control"
                         onChange={handleInput}
-                        value={Customer.id}
+                        value={ProjectInput.customer_id}
                       >
                         <option value="DEFAULT"></option>
                         {Customer.map((item,index) => {
@@ -151,4 +151,4 @@ console.log(data);
   )
 }
 
-export default AddProject
+export default UpdateProject
