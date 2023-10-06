@@ -18,7 +18,7 @@ const Projects = () => {
 
     
     useEffect(() => {
-      axios.get(`http://webapp.smartskills.local:8002/api/getProject`,).then((res) => {
+      axios.get(`http://webapp.smartskills.tn:8002/api/getProject`,).then((res) => {
         if(res.status === 200){
         setProject(res.data.Project);
    }
@@ -52,7 +52,7 @@ const Projects = () => {
       {
         field: "action",
         headerName: "Action",
-        width: 400,
+        width: 600,
         renderCell: (params) => {
           const id=params.row.id;
           const name=params.row.Nom;
@@ -60,8 +60,30 @@ const Projects = () => {
             <div className="cellAction">
 
                 <div className="viewButton" onClick={(e) => Select(name,id,e)}>Select/Add</div>
+         
+             <Link to={`/updateproject/${id}`} style={{ textDecoration: "none" }}>
+            <div className="upButton">Update</div>
+          </Link>
                 
       
+              
+          <div
+              className="doButton"
+              onClick={(e) => {
+                if (
+                  window.confirm(
+                    'Do you want to delete it?'
+                  )
+                ) {
+                  handleDelete(e, params.row.id);
+                }
+              }}
+              
+              
+            >
+              
+              Delete
+            </div>
               
                 <div className="deleteButton"  onClick={(e) => Export(id,e)}>Export</div>
 
@@ -77,6 +99,24 @@ const Projects = () => {
     
     ];
 
+    const handleDelete = async (e,id) => {
+
+      e.preventDefault();
+       await axios.delete(`http://webapp.smartskills.tn:8002/api/Project/${id}/delete`).then(res=>{
+        if(res.status === 200)
+          {
+            
+              swal("Deleted!",res.data.message,"success");
+              window.location.reload();
+          }
+          else if(res.data.status === 404)
+          {
+              swal("Error",res.data.message,"error");
+              
+          }
+      });
+    };
+  
     const Select = (name,id,e) => {
       e.persist();
       sessionStorage.setItem('project_id',id);
@@ -96,7 +136,7 @@ const Projects = () => {
       };
       setExporting(true);
       
-      axios.post(`http://webapp.smartskills.local:8002/api/generate-word-document/`, dataToSend, {
+      axios.post(`http://webapp.smartskills.tn:8002/api/generate-word-document/`, dataToSend, {
         responseType: 'blob', // Set responseType to 'blob' to indicate binary data
       })
         .then((response) => {
@@ -141,7 +181,7 @@ const Projects = () => {
       };
       setExporting(true);
       
-      axios.post(`http://webapp.smartskills.local:8002/api/generate-annexe/`, dataToSend, {
+      axios.post(`http://webapp.smartskills.tn:8002/api/generate-annexe/`, dataToSend, {
         responseType: 'blob', // Set responseType to 'blob' to indicate binary data
       })
         .then((response) => {
@@ -180,6 +220,11 @@ const Projects = () => {
     
     return (
         <div className="datatable">
+            <div className="button-container">
+    <Link to="/newproject" className="blue-button">
+      Add New
+    </Link>
+    </div> 
         <div className="datatableTitle1">
             <h1>
           Projects

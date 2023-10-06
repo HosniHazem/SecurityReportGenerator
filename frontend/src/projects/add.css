@@ -1,4 +1,22 @@
-.datatable {
+/* Add this to your CSS */
+.Container {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    min-height: 100vh; /* Set a minimum height for the container */
+    overflow-y: auto; /* Allow vertical scrolling when content exceeds the container */
+    flex-direction: column;
+}
+.item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* This aligns items to the start of the column */
+    margin-top: 16px; /* Add some top margin between items */
+  }
+.upload {
+background-color: darkgray;
+  }
+  .datatable {
     height: 600px;
     padding: 20px;
     
@@ -114,20 +132,6 @@
         border-radius: 5px;
         color: rgb(198, 98, 98);
         border: 1px dotted rgb(198, 98, 98);
-        cursor: pointer;
-      }
-      .doButton {
-        padding: 2px 5px;
-        border-radius: 5px;
-        color: rgb(97, 2, 2);
-        border: 1px dotted rgb(97, 2, 2);
-        cursor: pointer;
-      }
-      .upButton {
-        padding: 2px 5px;
-        border-radius: 5px;
-        color: rgb(188, 237, 11);
-        border: 1px dotted rgb(188, 237, 11);
         cursor: pointer;
       }
     }

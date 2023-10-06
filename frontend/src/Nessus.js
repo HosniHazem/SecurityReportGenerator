@@ -32,7 +32,7 @@ export default function SelectTextFields() {
   const [exporting, setExporting] = useState(false); 
 
   useEffect(() => {
-    axios.get("http://webapp.smartskills.local:8002/api/getScan").then((res) => {
+    axios.get("http://webapp.smartskills.tn:8002/api/getScan").then((res) => {
       if (res.status === 200) {
         setFolders(res.data.Folders.folders);
         setScans(res.data.Folders.scans);
@@ -47,7 +47,7 @@ export default function SelectTextFields() {
   const [Vm, setVm] = useState(); 
 
   useEffect(() => {
-    axios.get("http://webapp.smartskills.local:8002/api/get_vm").then((res) => {
+    axios.get("http://webapp.smartskills.tn:8002/api/get_vm").then((res) => {
       if (res.status === 200) {
         setVm(res.data.Vm);
       }
@@ -124,8 +124,13 @@ parsedData.description = description;
 
 console.log(parsedData);
 
+<<<<<<< HEAD
       setExporting(true);
     axios.post('http://webapp.smartskills.local:8002/api/ImportAll',parsedData)
+=======
+     setExporting(true);
+    axios.post('http://webapp.smartskills.tn:8002/api/ImportAll',parsedData)
+>>>>>>> efc9654010ee1c1c4a70427f53bb84d623ff592c
     .then((response) => {
       if(response.data.status===200){
         sessionStorage.removeItem('Export_links');
@@ -155,7 +160,7 @@ console.log(parsedData);
     }));
   
      setExporting(true);
-    axios.post('http://webapp.smartskills.local:8002/api/ExportAll',selectedIdsJSON)
+    axios.post('http://webapp.smartskills.tn:8002/api/ExportAll',selectedIdsJSON)
     .then((response) => {
       if(response.data.status===200){
 

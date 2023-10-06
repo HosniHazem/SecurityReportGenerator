@@ -1,0 +1,128 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Customer;
+use Illuminate\Support\Facades\Validator;
+
+class CustomerController extends Controller
+{
+
+    public function show($id)
+    {
+
+        $item =Customer::find($id);
+        if($item){
+
+        return response()->json(['Customer'=>$item,'status' => 200]);
+        }
+    else
+    {
+    return response()->json(['message'=>'not found','status' => 404]);
+    }
+    }
+
+    public function index()
+    {
+
+        $item =Customer::all();
+
+        return response()->json(['Customer'=>$item,'status' => 200]);
+    }
+    public function default()
+    {
+        // Get the latest Customer record
+        $latestCustomer = Customer::latest()->first();
+    
+        if ($latestCustomer) {
+            $lastCustomerId = $latestCustomer;
+        } else {
+            $lastCustomerId = null; // Handle the case where no Customers exist
+        }
+    
+        return response()->json(['lastCustomerId' => $lastCustomerId, 'status' => 200]);
+    }
+
+    public function store(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'SN' => 'required',
+            'LN' => 'required',
+            'Logo' => 'required'
+        ]);
+      
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'validate_err' => $validator->getMessageBag(),
+            ]);
+        } else {
+        $item =new Customer();
+        $item->SN=$req->SN;
+        $item->LN=$req->LN;
+        $item->Logo=$req->Logo;
+        $item->save();
+        return response()->json(['message'=>'done','status' => 200]);
+
+    }
+    }
+    public function uploadimage(Request $request)
+    {
+            $file      = $request->file('attach');
+            $filename  = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+            $picture   = $filename;
+            //move image to public/img folder
+            $file->move(public_path('images/uploads'), $picture);
+            return response()->json(["message" => "Image Uploaded Succesfully",'status' => 200]);
+
+    }
+    public function update(Request $req,$id)
+    {
+        $validator = Validator::make($req->all(), [
+            'SN' => 'required',
+            'LN' => 'required',
+            'Logo' => 'required'
+        ]);
+      
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'validate_err' => $validator->getMessageBag(),
+            ]);
+        } else {
+
+        $item =Customer::find($id);
+
+        if($item){
+            $item->SN=$req->SN;
+            $item->LN=$req->LN;
+            $item->Logo=$req->Logo;
+        $item->update();
+        return response()->json(['message'=>'done','status' => 200]);
+                }
+
+
+                else
+                {
+                return response()->json(['message'=>'not done','status' => 404]);
+                }
+            }
+    }
+    public function destroy($id)
+    {
+
+        $item =Customer::find($id);
+        if($item){
+        $item->delete();
+        return response()->json(['message'=>'deleted'], 200);
+                }
+                else
+                {
+                return response()->json(['message'=>'not deleted'], 404);
+                }
+    }
+}
+
