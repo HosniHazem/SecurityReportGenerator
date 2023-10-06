@@ -28,6 +28,32 @@ class WordDocumentController3 extends Controller
     public static   $AnnexesTitles = array("","Serveurs","Solution Réseau", "Bases de donnees", "Poste de travail",  "Actifs externe", "Applications", "Solution VOIP", "Solution MAILS");
     public static   $AnnexesLetters = array("","B","C", "D", "E",  "F", "G", "H", "I");
 
+    public function generateExcelDocument(Request $req)
+    {
+        set_time_limit(5000);
+        $sql=<<<HERE1
+        ((select "Plugin ID" ,"Risk" ,"Type", "Host" ,"name" ,"synopsis" ,"exploited_by_malware" ,"exploit_available" ,"age_of_vuln" ,"description" ,"Plugin Output" ,"solution")
+        UNION ALL
+        (select `Plugin ID` ,`Risk` ,Type,`Host` ,`plugins`.`name` ,`plugins`.`synopsis` ,`plugins`.`exploited_by_malware` ,`plugins`.`exploit_available` ,`plugins`.`age_of_vuln` ,`plugins`.`description` ,`Plugin Output` ,`plugins`.`solution` from `vuln`
+        left join `plugins` on `Plugin ID` = `plugins`.`id`
+        LEFT JOIN sow on vuln.Host=sow.IP_Host
+        where `upload_id` in (select `uploadanomalies`.`ID` from `uploadanomalies` where `uploadanomalies`.`ID_Projet` = ?)
+        AND sow.Projet=?
+        PLACEHOLDER1
+        group by `Host`,`plugins`.`name`))
+        INTO OUTFILE 'c:/tmp/PLACEHOLDER2'
+        FIELDS ENCLOSED BY '\"' TERMINATED BY ';' ESCAPED BY '\"' LINES TERMINATED BY '\r\n'
+        HERE1;
+
+        $sql= str_replace("PLACEHOLDER2", $req->filename.time().".csv", $sql);
+        if(isset($req->OnlyVuln)) $sql= str_replace("PLACEHOLDER1", "and Risk in ('Critical', 'Medium', 'High', 'Low')", $sql);
+        else $sql = str_replace("PLACEHOLDER1", " ", $sql);
+
+       // echo $sql;
+      print_r(DB::select($sql,array($req->project_id, $req->project_id )));
+
+    }
+
    public static function cleanNewLineProblem ($string, $seeAlso)
     {
 
@@ -244,10 +270,14 @@ class WordDocumentController3 extends Controller
 
         }
 
-        print_r($returnedArray);
+
         print_r($listOfFile);
 
-       return $returnedArray;
+       return;
+ /*        print_r($returnedArray);
+        print_r($listOfFile);
+
+       return $returnedArray; */
 
     }
 static function preparePagesDeGarde($templateProcessor, $annex_id,$customer, $project )
@@ -267,7 +297,7 @@ static function preparePagesDeGarde($templateProcessor, $annex_id,$customer, $pr
     $templateProcessor->setValue('DESC',  $project->description);
 
    }
-   static function send_whatsapp($message="Test"){
+   public static function send_whatsapp($message="Test"){
     $url='https://api.callmebot.com/whatsapp.php?phone=21629961666&apikey=2415178&text='.urlencode($message);
     if($ch = curl_init($url))
     {
