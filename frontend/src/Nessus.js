@@ -124,7 +124,7 @@ parsedData.description = description;
 
 console.log(parsedData);
 
-     setExporting(true);
+      setExporting(true);
     axios.post('http://webapp.smartskills.local:8002/api/ImportAll',parsedData)
     .then((response) => {
       if(response.data.status===200){
@@ -144,7 +144,7 @@ console.log(parsedData);
       // Set exporting to false when export completes (whether successful or not)
       setExporting(false); 
       
-    });   
+    });    
    
   };
   const handleImport = (event) => {

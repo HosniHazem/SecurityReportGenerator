@@ -31,12 +31,14 @@ class WordDocumentController extends Controller
     public static function getPourcentage ($source, $index, $ttl_hosts)
     {
         $v_Global=0;
+        if($ttl_hosts!=null)
         if($source[$index][0] > 0)
         $v_Global = 75 + round(25 * ($source[$index][0]/$ttl_hosts));
         elseif ($source[$index][1] > 0) $v_Global = 50 + round(25 * ($source[$index][1]/$ttl_hosts));
         elseif ($source[$index][2] > 0) $v_Global = 25 + round(25 * ($source[$index][2]/$ttl_hosts));
         else $v_Global = round(25 * ($source[$index][3]/$ttl_hosts));
-        return $v_Global;
+
+        return min(99, $v_Global);
 
     }
 
@@ -45,6 +47,8 @@ class WordDocumentController extends Controller
 
 
     {
+
+        set_time_limit(5000);
 
         $matrix_stats[0][0]=0;
         $matrix_stats[0][1]=0;
@@ -1129,12 +1133,13 @@ $text = preg_replace($pattern3, " ", $text2);
      }
 
      $zip->close();
-
+     WordDocumentController3::send_whatsapp($zipFileName ." Ready");
      // Download the zip archive
      return response()->download($zipFilePath)->deleteFileAfterSend();
  }
 
  // If zip creation fails, return an error response
+ WordDocumentController3::send_whatsapp($zipFileName ." can't be downloaded");
  return response()->json(['error' => 'Failed to create zip archive'], 500);
 
         /* return response()->download(storage_path('app/merge.docx'))->deleteFileAfterSend();  */

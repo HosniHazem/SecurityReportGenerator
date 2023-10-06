@@ -6,6 +6,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\WordDocumentController;
 use App\Http\Controllers\WordDocumentController2;
 use App\Http\Controllers\WordDocumentController3;
+use App\Http\Controllers\ExcelDocumentController;
 use App\Http\Controllers\concatenateDocxFiles;
 use App\Http\Controllers\Sanctum\AuthController;
 use App\Http\Controllers\UserController;
@@ -28,9 +29,9 @@ use App\Http\Controllers\TestController;
 */
 
 
+Route::post('/generateExcelDocument', [WordDocumentController3::class,'generateExcelDocument']);
 
-
-    Route::get('/test', [TestController::class,'get']);
+    Route::get('/test2', [TestController::class,'get']);
 
     Route::get('/get_vm', [VmController::class,'index']);
     Route::post('/generate-word-document', [WordDocumentController::class,'generateWordDocument']);

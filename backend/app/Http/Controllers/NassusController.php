@@ -39,9 +39,9 @@ class NassusController extends Controller
             $pattern3 = "/(\n)+/";
             $replacement = "{{1}}";
 
-            $string = preg_replace($pattern1, '${1}'." ", $string);
+            $string = preg_replace($pattern1, '${1}'.$replacement, $string);
             $string = preg_replace($pattern2, $replacement.'${2}', $string);
-            $string = preg_replace($pattern3, $replacement.'${2}', $string);
+            $string = preg_replace($pattern3, "".'${2}', $string);
             $string = preg_replace('/[\x00-\x1F\x7F]/u', '', $string);
         }
         return $string;
@@ -271,20 +271,19 @@ $filesJson = json_encode($filesData);
 
                 DB::statement($loadDataSQL);
 
-
                // var_dump( DB);exit;
             }
 
             // Get plugin IDs not present in the local database
-          /*   $pluginIds = DB::table('vuln as v')
+           $pluginIds = DB::table('vuln as v')
                 ->select('v.Plugin ID as PluginID')
                 ->distinct()
                 ->whereNotIn('v.Plugin ID', function ($query) {
                     $query->select('id')
                         ->from('plugins');
                 })
-                ->get(); */
-                $pluginIds =  DB::select(" SELECT DISTINCT 'Plugin ID'  as PluginID FROM vuln  WHERE 'Plugin ID' NOT IN (SELECT DISTINCT id FROM  plugins)");
+                ->get();
+
             foreach ($pluginIds as $plugin) {
                 $pid = $plugin->PluginID;
 
@@ -348,7 +347,7 @@ $filesJson = json_encode($filesData);
 
         foreach ($attributesToMap as $attribute) {
             if (isset($Finale_data[$attribute])) {
-                $item->{$attribute} = $Finale_data[$attribute];
+                $item->{$attribute} = self::PrepareForUploadToDB($attribute,$Finale_data[$attribute]);
             }
         }
         // Save the model
