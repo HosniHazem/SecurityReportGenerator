@@ -28,8 +28,8 @@ class TestController extends Controller
 
         $string = htmlspecialchars($test);
 
-
-        return  $string;
+        $pluginIds =  DB::select("SELECT DISTINCT `Plugin ID`  as PluginID FROM vuln  WHERE `Plugin ID` NOT IN (SELECT DISTINCT id FROM  plugins)");
+        return  $pluginIds;
 
 
 

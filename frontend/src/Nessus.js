@@ -9,7 +9,17 @@ import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import CircularProgress from '@mui/material/CircularProgress';
 import swal from 'sweetalert';
+import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
+import Snackbar from '@mui/material/Snackbar';
+import MuiAlert from '@mui/material/Alert';
 
+
+
+
+const Alert = React.forwardRef(function Alert(props, ref) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 export default function SelectTextFields() {
 
   const [Export_links, setExport_links] = useState(sessionStorage.getItem('Export_links'))
@@ -19,6 +29,9 @@ export default function SelectTextFields() {
   const [Host, setHost] = useState([]);
   const [VmSelected, setVmSelected] = useState();
   const [jsonData, setJsonData] = useState([]);
+  const [Stats, setStats] = useState([]);
+  const [StatExport, setStatExport] = useState(null);
+  const [Ready, setReady] = useState("no");
   const [checkedItems, setCheckedItems] = useState(() => {
     // Initialize checkedItems with all items checked by default
 
@@ -28,13 +41,17 @@ export default function SelectTextFields() {
     });
     return initialCheckedItems;
   });
-
+const project_name = sessionStorage.getItem('project_name');
   const [exporting, setExporting] = useState(false); 
+  const [expanded, setExpanded] = React.useState(false);
 
+ 
   useEffect(() => {
     axios.get("http://webapp.smartskills.tn:8002/api/getScan").then((res) => {
       if (res.status === 200) {
-        setFolders(res.data.Folders.folders);
+        
+        const filteredFolders = res.data.Folders.folders.filter(folder => folder.name.toLowerCase().includes(project_name.toLowerCase()));
+        setFolders(filteredFolders);
         setScans(res.data.Folders.scans);
         setHost(res.data.info);
 
@@ -122,15 +139,18 @@ parsedData.project_id = project_id;
 parsedData.Label = Label;
 parsedData.description = description;
 
-console.log(parsedData);
+
 
      setExporting(true);
     axios.post('http://webapp.smartskills.tn:8002/api/ImportAll',parsedData)
     .then((response) => {
       if(response.data.status===200){
+        setReady("no");
         sessionStorage.removeItem('Export_links');
         setExport_links(null);
+        setStatExport(response.data.stats.vuln);
         swal("Imported","Successfully");
+
       }else if(response.data.status===404) {
         swal("Import is still in process","Give it more time");
       }
@@ -150,19 +170,37 @@ console.log(parsedData);
   const handleImport = (event) => {
     event.preventDefault(); // Prevent form submission and page refresh
     const selectedIds = Object.keys(checkedItems).filter((itemId) => checkedItems[itemId]);
+    
     const selectedIdsJSON = selectedIds.map((itemId) => ({
       value: itemId,
+      name: jsonData.find((item) => item.id === Number(itemId))?.name || "Unknown",
     }));
-  
+ 
      setExporting(true);
     axios.post('http://webapp.smartskills.tn:8002/api/ExportAll',selectedIdsJSON)
     .then((response) => {
       if(response.data.status===200){
 
-        swal("Files are Preparing for the download","Please give it some time");
+        swal("Files are Prepared for the download","You can start your download");
         sessionStorage.setItem('Export_links',response.data.links);
+
         const parsedData = JSON.parse(response.data.links);
         setExport_links(parsedData);
+ 
+        const statsArray = Object.entries(response.data.stats).map(([key, value]) => ({
+          id: key,
+          ...value,
+        }));
+        
+        setStats(statsArray);
+        const allDone = statsArray.every(item => item.ver === 'done');
+        const notDoneExist = statsArray.some(item => item.ver !== 'done');
+        if (allDone) {
+          setReady('yes');
+        } else if (notDoneExist) {
+          setReady('no');
+        }
+        
       }
     })
     .catch((error) => {
@@ -173,9 +211,8 @@ console.log(parsedData);
       // Set exporting to false when export completes (whether successful or not)
       setExporting(false);
     }); 
-
   };
-
+console.log(StatExport);
   return (
 <div>
     {exporting ? ( // Conditional rendering based on the exporting state
@@ -237,31 +274,60 @@ console.log(parsedData);
             }
             sx={{ mt: 2 }}
           />
-          <Box sx={{ display: 'flex', flexDirection: 'column', ml: 3 }}>
-            {jsonData.map((item) => (
-              <FormControlLabel
-                key={item.id}
-                label={item.name}
-                control={
-                  <Checkbox
-                    checked={checkedItems[item.id] || false}
-                    onChange={(event) => handleCheckboxChange(item.id, event.target.checked)}
-                  />
-                }
-              />
-            ))}
-          </Box>
+       <Box sx={{ display: 'flex', flexDirection: 'column', ml: 3 }}>
+  {jsonData.map((item) => {
+ let stat = Stats.find((statItem) => statItem.id == item.id);
+
+    let status = stat ? stat.ver : 'not done';
+
+    return (
+      <div key={item.id} style={{ display: 'flex', alignItems: 'center' }}>
+        <FormControlLabel
+          label={item.name}
+          control={
+            <Checkbox
+              checked={checkedItems[item.id] || false}
+              onChange={(event) => handleCheckboxChange(item.id, event.target.checked)}
+            />
+          }
+        />
+        {Stats ?
+        <Typography
+          variant="h7"
+          gutterBottom
+          color={status === 'done' ? 'green' : 'red'}
+          style={{ marginLeft: '16px' }}
+        >
+         [{status}]
+        </Typography> : null 
+          }
+      </div> 
+      
+    );
+  })}
+</Box>
         </div>
         <Button style={{ marginBottom: '16px'  }} variant="outlined" onClick={handleImport} >Request</Button>
-
-{ Export_links ?
+  
+{ Ready != "no" ?
         <Button variant="outlined" onClick={handleExport}>Export</Button>
         :
         <Button disabled variant="outlined" onClick={handleExport}>Export</Button>
       }
+      <div className='item'></div>
+      { StatExport ?
+      StatExport.map((item) => (
+    <Stack key={item.id} spacing={5} sx={{ width: '20%' }}>
+    <Alert severity="info">This scan has {item.number}</Alert>
+    </Stack>
+    )) : null
+
+
+}
       </div>
     </Box>
     )}
+   
     </div>
   );
 }

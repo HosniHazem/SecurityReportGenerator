@@ -99,6 +99,7 @@ $jsonData = $request->all();
 
 foreach ($jsonData as $item) {
     $e=$item["value"];
+    $n=$item["name"];
     $response = Http::withOptions([
         'verify' => false, // Disable SSL verification
     ])->withHeaders([
@@ -125,7 +126,8 @@ foreach ($jsonData as $item) {
     $responseData = json_decode($response->body(), true);
     $data = array(
         'scan' => $e,
-        'file' => $responseData['file']
+        'file' => $responseData['file'],
+        'name' =>  $n
     );
     $response = Http::withOptions([
         'verify' => false, // Disable SSL verification
@@ -174,7 +176,38 @@ $ip_n=$ip[0];
 
 $filesJson = json_encode($filesData);
 
- return response()->json(['links'=>$filesJson,'status' => 200]);
+foreach ($filesData as $item) {
+    $i = $item["file"];
+    $e = $item["scan"];
+    $n = $item["name"];
+
+    // Check the status of the exported file
+    $response = Http::withOptions([
+        'verify' => false,
+    ])->withHeaders([
+        'X-ApiKeys' => $this->getApiKeysHeader(),
+    ])->get("{$this->nessusBaseUrl}/scans/{$e}/export/{$i}/status");
+
+    $responseData = json_decode($response->body(), true);
+  
+
+    if ($response->successful()) {
+        $stats[$e]=[
+            "ver" => "done",
+            "scan" => $e ,
+            "name" =>$n
+        ];
+    } else {
+        $stats[$e]=[
+            "ver" => "not done",  
+            "scan" => $e,
+            "name" =>$n
+        ];
+    }
+
+}
+
+ return response()->json(['links'=>$filesJson,'stats'=>$stats,'status' => 200]);
     }
 
 
@@ -185,6 +218,7 @@ $filesJson = json_encode($filesData);
     public function ImportAll(Request $request)
     {
         set_time_limit(5000);
+        
         $json = $request->all();
         $jsonData = $json['links'];
         $prj_id = $json['project_id'];
@@ -193,6 +227,8 @@ $filesJson = json_encode($filesData);
 
         $verif = 'true';
 /////Upload Anomalie Creation
+$createdId=null;
+while ($createdId === null) {
         $upload =new Uploadanomalies();
         $upload->Upload_Date=date('Y-m-d');
         $upload->Source='Nessus';
@@ -200,8 +236,8 @@ $filesJson = json_encode($filesData);
         $upload->Description=$des;
         $upload->ID_Projet= $prj_id;
         $upload->save();
-
- $createdId = $upload->id;
+        $createdId = $upload->id;
+}
         foreach ($jsonData as $item) {
             $i = $item["file"];
             $e = $item["scan"];
@@ -216,14 +252,15 @@ $filesJson = json_encode($filesData);
             $responseData = json_decode($response->body(), true);
 
             if ($response->successful()) {
-                // Handle success
+              
             } else {
+              
                 $verif = 'false';
             }
         }
 
         if ($verif === 'false') {
-            return response()->json(['message' => 'not done', 'status' => 404]);
+            return response()->json(['message' => 'not done','stats'=> "", 'status' => 404]);
         } else {
             $csvPaths = [];
             foreach ($jsonData as $item) {
@@ -252,7 +289,7 @@ $filesJson = json_encode($filesData);
                     ];
                 }
             }
-
+            $returnedArray=[];
             foreach ($csvPaths as $csvPath) {
                 $path = $csvPath['name'];
                 $sc = $csvPath['scan'];
@@ -270,22 +307,16 @@ $filesJson = json_encode($filesData);
                     SET upload_id={$createdId}, scan={$sc} , file={$fi};";
 
                 DB::statement($loadDataSQL);
-
-
-               // var_dump( DB);exit;
+                $count = Vuln::where('scan', $sc)->count();
+                $stats["vuln"]=[
+                    "number" => $count,
+                    "scan" => $sc
+                ];
             }
 
             // Get plugin IDs not present in the local database
-          /*   $pluginIds = DB::table('vuln as v')
-                ->select('v.Plugin ID as PluginID')
-                ->distinct()
-                ->whereNotIn('v.Plugin ID', function ($query) {
-                    $query->select('id')
-                        ->from('plugins');
-                })
-                ->get(); */
-                $pluginIds =  DB::select(" SELECT DISTINCT 'Plugin ID'  as PluginID FROM vuln  WHERE 'Plugin ID' NOT IN (SELECT DISTINCT id FROM  plugins)");
-            foreach ($pluginIds as $plugin) {
+                $pluginIds =  DB::select("SELECT DISTINCT `Plugin ID`  as PluginID FROM vuln  WHERE `Plugin ID` NOT IN (SELECT DISTINCT id FROM  plugins)");
+                foreach ($pluginIds as $plugin) {
                 $pid = $plugin->PluginID;
 
                 // Get information about the plugin from Nessus
@@ -355,7 +386,7 @@ $filesJson = json_encode($filesData);
         $item->save();
             }
 
-            return response()->json(['message' => 'done', 'status' => 200]);
+            return response()->json(['message' => 'done','stats'=>$stats, 'status' => 200]);
         }
     }
 
