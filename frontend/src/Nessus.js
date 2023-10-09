@@ -47,7 +47,7 @@ const project_name = sessionStorage.getItem('project_name');
 
  
   useEffect(() => {
-    axios.get("http://webapp.smartskills.tn:8002/api/getScan").then((res) => {
+    axios.get("http://webapp.smartskills.local:8002/api/getScan").then((res) => {
       if (res.status === 200) {
         
         const filteredFolders = res.data.Folders.folders.filter(folder => folder.name.toLowerCase().includes(project_name.toLowerCase()));
@@ -64,7 +64,7 @@ const project_name = sessionStorage.getItem('project_name');
   const [Vm, setVm] = useState(); 
 
   useEffect(() => {
-    axios.get("http://webapp.smartskills.tn:8002/api/get_vm").then((res) => {
+    axios.get("http://webapp.smartskills.local:8002/api/get_vm").then((res) => {
       if (res.status === 200) {
         setVm(res.data.Vm);
       }
@@ -142,7 +142,7 @@ parsedData.description = description;
 
 
      setExporting(true);
-    axios.post('http://webapp.smartskills.tn:8002/api/ImportAll',parsedData)
+    axios.post('http://webapp.smartskills.local:8002/api/ImportAll',parsedData)
     .then((response) => {
       if(response.data.status===200){
         setReady("no");
@@ -183,7 +183,7 @@ parsedData.description = description;
     }));
  
      setExporting(true);
-    axios.post('http://webapp.smartskills.tn:8002/api/ExportAll',selectedIdsJSON)
+    axios.post('http://webapp.smartskills.local:8002/api/ExportAll',selectedIdsJSON)
     .then((response) => {
       if(response.data.status===200){
 
