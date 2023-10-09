@@ -308,10 +308,11 @@ while ($createdId === null) {
 
                 DB::statement($loadDataSQL);
                 $count = Vuln::where('scan', $sc)->count();
-                $stats["vuln"]=[
+                $stats[$sc]=[
                     "number" => $count,
                     "scan" => $sc
                 ];
+               
             }
 
             // Get plugin IDs not present in the local database

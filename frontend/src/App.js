@@ -2,6 +2,7 @@ import './App.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Nessus from './Nessus';
 import Project from './projects/Projects';
+import Dashboard from './dashboard/Dashboard';
 import CreateCustomer from './customer/CreateCustomer';
 import AddCustomer from './customer/AddCustomer';
 import AddProject from './projects/AddProject';
@@ -22,6 +23,9 @@ function App() {
   } />
                     <Route exact path='/project' element={
       <Project />
+  } />
+                    <Route exact path='/dashboard' element={
+      <Dashboard />
   } />
                     <Route exact path='/customer_create' element={
       <CreateCustomer />

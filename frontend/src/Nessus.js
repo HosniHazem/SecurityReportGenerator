@@ -30,7 +30,7 @@ export default function SelectTextFields() {
   const [VmSelected, setVmSelected] = useState();
   const [jsonData, setJsonData] = useState([]);
   const [Stats, setStats] = useState([]);
-  const [StatExport, setStatExport] = useState(null);
+  const [StatExport, setStatExport] = useState([]);
   const [Ready, setReady] = useState("no");
   const [checkedItems, setCheckedItems] = useState(() => {
     // Initialize checkedItems with all items checked by default
@@ -148,7 +148,13 @@ parsedData.description = description;
         setReady("no");
         sessionStorage.removeItem('Export_links');
         setExport_links(null);
-        setStatExport(response.data.stats.vuln);
+        const inputObject = response.data.stats;
+        const outputArray = Object.keys(inputObject).map(key => ({
+          id: key,
+          ...inputObject[key],
+        }));
+        
+        setStatExport(outputArray);
         swal("Imported","Successfully");
 
       }else if(response.data.status===404) {
@@ -318,7 +324,7 @@ console.log(StatExport);
       { StatExport ?
       StatExport.map((item) => (
     <Stack key={item.id} spacing={5} sx={{ width: '20%' }}>
-    <Alert severity="info">This scan has {item.number}</Alert>
+    <Alert severity="info">The scan  <strong>{jsonData.find(item2 => item2.id == item.scan)?.name}</strong> has <strong>{item.number}</strong> imported vulnerability</Alert>
     </Stack>
     )) : null
 
