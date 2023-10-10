@@ -44,10 +44,15 @@ export default function SelectTextFields() {
 const project_name = sessionStorage.getItem('project_name');
   const [exporting, setExporting] = useState(false); 
   const [expanded, setExpanded] = React.useState(false);
-
+  const selectedIp = sessionStorage.getItem('selectedIp');
  
   useEffect(() => {
-    axios.get("http://webapp.smartskills.tn:8002/api/getScan").then((res) => {
+    const dataToSend = {
+      selectedIp: selectedIp,
+    }
+  
+    console.log(dataToSend)
+    axios.post("http://webapp.smartskills.tn:8002/api/getScan",dataToSend).then((res) => {
       if (res.status === 200) {
         
         const filteredFolders = res.data.Folders.folders.filter(folder => folder.name.toLowerCase().includes(project_name.toLowerCase()));
@@ -61,17 +66,7 @@ const project_name = sessionStorage.getItem('project_name');
     });
   }, []);
 
-  const [Vm, setVm] = useState(); 
 
-  useEffect(() => {
-    axios.get("http://webapp.smartskills.tn:8002/api/get_vm").then((res) => {
-      if (res.status === 200) {
-        setVm(res.data.Vm);
-      }
-    }).catch((error) => {
-      console.error('Error sending data:', error);
-    });
-  }, []);
 
   const handleCheckboxChange = (scanId, checked) => {
     setCheckedItems((prev) => ({
@@ -138,6 +133,7 @@ parsedData.links = JSON.parse(Export_links);
 parsedData.project_id = project_id;
 parsedData.Label = Label;
 parsedData.description = description;
+parsedData.selectedIp = selectedIp;
 
 
 
@@ -180,8 +176,9 @@ parsedData.description = description;
     const selectedIdsJSON = selectedIds.map((itemId) => ({
       value: itemId,
       name: jsonData.find((item) => item.id === Number(itemId))?.name || "Unknown",
+      ip : selectedIp
     }));
- 
+ console.log(selectedIdsJSON);
      setExporting(true);
     axios.post('http://webapp.smartskills.tn:8002/api/ExportAll',selectedIdsJSON)
     .then((response) => {

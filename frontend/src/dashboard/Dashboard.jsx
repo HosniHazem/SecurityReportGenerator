@@ -1,4 +1,4 @@
-import React,{ useState,useEffect } from "react";
+import React, { useRef,useContext , useState, useEffect } from 'react';
 import { DataGrid } from "@mui/x-data-grid";
 import swal from 'sweetalert';
 import {Navigate, useNavigate,useParams} from 'react-router-dom';
@@ -6,16 +6,35 @@ import { Link } from "react-router-dom";
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import {encode} from 'html-entities';
-
-import "./datatable.scss";
 import axios from 'axios';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+import Nessus from '../Nessus';
+import "./datatable.scss";
+import { green } from '@mui/material/colors';
 
+function useDialogState() {
+  const [open, setOpen] = React.useState(false);
+  return {open, setOpen};
+}
 const Dashboard = () => {
   const navigate = useNavigate();
     const [Project, setProject] = useState([]);
+    const [Vm, setVm] = useState([]);
     const [exporting, setExporting] = useState(false); // Add loading state
     const [downloading, setDownloading] = useState(false);
-
+    const {open, setOpen} = useDialogState();
+    const [selectedIp, setSelectedIp] = useState('');
+    const theme = useTheme();
+    const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
     
     useEffect(() => {
       axios.get(`http://webapp.smartskills.tn:8002/api/getProject`,).then((res) => {
@@ -24,7 +43,20 @@ const Dashboard = () => {
    }
       });
     }, []);
- 
+    useEffect(() => {
+      axios.get(`http://webapp.smartskills.tn:8002/api/get_vm`,).then((res) => {
+        if(res.status === 200){
+          const inputObject = res.data.Vm;
+          const outputArray = Object.keys(inputObject).map(key => ({
+            id: key,
+            ...inputObject[key],
+          }));
+          setVm(outputArray);
+
+   }
+      });
+    }, []);
+
     const userColumns = [
       { field: "id", headerName: "ID", width: 30 },
       {
@@ -50,7 +82,7 @@ const Dashboard = () => {
           return (
             <div className="cellAction">
 
-                <div className="Pick"  onClick={(e) => Popup(id,e)}>Import</div>
+                <div className="Pick"  onClick={(e) => Popup(name,id,e)}>Import</div>
 
                
               </div>
@@ -99,6 +131,13 @@ const Dashboard = () => {
           }
       });
     };
+    const handleClickOpen = () => {
+      setOpen(true);
+    };
+  
+    const handleClose = () => {
+      setOpen(false);
+    };
   
     const Select = (name,id,e) => {
       e.persist();
@@ -108,15 +147,24 @@ const Dashboard = () => {
 
       navigate("/import");
     }
-    const Popup = (id,e) => {
+    const Popup = (name,id,e) => {
       e.persist();
-
-  
-
-      navigate("/import");
+      sessionStorage.setItem('project_id',id);
+      sessionStorage.setItem('project_name',name);
+      setOpen(true);
+    
     }
 
-
+    const handleSelect = (ip) => {
+      // Store the selected IP in session storage
+      sessionStorage.setItem('selectedIp', ip);
+      setSelectedIp(ip);
+    };
+  
+    const handleCheck = () => {
+      // Handle the logic for the checked button
+      console.log('Checked button clicked');
+    };
     const Export = (id, e) => {
       e.persist();
       setDownloading(true);
@@ -206,16 +254,92 @@ const Dashboard = () => {
           setExporting(false);
         });
     };
-    
+
+    const cellStyle = {
+      padding: '10px',
+      textAlign: 'center',
+      border: '1px solid black',
+    };
+   
+   
     
     return (
-        <div className="datatable">
+<div>
+   
+<Dialog open={open} onClose={handleClose} maxWidth={"md"} fullWidth={"false"}  >
+<DialogTitle>Import Nessus</DialogTitle>
+<IconButton
+          aria-label="close"
+          onClick={handleClose}
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: (theme) => theme.palette.grey[500],
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
+
+        <DialogContent >
+       
+       < Nessus />
+
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+
+        </DialogActions>
+       
           
-        <div className="datatableTitle1">
-            <h1>
-          Dashboard
-          </h1>
-        </div>
+        </DialogContent>
+     
+   
+</Dialog>
+
+
+<div className="datatable">   
+
+
+
+
+
+
+
+
+
+<table style={{ borderCollapse: 'collapse', width: '15%' }}>
+      <thead>
+        <tr>
+          <th>URL</th>
+          <th>Status</th>
+          <th>Select</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {Vm.map((url) => (
+          <tr
+            key={url.ip}
+            style={{ backgroundColor: url.answer === 'Online' ? 'green' : 'red' }}
+          >
+            <td style={cellStyle}>{url.ip}</td>
+            <td style={cellStyle}>{url.answer}</td>
+            <td style={cellStyle}>
+              <input
+                type="radio"
+                name="selectedIp"
+                value={url.ip}
+                checked={url.ip === selectedIp}
+                onChange={() => handleSelect(url.ip)}
+              />
+            </td>
+          </tr>
+        ))}
+      </tbody>
+  
+    </table>
+
+
         {exporting ? ( // Conditional rendering based on the exporting state
        <div className="loading">
        <Box sx={{ display: 'flex' }}>
@@ -232,6 +356,7 @@ const Dashboard = () => {
           
         />
         )}
+      </div>
       </div>
     );
 };

@@ -39,7 +39,7 @@ Route::post('/generateExcelDocument', [WordDocumentController3::class,'generateE
     Route::post('/generate-annexe', [WordDocumentController2::class,'generateWordDocument']);
     Route::post('/generate-annexe3', [WordDocumentController3::class,'generateWordDocument']);
     Route::get('/generate-concat', [concatenateDocxFiles::class,'mergeDocxFiles']);
-    Route::get('/getScan', [NassusController::class,'GetAll']);
+    Route::post('/getScan', [NassusController::class,'GetAll']);
     Route::Post('/ExportAll', [NassusController::class,'ExportAll']);
     Route::Post('/ImportAll', [NassusController::class,'ImportAll']);
 

@@ -55,7 +55,7 @@ class NassusController extends Controller
             'secretKey' => '663fd55660cbdd8ccf1d603d4adf3d4b8c2d6394122c77ddea66ad311e77decb',
         ];
 
-        $this->nessusBaseUrl = 'https://10.0.33.58:8834';
+       
     }
     private function getApiKeysHeader()
     {
@@ -69,11 +69,13 @@ class NassusController extends Controller
 
     public function GetAll(Request $request)
     {
+        $jsonData = $request->all();
+
         $response = Http::withOptions([
             'verify' => false, // Disable SSL verification
         ])->withHeaders([
             'X-ApiKeys' => $this->getApiKeysHeader(),
-        ])->get("{$this->nessusBaseUrl}/scans");
+        ])->get("https://{$request->selectedIp}/scans");
         // Decode the JSON response data
         $responseData = json_decode($response->body(), true); // true to convert it to an associative array
 
@@ -96,6 +98,7 @@ class NassusController extends Controller
         }
 
 $jsonData = $request->all();
+$ipp = $jsonData[0]['ip'];
 
 foreach ($jsonData as $item) {
     $e=$item["value"];
@@ -104,7 +107,7 @@ foreach ($jsonData as $item) {
         'verify' => false, // Disable SSL verification
     ])->withHeaders([
         'X-ApiKeys' => $this->getApiKeysHeader(),
-    ])->post("{$this->nessusBaseUrl}/scans/{$e}/export", [
+    ])->post("https://{$ipp}/scans/{$e}/export", [
         'format' => 'csv',
         'template_id' => 'false',
         'reportContents.hostSections.scan_information'=> 'true',
@@ -133,7 +136,7 @@ foreach ($jsonData as $item) {
         'verify' => false, // Disable SSL verification
     ])->withHeaders([
         'X-ApiKeys' => $this->getApiKeysHeader(),
-    ])->get("{$this->nessusBaseUrl}/scans/{$e}");
+    ])->get("https://{$ipp}/scans/{$e}");
 
     // Decode the JSON response data
     $responseData = json_decode($response->body(), true); // true to convert it to an associative array
@@ -143,7 +146,7 @@ foreach ($jsonData as $item) {
     'verify' => false, // Disable SSL verification
 ])->withHeaders([
     'X-ApiKeys' => $this->getApiKeysHeader(),
-])->get("{$this->nessusBaseUrl}/scans/{$e}/hosts/{$one}");
+])->get("https://{$ipp}/scans/{$e}/hosts/{$one}");
 
 $responseData2 = json_decode($response->body(), true); // true to convert it to an associative array
 $host_ip = $responseData2['info']['host-ip'];
@@ -186,7 +189,7 @@ foreach ($filesData as $item) {
         'verify' => false,
     ])->withHeaders([
         'X-ApiKeys' => $this->getApiKeysHeader(),
-    ])->get("{$this->nessusBaseUrl}/scans/{$e}/export/{$i}/status");
+    ])->get("https://{$ipp}/scans/{$e}/export/{$i}/status");
 
     $responseData = json_decode($response->body(), true);
   
@@ -224,6 +227,7 @@ foreach ($filesData as $item) {
         $prj_id = $json['project_id'];
         $lab = $json['Label'];
         $des = $json['description'];
+        $ip = $json['selectedIp'];
 
         $verif = 'true';
 /////Upload Anomalie Creation
@@ -247,7 +251,7 @@ while ($createdId === null) {
                 'verify' => false,
             ])->withHeaders([
                 'X-ApiKeys' => $this->getApiKeysHeader(),
-            ])->get("{$this->nessusBaseUrl}/scans/{$e}/export/{$i}/status");
+            ])->get("https://{$ip}/scans/{$e}/export/{$i}/status");
 
             $responseData = json_decode($response->body(), true);
 
@@ -272,7 +276,7 @@ while ($createdId === null) {
                     'verify' => false,
                 ])->withHeaders([
                     'X-ApiKeys' => $this->getApiKeysHeader(),
-                ])->get("{$this->nessusBaseUrl}/scans/{$e}/export/{$i}/download");
+                ])->get("https://{$ip}/scans/{$e}/export/{$i}/download");
 
                 if ($response->successful()) {
                     // Save the CSV content to a file
@@ -325,7 +329,7 @@ while ($createdId === null) {
                     'verify' => false,
                 ])->withHeaders([
                     'X-ApiKeys' => $this->getApiKeysHeader(),
-                ])->get("{$this->nessusBaseUrl}/plugins/plugin/{$pid}");
+                ])->get("https://{$ip}/plugins/plugin/{$pid}");
 
                 $responseData = json_decode($response->body(), true);
                 $attributes = $responseData['attributes'];
