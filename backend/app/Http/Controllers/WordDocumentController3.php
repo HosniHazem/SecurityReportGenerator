@@ -287,7 +287,7 @@ static function preparePagesDeGarde($templateProcessor, $annex_id,$customer, $pr
     $templateProcessor->setValue('SRV_TITLE', self::$AnnexesTitles[$annex_id]);
     $templateProcessor->setValue('SRV_LETTER', self::$AnnexesLetters[$annex_id]);
 //    $imageData = file_get_contents($customer->Logo);
-    $localImagePath = public_path('images/'.basename($customer->Logo)); // Specify the local path to save the image
+    $localImagePath = public_path('images/uploads/'.basename($customer->Logo)); // Specify the local path to save the image
   //  file_put_contents($localImagePath, $imageData);
     $templateProcessor->setImageValue('icon', $localImagePath);
     $templateProcessor->setValue('SN',  $customer->SN);
