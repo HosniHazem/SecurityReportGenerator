@@ -28,12 +28,12 @@ class WordDocumentController4 extends Controller
 
 
 
-
+//the function to fill ansi  repot
     public function generateWordDocument(Request $request)
     {
         set_time_limit(5000);
 
-        $sqlCustomers= 'SELECT * FROM `glb_customers` WHERE ID=?';
+        $sqlCustomers= 'SELECT * FROM `glb_customers` where id=? ';
 
         $sql =  <<<HERE10
         SELECT `standards_controls`.`Clause`, `standards_controls`.`controle`, rm_answers.Answer, `rm_questions`.`Bonne pratique` as 'bp', `rm_questions`.`Vulnérabilité` as 'vuln'
@@ -42,7 +42,6 @@ class WordDocumentController4 extends Controller
         order by `Clause`, `controle`,`rm_questions`.`Question_numero` ASC;
         HERE10;
 
-
         $templatePath = public_path("0.docx");
         $templateProcessor = new TemplateProcessor($templatePath);
 
@@ -50,9 +49,19 @@ class WordDocumentController4 extends Controller
         $outputFileName = 'ansi2023.docx';
         $outputPath = public_path('' . $outputFileName);
         $Customers=  DB::select($sqlCustomers,[$request->customer]);
-        $templateProcessor->setValues($Customers);
+        if (!empty($Customers)) {
+            $firstRow = $Customers[0];
+            $SN = $firstRow->SN;
+            $LN = $firstRow->LN;
+            return response()->json($Customers);
+            $templateProcessor->setValue('SN', $SN);
+            $templateProcessor->setValue('LN', $LN);
+        } else {
+            return response()->json("no customer with this id exists ");
+        }
 
-        $AllRows=  DB::select($sql,[5,5]);
+        $AllRows=  DB::select($sql);
+
         $allRowsAsArray=[];
         foreach($AllRows as $row){
 
