@@ -25,72 +25,6 @@ use Stichoza\GoogleTranslate\GoogleTranslate;
 
 class WordDocumentController4 extends Controller
 {
-    public static   $AnnexesTitles = array("","Serveurs","Solution Réseau", "Bases de donnees", "Poste de travail",  "Actifs externe", "Applications", "Solution VOIP", "Solution MAILS");
-    public static   $AnnexesLetters = array("","B","C", "D", "E",  "F", "G", "H", "I");
-
-
-    private static function generateGlobalTableOfRowsWithTwoLevels( $templateProcessor,$query, $prjID, $KeyToDuplicateRows, $ColoredRowsArrays,$ColoredField, $prefixStats)
-    {
-        $AllRows=  DB::select($query,[$prjID,$prjID]);
-//print_r( $AllRows);exit;
-           $TwoLevelsTablesAllRows = [];
-           for ($i=0;$i<count($AllRows);$i++)
-           {
-
-               foreach($AllRows[$i] as $key=>$value)
-                   {
-
-                       if(is_string($value) && str_contains($key, "ToBeClean"))   $AllRows[$i]->$key= self::cleanNewLineProblem($AllRows[$i]->$key, str_contains($key,"ref"));
-                   }
-
-                   $TwoLevelsTablesAllRows[$AllRows[$i]->$KeyToDuplicateRows] [$AllRows[$i]->$ColoredField][]=$AllRows[$i];
-           }
-           if($i>0)
-
-           {
-            $singleRow=$AllRows[0];
-
-            $templateProcessor->cloneRow($KeyToDuplicateRows,  count($TwoLevelsTablesAllRows));
-            $hostNumber=0;
-            foreach ($TwoLevelsTablesAllRows as $HostSection)
-            {
-                $hostNumber++;
-
-
-                foreach($ColoredRowsArrays as $colorRow)
-                {
-
-                    if(isset($HostSection[$colorRow]))
-                    {
-                                $templateProcessor->cloneRow($colorRow."_".$ColoredField."#".$hostNumber,  count($HostSection[$colorRow]));
-                                $templateProcessor->setValue($KeyToDuplicateRows."_ip#".$hostNumber, $HostSection[$colorRow][0]->$KeyToDuplicateRows );
-
-
-                            $order=1;
-                            foreach($HostSection[$colorRow] as $HostOneVuln)
-                            {
-
-                                foreach ($HostOneVuln as $key => $value)
-                                {
-                               //     var_dump($HostOneVuln); exit;
-
-                                    $templateProcessor->setValue($colorRow."_".$key."#".$hostNumber."#".$order,  $value);
-                                    $templateProcessor->setValue($key."#".$hostNumber."#".$order,  $value);
-                                }
-                                $order++;
-                            }
-                    }
-                    else $templateProcessor->cloneRowAndSetValues($colorRow."_".$ColoredField."#".$hostNumber, []);
-
-                }
-
-            }
-           }
-
-
-           return count($AllRows);
-    }
-
 
 
 
@@ -98,16 +32,87 @@ class WordDocumentController4 extends Controller
     public function generateWordDocument(Request $request)
     {
         set_time_limit(5000);
-        //ini_set('memory_limit', '1G');
+
+        $sql =  <<<HERE10
+        SELECT `standards_controls`.`Clause`, `standards_controls`.`controle`, rm_answers.Answer, `rm_questions`.`Bonne pratique` as 'bp', `rm_questions`.`Vulnérabilité` as 'vuln'
+        FROM `standards_controls` LEFT JOIN rm_questions on standards_controls.ID=`rm_questions`.`Standard_Control_id`
+        LEFT Join rm_answers on rm_answers.ID_Question=rm_questions.ID WHERE LENGTH(`rm_questions`.`Vulnérabilité`) > 5
+        order by `Clause`, `controle`,`rm_questions`.`Question_numero` ASC;
+        HERE10;
 
 
+        $templatePath = public_path("0.docx");
+        $templateProcessor = new TemplateProcessor($templatePath);
 
 
+        $outputFileName = 'ansi2023.docx';
+        $outputPath = public_path('' . $outputFileName);
 
-       return;
+        $AllRows=  DB::select($sql,[5,5]);
+        $allRowsAsArray=[];
+        foreach($AllRows as $row){
+
+            if($row->Answer>0)
+            {
+                 $allRowsAsArray[$row->Clause][$row->controle][$row->Answer][]=$row->bp;
+            }
+            else
+            {
+                $allRowsAsArray[$row->Clause][$row->controle][$row->Answer][]=$row->vuln;
+          //  echo $row->Answer."aaaaaaaaaaaaaaaa";
+            }
+
+        }
+//return $allRowsAsArray;
+        foreach ($allRowsAsArray as $ClauseId => $rowData) {
+
+
+                foreach ($rowData as $ControlID => $cellData) {
+
+                    self::setOneRowControl($templateProcessor,$ClauseId, $ControlID, $cellData, 1, "_BestPractice#" );
+
+                    self::setOneRowControl($templateProcessor,$ClauseId, $ControlID, $cellData, 0, "_Vuln#" );
+
+
+                }
+
+        }
+
+
+        $templateProcessor->saveAs($outputPath);
+
+
+      //  return response()->download($filepath,$filename)->deleteFileAfterSend(true);
+
 
 
     }
+
+static function setOneRowControl($templateProcessor,$ClauseId, $ControlID, $cellData, $type, $typeTag )
+{
+ //   echo  $ClauseId."_". $ControlID."\n";
+
+ if(!isset($cellData[$type])) {
+        echo $ClauseId.$typeTag.$ControlID;
+        $templateProcessor->setValue($ClauseId.$typeTag.$ControlID, "");return;
+    };
+
+    $templateProcessor->cloneRow($ClauseId.$typeTag.$ControlID, count($cellData[$type]));
+               //        var_dump("\${".$ClauseId.$typeTag.$ControlID."#$i}", $value);
+    $i=1;
+
+    foreach($cellData[$type] as $attr=>$value)
+    {
+
+        $templateProcessor->setValue($ClauseId.$typeTag.$ControlID."#$i", $value);
+        $templateProcessor->setValue($ClauseId.$typeTag.$ControlID, $value);
+        $i++;
+    }
+    if($i==1)
+    {   echo $ClauseId.$typeTag.$ControlID;
+        $templateProcessor->cloneRowAndSetValues($ClauseId.$typeTag.$ControlID, []);
+    }
+}
 static function preparePagesDeGarde($templateProcessor, $annex_id,$customer, $project )
 {
 
