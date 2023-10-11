@@ -177,6 +177,11 @@ class WordDocumentController3 extends Controller
                 {
 
                     if(is_string($value) && str_contains($key, "ToBeClean"))   $AllRows[$i]->$key= self::cleanNewLineProblem($AllRows[$i]->$key, str_contains($key,"ref"));
+                    if(is_string($value)) {
+                        if(strlen($value)==0) $AllRows[$i]->$key ="-";
+                        if($value==="true") $AllRows[$i]->$key ="Vrai";
+                        if($value==="false") $AllRows[$i]->$key ="Faux";
+                    }
                 }
 
 
@@ -271,14 +276,9 @@ class WordDocumentController3 extends Controller
 
         }
 
-
-        print_r($listOfFile);
-
-       return;
- /*        print_r($returnedArray);
-        print_r($listOfFile);
-
-       return $returnedArray; */
+        if(isset($request->ZipIt))
+       return self::ZipAndDownload($project, "techAnnexes_", $listOfFile);
+        else  print_r($listOfFile);
 
     }
 static function preparePagesDeGarde($templateProcessor, $annex_id,$customer, $project )
@@ -286,10 +286,10 @@ static function preparePagesDeGarde($templateProcessor, $annex_id,$customer, $pr
 
     $templateProcessor->setValue('SRV_TITLE', self::$AnnexesTitles[$annex_id]);
     $templateProcessor->setValue('SRV_LETTER', self::$AnnexesLetters[$annex_id]);
-/*      $imageData = file_get_contents($customer->Logo);
+//    $imageData = file_get_contents($customer->Logo);
     $localImagePath = public_path('images/'.basename($customer->Logo)); // Specify the local path to save the image
-    file_put_contents($localImagePath, $imageData);
-    $templateProcessor->setImageValue('icon', $localImagePath); */
+  //  file_put_contents($localImagePath, $imageData);
+    $templateProcessor->setImageValue('icon', $localImagePath);
     $templateProcessor->setValue('SN',  $customer->SN);
     $templateProcessor->setValue('LN',  $customer->LN);
     $templateProcessor->setValue('PRJ',  $project->Nom);
@@ -313,5 +313,29 @@ static function preparePagesDeGarde($templateProcessor, $annex_id,$customer, $pr
     else return ;
 
 }
+public static function ZipAndDownload($project, $prefix, $filePaths)
+{
+    // Create a zip archive
+ $zip = new ZipArchive;
+ $tempDirectory = storage_path('app/temp');
+ $zipFileName = $prefix. $project->Nom . '.zip';
+ $zipFilePath = $tempDirectory . '/' . $zipFileName;
 
+ if ($zip->open($zipFilePath, ZipArchive::CREATE) === true) {
+     // Add the files to the zip archive
+     foreach ($filePaths as $filePath) {
+         $file = basename($filePath);
+         $zip->addFile($filePath, $file);
+     }
+
+     $zip->close();
+     WordDocumentController3::send_whatsapp($zipFileName ." Ready");
+     // Download the zip archive
+     return response()->download($zipFilePath)->deleteFileAfterSend();
+ }
+
+ // If zip creation fails, return an error response
+ WordDocumentController3::send_whatsapp($zipFileName ." can't be downloaded");
+ return response()->json(['error' => 'Failed to create zip archive'], 500);
+}
 }
