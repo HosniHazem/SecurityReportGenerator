@@ -31,6 +31,7 @@ export default function SelectTextFields() {
   const [jsonData, setJsonData] = useState([]);
   const [Stats, setStats] = useState([]);
   const [StatExport, setStatExport] = useState([]);
+  const [Vm, setVm] = useState([]);
   const [Ready, setReady] = useState("no");
   const [checkedItems, setCheckedItems] = useState(() => {
     // Initialize checkedItems with all items checked by default
