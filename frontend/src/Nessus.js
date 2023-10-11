@@ -47,12 +47,16 @@ const project_name = sessionStorage.getItem('project_name');
   const selectedIp = sessionStorage.getItem('selectedIp');
  
   useEffect(() => {
+<<<<<<< HEAD
     const dataToSend = {
       selectedIp: selectedIp,
     }
   
     console.log(dataToSend)
     axios.post("http://webapp.smartskills.tn:8002/api/getScan",dataToSend).then((res) => {
+=======
+    axios.get("http://webapp.smartskills.local:8002/api/getScan").then((res) => {
+>>>>>>> 432955e2b5af1f1025e68cc62e6c3ec7ea218c96
       if (res.status === 200) {
         
         const filteredFolders = res.data.Folders.folders.filter(folder => folder.name.toLowerCase().includes(project_name.toLowerCase()));
@@ -67,6 +71,18 @@ const project_name = sessionStorage.getItem('project_name');
   }, []);
 
 
+<<<<<<< HEAD
+=======
+  useEffect(() => {
+    axios.get("http://webapp.smartskills.local:8002/api/get_vm").then((res) => {
+      if (res.status === 200) {
+        setVm(res.data.Vm);
+      }
+    }).catch((error) => {
+      console.error('Error sending data:', error);
+    });
+  }, []);
+>>>>>>> 432955e2b5af1f1025e68cc62e6c3ec7ea218c96
 
   const handleCheckboxChange = (scanId, checked) => {
     setCheckedItems((prev) => ({
@@ -138,7 +154,7 @@ parsedData.selectedIp = selectedIp;
 
 
      setExporting(true);
-    axios.post('http://webapp.smartskills.tn:8002/api/ImportAll',parsedData)
+    axios.post('http://webapp.smartskills.local:8002/api/ImportAll',parsedData)
     .then((response) => {
       if(response.data.status===200){
         setReady("no");
@@ -180,7 +196,7 @@ parsedData.selectedIp = selectedIp;
     }));
  console.log(selectedIdsJSON);
      setExporting(true);
-    axios.post('http://webapp.smartskills.tn:8002/api/ExportAll',selectedIdsJSON)
+    axios.post('http://webapp.smartskills.local:8002/api/ExportAll',selectedIdsJSON)
     .then((response) => {
       if(response.data.status===200){
 

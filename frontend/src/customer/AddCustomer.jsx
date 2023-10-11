@@ -64,7 +64,7 @@ function AddCustom() {
         if(Fich!=null){
         const formData = new FormData();
     formData.append('attach',picture.attach);
-     axios.post('http://webapp.smartskills.tn:8002/api/imageProfil',formData).then(res=>{
+     axios.post('http://webapp.smartskills.local:8002/api/imageProfil',formData).then(res=>{
        if(res.status=== 200){
         
     
@@ -84,7 +84,7 @@ function AddCustom() {
                   Logo:Fich,
               }
 
-      axios.post(`http://webapp.smartskills.tn:8002/api/Customer/create`, data).then(res=>{
+      axios.post(`http://webapp.smartskills.local:8002/api/Customer/create`, data).then(res=>{
           if(res.data.status === 200)
           {
               

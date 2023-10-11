@@ -37,7 +37,7 @@ function UpdateProject() {
     const [Customer, setCustomer] = useState([]);
     const [Fich, setFich] = useState(null);
       useEffect(() => {
-        axios.get(`http://webapp.smartskills.tn:8002/api/Project/${id}/show`).then((res) => {
+        axios.get(`http://webapp.smartskills.local:8002/api/Project/${id}/show`).then((res) => {
           if(res.data.status === 200){
             setProject(res.data.Project);
      } else if(res.data.status === 404){
@@ -51,7 +51,7 @@ function UpdateProject() {
         setProject({...ProjectInput, [e.target.name]: e.target.value });
     }
     useEffect(() => {
-      axios.get(`http://webapp.smartskills.tn:8002/api/Customer`,).then((res) => {
+      axios.get(`http://webapp.smartskills.local:8002/api/Customer`,).then((res) => {
         if(res.status === 200){
         setCustomer(res.data.Customer);
    }
@@ -76,7 +76,7 @@ function UpdateProject() {
 
         }
 console.log(data);
-      axios.put(`http://webapp.smartskills.tn:8002/api/Project/${id}/update`, data).then(res=>{
+      axios.put(`http://webapp.smartskills.local:8002/api/Project/${id}/update`, data).then(res=>{
           if(res.data.status === 200)
           {
               

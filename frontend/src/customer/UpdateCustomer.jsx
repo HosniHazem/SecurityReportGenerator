@@ -36,7 +36,7 @@ function UpdateCustom() {
     const [CustomerInput, setCustomer] = useState([]);
     const [Fich, setFich] = useState(null);
       useEffect(() => {
-        axios.get(`http://webapp.smartskills.tn:8002/api/Customer/${id}/show`).then((res) => {
+        axios.get(`http://webapp.smartskills.local:8002/api/Customer/${id}/show`).then((res) => {
           if(res.data.status === 200){
             setCustomer(res.data.Customer);
             setFich(res.data.Customer.Logo);
@@ -72,7 +72,7 @@ function UpdateCustom() {
         const formData = new FormData();
     formData.append('attach',picture.attach);
     if(picture.attach){
-     axios.post('http://webapp.smartskills.tn:8002/api/imageProfil',formData).then(res=>{
+     axios.post('http://webapp.smartskills.local:8002/api/imageProfil',formData).then(res=>{
        if(res.status=== 200){
         
     
@@ -93,7 +93,7 @@ function UpdateCustom() {
                 Logo:Fich,
               }
 console.log(data);
-      axios.put(`http://webapp.smartskills.tn:8002/api/Customer/${id}/update`, data).then(res=>{
+      axios.put(`http://webapp.smartskills.local:8002/api/Customer/${id}/update`, data).then(res=>{
           if(res.data.status === 200)
           {
               
