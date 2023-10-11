@@ -33,6 +33,8 @@ class WordDocumentController4 extends Controller
     {
         set_time_limit(5000);
 
+        $sqlCustomers= 'SELECT * FROM `glb_customers` WHERE ID=?';
+
         $sql =  <<<HERE10
         SELECT `standards_controls`.`Clause`, `standards_controls`.`controle`, rm_answers.Answer, `rm_questions`.`Bonne pratique` as 'bp', `rm_questions`.`Vulnérabilité` as 'vuln'
         FROM `standards_controls` LEFT JOIN rm_questions on standards_controls.ID=`rm_questions`.`Standard_Control_id`
@@ -47,6 +49,8 @@ class WordDocumentController4 extends Controller
 
         $outputFileName = 'ansi2023.docx';
         $outputPath = public_path('' . $outputFileName);
+        $Customers=  DB::select($sqlCustomers,[$request->customer]);
+        $templateProcessor->setValues($Customers);
 
         $AllRows=  DB::select($sql,[5,5]);
         $allRowsAsArray=[];

@@ -44,13 +44,14 @@ class WordDocumentController3 extends Controller
         INTO OUTFILE 'c:/tmp/PLACEHOLDER2'
         FIELDS ENCLOSED BY '\"' TERMINATED BY ';' ESCAPED BY '\"' LINES TERMINATED BY '\r\n'
         HERE1;
-
-        $sql= str_replace("PLACEHOLDER2", $req->filename.time().".csv", $sql);
+        $filename= $req->filename.time().".csv";
+        $sql= str_replace("PLACEHOLDER2", $filename, $sql);
         if(isset($req->OnlyVuln)) $sql= str_replace("PLACEHOLDER1", "and Risk in ('Critical', 'Medium', 'High', 'Low')", $sql);
         else $sql = str_replace("PLACEHOLDER1", " ", $sql);
 
        // echo $sql;
-      print_r(DB::select($sql,array($req->project_id, $req->project_id )));
+      DB::select($sql,array($req->project_id, $req->project_id ));
+      return response()->download("c:/tmp/".$filename)->deleteFileAfterSend();
 
     }
 
