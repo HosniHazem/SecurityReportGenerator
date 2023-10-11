@@ -53,8 +53,9 @@ function AddCustom() {
       const handleImage = (e) => {
         e.preventDefault();
         setPicture({attach : e.target.files[0]});
-       
-        setFich(e.target.files[0].name)
+        const fileType = e.target.files[0]["type"];
+        const fileExtension = fileType.split("/")[1];
+        setFich(CustomerInput.SN+"."+fileExtension)
        
       }
 
@@ -64,7 +65,9 @@ function AddCustom() {
         if(Fich!=null){
         const formData = new FormData();
     formData.append('attach',picture.attach);
-     axios.post('http://webapp.smartskills.local:8002/api/imageProfil',formData).then(res=>{
+    formData.append('name',CustomerInput.SN);
+   console.log(formData);
+     axios.post('http://webapp.smartskills.tn:8002/api/imageProfil',formData).then(res=>{
        if(res.status=== 200){
         
     
@@ -84,7 +87,7 @@ function AddCustom() {
                   Logo:Fich,
               }
 
-      axios.post(`http://webapp.smartskills.local:8002/api/Customer/create`, data).then(res=>{
+      axios.post(`http://webapp.smartskills.tn:8002/api/Customer/create`, data).then(res=>{
           if(res.data.status === 200)
           {
               
