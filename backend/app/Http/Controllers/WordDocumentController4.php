@@ -67,7 +67,11 @@ class WordDocumentController4 extends Controller
         LEFT Join rm_answers on rm_answers.ID_Question=rm_questions.ID WHERE LENGTH(`rm_questions`.`Vulnérabilité`) > 5
         order by `Clause`, `controle`,`rm_questions`.`Question_numero` ASC;
         HERE10;
+          //sql for  Siege Description
+          $sqlApplication= "SELECT `Nom` as App_Name , `field3` as App_Module , `field4` as  App_Descr , `field5` as App_EnvDev , `dev by` as App_DevPar , `URL` as App_IPs , `Number of users`  as App_NumberUsers FROM `Audit_sow` WHERE Type = 'Application' and `Customer` = ?";
 
+        //sql for customers site
+        $sqlCustomerSite='SELECT Numero_site as N_Site, Structure as Structure_Site, Lieu as Lieu_Site FROM `Customer_sites` WHERE Customer_ID=? ';
         $templatePath = public_path("0.docx");
         $templateProcessor = new TemplateProcessor($templatePath);
 
@@ -75,8 +79,42 @@ class WordDocumentController4 extends Controller
         $outputFileName = 'ansi2023.docx';
         $outputPath = public_path('' . $outputFileName);
 
+        //description du siege (Applications):
+
+        $application=DB::select($sqlApplication,[$request->customer]);
+        return response()->json($application);
+
+
+
+
+
+
+
+
+
+
+
+
+        //customer site 
+        $CustomersSite=  DB::select($sqlCustomerSite,[$request->customer]);
+        $CustomersSiteArray=[];
+
+        forEach($CustomersSite as $item){
+            $modifiedCustomersSiteNumeroSite = htmlspecialchars($item->N_Site, ENT_XML1);
+            $modifiedCustomersSiteStructure = htmlspecialchars($item->Structure_Site, ENT_XML1);
+            $modifiedCustomersSiteLieu = htmlspecialchars($item->Lieu_Site, ENT_XML1);
+
+
+            $item->N_Site = $modifiedCustomersSiteNumeroSite;
+            $item->Structure_Site = $modifiedCustomersSiteStructure;
+            $item->Lieu_Site=$modifiedCustomersSiteLieu;
+            // Add the modified object to the new array
+            $CustomersSiteArray[] = $item;
+        }
+        $templateProcessor->cloneRowAndSetValues('N_Site',$CustomersSiteArray);
+
+    
          //Process Table  
-        // return response()->json($Process);
         $Process = DB::select($sqlProcess);
         $rowCount = count($Process);
         $modifiedProcessArray = [];
@@ -91,7 +129,6 @@ class WordDocumentController4 extends Controller
             $modifiedProcessArray[] = $item;
         }
 
-      return response()->json($modifiedProcessArray); 
          $templateProcessor->cloneRowAndSetValues('process',$modifiedProcessArray);
     
 
@@ -108,6 +145,8 @@ class WordDocumentController4 extends Controller
             $Categorie =$firstRow->Categorie;
             $siteWeb=$firstRow->Site_Web;
             $mailAddress=$firstRow->Adresse_mail;
+            $description=$firstRow->Description;
+            $organigrame=$firstRow->Organigramme ? $firstRow->Organigramme : " organigramme non disponible";
 
             
             $templateProcessor->setValue('SN', $SN);
@@ -117,6 +156,10 @@ class WordDocumentController4 extends Controller
             $templateProcessor->setValue('Categorie', $Categorie);
             $templateProcessor->setValue('siteweb', $siteWeb);
             $templateProcessor->setValue('mailadress', $mailAddress);
+            $templateProcessor->setValue('DescriptionCompany',$description);
+            $templateProcessor->setValue('organigrame:800:800',$organigrame);
+
+
         } else {
             return response()->json("no customer with this id exists ");
         }
