@@ -33,7 +33,33 @@ class WordDocumentController4 extends Controller
     {
         set_time_limit(5000);
 
-        $sqlCustomers= 'SELECT * FROM `glb_customers` where id=? ';
+        //query for  customers table 
+        $sqlCustomers = 'SELECT 
+        c.id AS ID,
+        c.SN AS SN,
+        c.LN AS LN,
+        c.type AS Type,
+        c.Logo AS Logo,
+        c.Description AS Description,
+        c.SecteurActivite AS SecteurActivite,
+        c.Categorie AS Categorie,
+        c.`Site web` AS `Site_Web`,
+        c.`Addresse mail` AS `Adresse_mail`,
+        c.Organigramme AS Organigramme,
+        c.Network_Design AS Network_Design,
+        t.leType AS leType
+    FROM glb_customers AS c
+    LEFT JOIN glb_type AS t ON c.type = t.id
+    WHERE c.id = ?;';
+    
+        //query for process  table
+        $sqlProcess = 'SELECT  RM_Processus_domains.ID,Processus_domaine AS  process , MAX(D) AS  Process_D , MAX(I) AS Process_I, MAX(C) AS Process_C
+        FROM RM_Processus_Actifs_Valeurs
+        LEFT JOIN RM_Processus_domains ON RM_Processus_Actifs_Valeurs.ID_Processus = RM_Processus_domains.ID
+        WHERE RM_Processus_domains.ID_ITERATION = 1
+        GROUP BY Processus_domaine';        
+        
+
 
         $sql =  <<<HERE10
         SELECT `standards_controls`.`Clause`, `standards_controls`.`controle`, rm_answers.Answer, `rm_questions`.`Bonne pratique` as 'bp', `rm_questions`.`Vulnérabilité` as 'vuln'
@@ -48,14 +74,49 @@ class WordDocumentController4 extends Controller
 
         $outputFileName = 'ansi2023.docx';
         $outputPath = public_path('' . $outputFileName);
+
+         //Process Table  
+        // return response()->json($Process);
+        $Process = DB::select($sqlProcess);
+        $rowCount = count($Process);
+        $modifiedProcessArray = [];
+
+        // Loop through each item in the $Process array
+        foreach ($Process as $item) {
+            // Apply htmlspecialchars to the "process" property of the object
+            $modifiedProcess = htmlspecialchars($item->process, ENT_XML1);
+            $item->process = $modifiedProcess;
+        
+            // Add the modified object to the new array
+            $modifiedProcessArray[] = $item;
+        }
+
+      return response()->json($modifiedProcessArray); 
+         $templateProcessor->cloneRowAndSetValues('process',$modifiedProcessArray);
+    
+
+       
+        //Customer Table 
         $Customers=  DB::select($sqlCustomers,[$request->customer]);
         if (!empty($Customers)) {
             $firstRow = $Customers[0];
             $SN = $firstRow->SN;
             $LN = $firstRow->LN;
-            return response()->json($Customers);
+            $typeCompany = $firstRow->leType;
+
+            $ActivitySector=$firstRow->SecteurActivite;
+            $Categorie =$firstRow->Categorie;
+            $siteWeb=$firstRow->Site_Web;
+            $mailAddress=$firstRow->Adresse_mail;
+
+            
             $templateProcessor->setValue('SN', $SN);
             $templateProcessor->setValue('LN', $LN);
+            $templateProcessor->setValue('typeCompany', $typeCompany);
+            $templateProcessor->setValue('SecteurActivite', $ActivitySector);
+            $templateProcessor->setValue('Categorie', $Categorie);
+            $templateProcessor->setValue('siteweb', $siteWeb);
+            $templateProcessor->setValue('mailadress', $mailAddress);
         } else {
             return response()->json("no customer with this id exists ");
         }
@@ -63,6 +124,7 @@ class WordDocumentController4 extends Controller
         $AllRows=  DB::select($sql);
 
         $allRowsAsArray=[];
+
         foreach($AllRows as $row){
 
             if($row->Answer>0)
