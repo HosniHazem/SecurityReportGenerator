@@ -9,7 +9,6 @@ import { ValidatorForm} from 'react-material-ui-form-validator'
 import axios from 'axios';
 import swal from 'sweetalert';
 import { Span } from '../projects/Typography'
-import { MDBInput } from "mdbreact";
 import TextField from '@mui/material/TextField';
 import "./Add.css";
 

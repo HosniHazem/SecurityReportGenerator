@@ -9,7 +9,7 @@ import { ValidatorForm} from 'react-material-ui-form-validator'
 import axios from 'axios';
 import swal from 'sweetalert';
 import { Span } from '../projects/Typography'
-import { MDBInput } from "mdbreact";
+
 import TextField from '@mui/material/TextField';
 import "./Add.css";
 
@@ -47,7 +47,7 @@ function AddProject() {
     }
 
     useEffect(() => {
-      axios.get(`http://webapp.smartskills.local:8002/api/Customer`,).then((res) => {
+      axios.get(`http://webapp.smartskills.tn:8002/api/Customer`,).then((res) => {
         if(res.status === 200){
         setCustomer(res.data.Customer);
    }
@@ -76,7 +76,7 @@ function AddProject() {
 
               }
 console.log(data);
-      axios.post(`http://webapp.smartskills.local:8002/api/Project/create`, data).then(res=>{
+      axios.post(`http://webapp.smartskills.tn:8002/api/Project/create`, data).then(res=>{
           if(res.data.status === 200)
           {
               
