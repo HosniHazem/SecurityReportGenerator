@@ -9,6 +9,7 @@ import AddCustomer from './customer/AddCustomer';
 import AddProject from './projects/AddProject';
 import UpdateCustomer from './customer/UpdateCustomer';
 import UpdateProject from './projects/UpdateProject';
+import Sow from './pages/Sow';
 
 function App() {
     return (
@@ -24,6 +25,7 @@ function App() {
                 <Route path='/updateproject/:id' element={<UpdateProject />} />
                 <Route path='/newcustomer' element={<AddCustomer />} />
                 <Route path='/newproject' element={<AddProject />} />
+                <Route path='/sow' element={<Sow />} />
             </Routes>
         </BrowserRouter>
     );
