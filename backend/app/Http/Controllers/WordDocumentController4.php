@@ -73,6 +73,13 @@ class WordDocumentController4 extends Controller
         $sqlServers = "SELECT `Nom` as Srv_Name , IP_Host as Srv_IP , `field3` as Srv_Type, `field4` as Srv_SE , `field5` as Srv_Role FROM `Audit_sow` WHERE Type='Serveur' and `Customer`=?";
         //sql for customers site
         $sqlCustomerSite = 'SELECT Numero_site as N_Site, Structure as Structure_Site, Lieu as Lieu_Site FROM `Customer_sites` WHERE Customer_ID=? ';
+        //sql for "Infrastucture Réseau et sécurité"
+        $sqlInfrastructure = "SELECT Nom as Infra_Nature, IP_Host as Infra_Marque , field3 as Infra_Number, field4 as Infra_ManagedBy, field5 as Infra_Obs FROM Audit_sow WHERE Type='Infra' AND Customer=?";
+        //sql for postes de travail
+        $sqlPosteTravail = "SELECT field4 as PC_SE , COUNT(field4) as PC_Number FROM Audit_sow WHERE Type='PC' AND Customer=? GROUP BY field4";
+        //sql for network Design Image
+        $sqlNetworkDesign="SELECT `Network_Design` FROM `glb_customers` WHERE id=?";
+
         
 
         $templatePath = public_path("0.docx");
@@ -83,9 +90,58 @@ class WordDocumentController4 extends Controller
         $outputPath = public_path('' . $outputFileName);
 
 
+        //Network Design image
+        $networkDesign = DB::select($sqlNetworkDesign, [$request->customer]);
+        $networkDesignArray = [];
 
+        
+        
+        
+        foreach ($networkDesign as $item) {
+        $modifiedItem = [];
 
+        foreach ($item as $key => $value) {
+        $modifiedItem[$key] = htmlspecialchars($value, ENT_XML1);
+        }
 
+        $networkDesignArray[] = $modifiedItem;
+        }
+        $networkDesignRow = $networkDesignArray[0]; 
+        $networkDesignValue = isset($networkDesignRow->Network_Design) ? networkDesignRow->Network_Design : "pas de network Design";
+        $templateProcessor->setValue('NetworkDesign:800:800', $networkDesignValue);
+
+        
+
+        //table:Postes de travail
+        $posteTravail=DB::select($sqlPosteTravail, [$request->customer]);
+        $posteTravailArray=[];
+
+        foreach ($posteTravail as $item) {
+            $modifiedposteTravail = [];
+   
+            foreach ($item as $key => $value) {
+           $modifiedposteTravail[$key] = htmlspecialchars($value, ENT_XML1);
+            }
+   
+           $posteTravailArray[] =  $modifiedposteTravail;
+           }
+        //    return response()->json($posteTravailArray);
+           $templateProcessor->cloneRowAndSetValues('PC_SE', $posteTravailArray);
+
+        //table:Infrastucture Réseau et sécurité 
+        $Infrastructure=DB::select($sqlInfrastructure, [$request->customer]);
+        $InfrastructureArray=[];
+
+        foreach ($Infrastructure as $item) {
+            $modifiedInfrastructure = [];
+   
+            foreach ($item as $key => $value) {
+           $modifiedInfrastructure[$key] = htmlspecialchars($value, ENT_XML1);
+            }
+   
+           $InfrastructureArray[] =  $modifiedInfrastructure;
+           }
+           $templateProcessor->cloneRowAndSetValues('Infra_Nature', $InfrastructureArray);
 
 
 
@@ -122,6 +178,7 @@ class WordDocumentController4 extends Controller
 
         $application = DB::select($sqlApplication, [$request->customer]);
         $applicationArray = [];
+        
 
         foreach ($application as $item) {
             $modifiedAppName = htmlspecialchars($item->App_Name, ENT_XML1);
