@@ -23,6 +23,8 @@ use App\Models\Project; // Replace with your actual model
 use Illuminate\Support\Facades\Http;
 use Stichoza\GoogleTranslate\GoogleTranslate;
 
+
+
 class WordDocumentController4 extends Controller
 {
 
@@ -79,8 +81,8 @@ class WordDocumentController4 extends Controller
         $sqlPosteTravail = "SELECT field4 as PC_SE , COUNT(field4) as PC_Number FROM Audit_sow WHERE Type='PC' AND Customer=? GROUP BY field4";
         //sql for network Design Image
         $sqlNetworkDesign="SELECT `Network_Design` FROM `glb_customers` WHERE id=?";
-
-        
+        //sql for audit tools
+        $sqlAuditTools="SELECT `Tool_name` as tool ,`Version` tool_version,`License` as tool_license,`Feature` as tool_features,`Composante_SI` as tool_sow FROM `Audit_Tools` ORDER BY `Composante_SI`;";
 
         $templatePath = public_path("0.docx");
         $templateProcessor = new TemplateProcessor($templatePath);
@@ -90,12 +92,23 @@ class WordDocumentController4 extends Controller
         $outputPath = public_path('' . $outputFileName);
 
 
-        //Network Design image
-        $networkDesign = DB::select($sqlNetworkDesign, [$request->customer]);
-        $networkDesignArray = [];
+        //audit tools table
+
+        $auditTools = DB::select($sqlAuditTools);
+        $auditToolsArray=[];
+        $auditToolsArray = self::processDatabaseData($auditTools);
+        $templateProcessor->cloneRowAndSetValues('tool', $auditToolsArray);
 
         
         
+
+
+
+
+
+        //Network Design image
+        $networkDesign = DB::select($sqlNetworkDesign, [$request->customer]);
+        $networkDesignArray = [];
         
         foreach ($networkDesign as $item) {
         $modifiedItem = [];
@@ -369,4 +382,20 @@ class WordDocumentController4 extends Controller
             return (int) $status;
         } else return;
     }
+    static function processDatabaseData($data) {
+        $result = [];
+    
+        foreach ($data as $item) {
+            $modifiedItem = [];
+    
+            foreach ($item as $key => $value) {
+                $modifiedItem[$key] = htmlspecialchars($value, ENT_XML1);
+            }
+    
+            $result[] = $modifiedItem;
+        }
+    
+        return $result;
+    }
+    
 }
