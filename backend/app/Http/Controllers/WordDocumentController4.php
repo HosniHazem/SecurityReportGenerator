@@ -92,127 +92,47 @@ class WordDocumentController4 extends Controller
         $outputPath = public_path('' . $outputFileName);
 
 
+
+
+
+
+
+
         //audit tools table
 
         $auditTools = DB::select($sqlAuditTools);
-        $auditToolsArray=[];
         $auditToolsArray = self::processDatabaseData($auditTools);
         $templateProcessor->cloneRowAndSetValues('tool', $auditToolsArray);
 
-        
-        
-
-
-
-
-
         //Network Design image
         $networkDesign = DB::select($sqlNetworkDesign, [$request->customer]);
-        $networkDesignArray = [];
         
-        foreach ($networkDesign as $item) {
-        $modifiedItem = [];
+        $networkDesignArray = self::processDatabaseData($networkDesign);
 
-        foreach ($item as $key => $value) {
-        $modifiedItem[$key] = htmlspecialchars($value, ENT_XML1);
-        }
-
-        $networkDesignArray[] = $modifiedItem;
-        }
         $networkDesignRow = $networkDesignArray[0]; 
         $networkDesignValue = isset($networkDesignRow->Network_Design) ? networkDesignRow->Network_Design : "pas de network Design";
         $templateProcessor->setValue('NetworkDesign:800:800', $networkDesignValue);
-
-        
-
         //table:Postes de travail
         $posteTravail=DB::select($sqlPosteTravail, [$request->customer]);
-        $posteTravailArray=[];
-
-        foreach ($posteTravail as $item) {
-            $modifiedposteTravail = [];
-   
-            foreach ($item as $key => $value) {
-           $modifiedposteTravail[$key] = htmlspecialchars($value, ENT_XML1);
-            }
-   
-           $posteTravailArray[] =  $modifiedposteTravail;
-           }
-        //    return response()->json($posteTravailArray);
-           $templateProcessor->cloneRowAndSetValues('PC_SE', $posteTravailArray);
+        $posteTravailArray= self::processDatabaseData($posteTravail);
+        $templateProcessor->cloneRowAndSetValues('PC_SE', $posteTravailArray);
 
         //table:Infrastucture Réseau et sécurité 
         $Infrastructure=DB::select($sqlInfrastructure, [$request->customer]);
-        $InfrastructureArray=[];
-
-        foreach ($Infrastructure as $item) {
-            $modifiedInfrastructure = [];
-   
-            foreach ($item as $key => $value) {
-           $modifiedInfrastructure[$key] = htmlspecialchars($value, ENT_XML1);
-            }
-   
-           $InfrastructureArray[] =  $modifiedInfrastructure;
-           }
-           $templateProcessor->cloneRowAndSetValues('Infra_Nature', $InfrastructureArray);
+        $InfrastructureArray= self::processDatabaseData($Infrastructure);
+        $templateProcessor->cloneRowAndSetValues('Infra_Nature', $InfrastructureArray);
 
 
 
         //Table:serveur par plateforme
         $servers = DB::select($sqlServers, [$request->customer]);
-        $serverArray = [];
-
-        foreach ($servers as $item) {
-         $modifiedServer = [];
-
-         foreach ($item as $key => $value) {
-        $modifiedServer[$key] = htmlspecialchars($value, ENT_XML1);
-         }
-
-        $serverArray[] = $modifiedServer;
-        }
-
-        $templateProcessor->cloneRowAndSetValues('Srv_Name', $serverArray);
-
-
-
-
-
-
-
-
-
-
-
-
-
+        $serverArray = self::processDatabaseData($servers);
+         $templateProcessor->cloneRowAndSetValues('Srv_Name', $serverArray);
 
         //description du siege (Applications):
 
         $application = DB::select($sqlApplication, [$request->customer]);
-        $applicationArray = [];
-        
-
-        foreach ($application as $item) {
-            $modifiedAppName = htmlspecialchars($item->App_Name, ENT_XML1);
-            $modifiedAppModule = htmlspecialchars($item->App_Module, ENT_XML1);
-            $modifiedAppDescr = htmlspecialchars($item->App_Descr, ENT_XML1);
-            $modifiedAppEnvDev = htmlspecialchars($item->App_EnvDev, ENT_XML1);
-            $modifiedAppDevPar = htmlspecialchars($item->App_DevPar, ENT_XML1);
-            $modifiedAppIPs = htmlspecialchars($item->App_IPs, ENT_XML1);
-            $modifiedAppNumberUsers = htmlspecialchars($item->App_NumberUsers, ENT_XML1);
-
-            $item->App_Name = $modifiedAppName;
-            $item->App_Module = $modifiedAppModule;
-            $item->App_Descr = $modifiedAppDescr;
-            $item->App_EnvDev = $modifiedAppEnvDev;
-            $item->App_DevPar = $modifiedAppDevPar;
-            $item->App_IPs = $modifiedAppIPs;
-            $item->App_NumberUsers = $modifiedAppNumberUsers;
-
-            $applicationArray[] = $item;
-        }
-
+        $applicationArray = self::processDatabaseData($application );
         $templateProcessor->cloneRowAndSetValues('App_Name', $applicationArray);
 
 
@@ -227,38 +147,13 @@ class WordDocumentController4 extends Controller
 
         //customer site 
         $CustomersSite =  DB::select($sqlCustomerSite, [$request->customer]);
-        $CustomersSiteArray = [];
-
-        foreach ($CustomersSite as $item) {
-            $modifiedCustomersSiteNumeroSite = htmlspecialchars($item->N_Site, ENT_XML1);
-            $modifiedCustomersSiteStructure = htmlspecialchars($item->Structure_Site, ENT_XML1);
-            $modifiedCustomersSiteLieu = htmlspecialchars($item->Lieu_Site, ENT_XML1);
-
-
-            $item->N_Site = $modifiedCustomersSiteNumeroSite;
-            $item->Structure_Site = $modifiedCustomersSiteStructure;
-            $item->Lieu_Site = $modifiedCustomersSiteLieu;
-            // Add the modified object to the new array
-            $CustomersSiteArray[] = $item;
-        }
+        $CustomersSiteArray =  self::processDatabaseData($CustomersSite);
         $templateProcessor->cloneRowAndSetValues('N_Site', $CustomersSiteArray);
 
 
         //Process Table  
         $Process = DB::select($sqlProcess);
-        $rowCount = count($Process);
-        $modifiedProcessArray = [];
-
-        // Loop through each item in the $Process array
-        foreach ($Process as $item) {
-            // Apply htmlspecialchars to the "process" property of the object
-            $modifiedProcess = htmlspecialchars($item->process, ENT_XML1);
-            $item->process = $modifiedProcess;
-
-            // Add the modified object to the new array
-            $modifiedProcessArray[] = $item;
-        }
-
+        $modifiedProcessArray = self::processDatabaseData($Process);
         $templateProcessor->cloneRowAndSetValues('process', $modifiedProcessArray);
 
 
