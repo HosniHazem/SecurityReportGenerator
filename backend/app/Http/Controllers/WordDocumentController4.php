@@ -28,7 +28,7 @@ class WordDocumentController4 extends Controller
 
 
 
-//the function to fill ansi  repot
+    //the function to fill ansi  repot
     public function generateWordDocument(Request $request)
     {
         set_time_limit(5000);
@@ -51,14 +51,14 @@ class WordDocumentController4 extends Controller
     FROM glb_customers AS c
     LEFT JOIN glb_type AS t ON c.type = t.id
     WHERE c.id = ?;';
-    
+
         //query for process  table
         $sqlProcess = 'SELECT  RM_Processus_domains.ID,Processus_domaine AS  process , MAX(D) AS  Process_D , MAX(I) AS Process_I, MAX(C) AS Process_C
         FROM RM_Processus_Actifs_Valeurs
         LEFT JOIN RM_Processus_domains ON RM_Processus_Actifs_Valeurs.ID_Processus = RM_Processus_domains.ID
         WHERE RM_Processus_domains.ID_ITERATION = 1
-        GROUP BY Processus_domaine';        
-        
+        GROUP BY Processus_domaine';
+
 
 
         $sql =  <<<HERE10
@@ -67,11 +67,14 @@ class WordDocumentController4 extends Controller
         LEFT Join rm_answers on rm_answers.ID_Question=rm_questions.ID WHERE LENGTH(`rm_questions`.`Vulnérabilité`) > 5
         order by `Clause`, `controle`,`rm_questions`.`Question_numero` ASC;
         HERE10;
-          //sql for  Siege Description
-          $sqlApplication= "SELECT `Nom` as App_Name , `field3` as App_Module , `field4` as  App_Descr , `field5` as App_EnvDev , `dev by` as App_DevPar , `URL` as App_IPs , `Number of users`  as App_NumberUsers FROM `Audit_sow` WHERE Type = 'Application' and `Customer` = ?";
-
+        //sql for  Siege Description
+        $sqlApplication = "SELECT `Nom` as App_Name , `field3` as App_Module , `field4` as  App_Descr , `field5` as App_EnvDev , `dev by` as App_DevPar , `URL` as App_IPs , `Number of users`  as App_NumberUsers FROM `Audit_sow` WHERE Type = 'Application' and `Customer` = ?";
+        //sql for "serveurs par plateforme"
+        $sqlServers = "SELECT `Nom` as Srv_Name , IP_Host as Srv_IP , `field3` as Srv_Type, `field4` as Srv_SE , `field5` as Srv_Role FROM `Audit_sow` WHERE Type='Serveur' and `Customer`=?";
         //sql for customers site
-        $sqlCustomerSite='SELECT Numero_site as N_Site, Structure as Structure_Site, Lieu as Lieu_Site FROM `Customer_sites` WHERE Customer_ID=? ';
+        $sqlCustomerSite = 'SELECT Numero_site as N_Site, Structure as Structure_Site, Lieu as Lieu_Site FROM `Customer_sites` WHERE Customer_ID=? ';
+        
+
         $templatePath = public_path("0.docx");
         $templateProcessor = new TemplateProcessor($templatePath);
 
@@ -79,11 +82,68 @@ class WordDocumentController4 extends Controller
         $outputFileName = 'ansi2023.docx';
         $outputPath = public_path('' . $outputFileName);
 
+
+
+
+
+
+
+
+        //Table:serveur par plateforme
+        $servers = DB::select($sqlServers, [$request->customer]);
+        $serverArray = [];
+
+        foreach ($servers as $item) {
+         $modifiedServer = [];
+
+         foreach ($item as $key => $value) {
+        $modifiedServer[$key] = htmlspecialchars($value, ENT_XML1);
+         }
+
+        $serverArray[] = $modifiedServer;
+        }
+
+        $templateProcessor->cloneRowAndSetValues('Srv_Name', $serverArray);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         //description du siege (Applications):
 
-        $application=DB::select($sqlApplication,[$request->customer]);
-        return response()->json($application);
+        $application = DB::select($sqlApplication, [$request->customer]);
+        $applicationArray = [];
 
+        foreach ($application as $item) {
+            $modifiedAppName = htmlspecialchars($item->App_Name, ENT_XML1);
+            $modifiedAppModule = htmlspecialchars($item->App_Module, ENT_XML1);
+            $modifiedAppDescr = htmlspecialchars($item->App_Descr, ENT_XML1);
+            $modifiedAppEnvDev = htmlspecialchars($item->App_EnvDev, ENT_XML1);
+            $modifiedAppDevPar = htmlspecialchars($item->App_DevPar, ENT_XML1);
+            $modifiedAppIPs = htmlspecialchars($item->App_IPs, ENT_XML1);
+            $modifiedAppNumberUsers = htmlspecialchars($item->App_NumberUsers, ENT_XML1);
+
+            $item->App_Name = $modifiedAppName;
+            $item->App_Module = $modifiedAppModule;
+            $item->App_Descr = $modifiedAppDescr;
+            $item->App_EnvDev = $modifiedAppEnvDev;
+            $item->App_DevPar = $modifiedAppDevPar;
+            $item->App_IPs = $modifiedAppIPs;
+            $item->App_NumberUsers = $modifiedAppNumberUsers;
+
+            $applicationArray[] = $item;
+        }
+
+        $templateProcessor->cloneRowAndSetValues('App_Name', $applicationArray);
 
 
 
@@ -96,10 +156,10 @@ class WordDocumentController4 extends Controller
 
 
         //customer site 
-        $CustomersSite=  DB::select($sqlCustomerSite,[$request->customer]);
-        $CustomersSiteArray=[];
+        $CustomersSite =  DB::select($sqlCustomerSite, [$request->customer]);
+        $CustomersSiteArray = [];
 
-        forEach($CustomersSite as $item){
+        foreach ($CustomersSite as $item) {
             $modifiedCustomersSiteNumeroSite = htmlspecialchars($item->N_Site, ENT_XML1);
             $modifiedCustomersSiteStructure = htmlspecialchars($item->Structure_Site, ENT_XML1);
             $modifiedCustomersSiteLieu = htmlspecialchars($item->Lieu_Site, ENT_XML1);
@@ -107,14 +167,14 @@ class WordDocumentController4 extends Controller
 
             $item->N_Site = $modifiedCustomersSiteNumeroSite;
             $item->Structure_Site = $modifiedCustomersSiteStructure;
-            $item->Lieu_Site=$modifiedCustomersSiteLieu;
+            $item->Lieu_Site = $modifiedCustomersSiteLieu;
             // Add the modified object to the new array
             $CustomersSiteArray[] = $item;
         }
-        $templateProcessor->cloneRowAndSetValues('N_Site',$CustomersSiteArray);
+        $templateProcessor->cloneRowAndSetValues('N_Site', $CustomersSiteArray);
 
-    
-         //Process Table  
+
+        //Process Table  
         $Process = DB::select($sqlProcess);
         $rowCount = count($Process);
         $modifiedProcessArray = [];
@@ -124,31 +184,31 @@ class WordDocumentController4 extends Controller
             // Apply htmlspecialchars to the "process" property of the object
             $modifiedProcess = htmlspecialchars($item->process, ENT_XML1);
             $item->process = $modifiedProcess;
-        
+
             // Add the modified object to the new array
             $modifiedProcessArray[] = $item;
         }
 
-         $templateProcessor->cloneRowAndSetValues('process',$modifiedProcessArray);
-    
+        $templateProcessor->cloneRowAndSetValues('process', $modifiedProcessArray);
 
-       
+
+
         //Customer Table 
-        $Customers=  DB::select($sqlCustomers,[$request->customer]);
+        $Customers =  DB::select($sqlCustomers, [$request->customer]);
         if (!empty($Customers)) {
             $firstRow = $Customers[0];
             $SN = $firstRow->SN;
             $LN = $firstRow->LN;
             $typeCompany = $firstRow->leType;
 
-            $ActivitySector=$firstRow->SecteurActivite;
-            $Categorie =$firstRow->Categorie;
-            $siteWeb=$firstRow->Site_Web;
-            $mailAddress=$firstRow->Adresse_mail;
-            $description=$firstRow->Description;
-            $organigrame=$firstRow->Organigramme ? $firstRow->Organigramme : " organigramme non disponible";
+            $ActivitySector = $firstRow->SecteurActivite;
+            $Categorie = $firstRow->Categorie;
+            $siteWeb = $firstRow->Site_Web;
+            $mailAddress = $firstRow->Adresse_mail;
+            $description = $firstRow->Description;
+            $organigrame = $firstRow->Organigramme ? $firstRow->Organigramme : " organigramme non disponible";
 
-            
+
             $templateProcessor->setValue('SN', $SN);
             $templateProcessor->setValue('LN', $LN);
             $templateProcessor->setValue('typeCompany', $typeCompany);
@@ -156,112 +216,100 @@ class WordDocumentController4 extends Controller
             $templateProcessor->setValue('Categorie', $Categorie);
             $templateProcessor->setValue('siteweb', $siteWeb);
             $templateProcessor->setValue('mailadress', $mailAddress);
-            $templateProcessor->setValue('DescriptionCompany',$description);
-            $templateProcessor->setValue('organigrame:800:800',$organigrame);
-
-
+            $templateProcessor->setValue('DescriptionCompany', $description);
+            $templateProcessor->setValue('organigrame:800:800', $organigrame);
         } else {
             return response()->json("no customer with this id exists ");
         }
 
-        $AllRows=  DB::select($sql);
+        $AllRows =  DB::select($sql);
 
-        $allRowsAsArray=[];
+        $allRowsAsArray = [];
 
-        foreach($AllRows as $row){
+        foreach ($AllRows as $row) {
 
-            if($row->Answer>0)
-            {
-                 $allRowsAsArray[$row->Clause][$row->controle][$row->Answer][]=$row->bp;
+            if ($row->Answer > 0) {
+                $allRowsAsArray[$row->Clause][$row->controle][$row->Answer][] = $row->bp;
+            } else {
+                $allRowsAsArray[$row->Clause][$row->controle][$row->Answer][] = $row->vuln;
+                //  echo $row->Answer."aaaaaaaaaaaaaaaa";
             }
-            else
-            {
-                $allRowsAsArray[$row->Clause][$row->controle][$row->Answer][]=$row->vuln;
-          //  echo $row->Answer."aaaaaaaaaaaaaaaa";
-            }
-
         }
-//return $allRowsAsArray;
+        //return $allRowsAsArray;
         foreach ($allRowsAsArray as $ClauseId => $rowData) {
 
 
-                foreach ($rowData as $ControlID => $cellData) {
+            foreach ($rowData as $ControlID => $cellData) {
 
-                    self::setOneRowControl($templateProcessor,$ClauseId, $ControlID, $cellData, 1, "_BestPractice#" );
+                self::setOneRowControl($templateProcessor, $ClauseId, $ControlID, $cellData, 1, "_BestPractice#");
 
-                    self::setOneRowControl($templateProcessor,$ClauseId, $ControlID, $cellData, 0, "_Vuln#" );
-
-
-                }
-
+                self::setOneRowControl($templateProcessor, $ClauseId, $ControlID, $cellData, 0, "_Vuln#");
+            }
         }
 
 
         $templateProcessor->saveAs($outputPath);
 
 
-      //  return response()->download($filepath,$filename)->deleteFileAfterSend(true);
+        //  return response()->download($filepath,$filename)->deleteFileAfterSend(true);
 
 
 
     }
 
-static function setOneRowControl($templateProcessor,$ClauseId, $ControlID, $cellData, $type, $typeTag )
-{
- //   echo  $ClauseId."_". $ControlID."\n";
+    static function setOneRowControl($templateProcessor, $ClauseId, $ControlID, $cellData, $type, $typeTag)
+    {
+        //   echo  $ClauseId."_". $ControlID."\n";
 
- if(!isset($cellData[$type])) {
-        echo $ClauseId.$typeTag.$ControlID;
-        $templateProcessor->setValue($ClauseId.$typeTag.$ControlID, "");return;
-    };
+        if (!isset($cellData[$type])) {
+            echo $ClauseId . $typeTag . $ControlID;
+            $templateProcessor->setValue($ClauseId . $typeTag . $ControlID, "");
+            return;
+        };
 
-    $templateProcessor->cloneRow($ClauseId.$typeTag.$ControlID, count($cellData[$type]));
-               //        var_dump("\${".$ClauseId.$typeTag.$ControlID."#$i}", $value);
-    $i=1;
+        $templateProcessor->cloneRow($ClauseId . $typeTag . $ControlID, count($cellData[$type]));
+        //        var_dump("\${".$ClauseId.$typeTag.$ControlID."#$i}", $value);
+        $i = 1;
 
-    foreach($cellData[$type] as $attr=>$value)
+        foreach ($cellData[$type] as $attr => $value) {
+
+            $templateProcessor->setValue($ClauseId . $typeTag . $ControlID . "#$i", $value);
+            $templateProcessor->setValue($ClauseId . $typeTag . $ControlID, $value);
+            $i++;
+        }
+        if ($i == 1) {
+            echo $ClauseId . $typeTag . $ControlID;
+            $templateProcessor->cloneRowAndSetValues($ClauseId . $typeTag . $ControlID, []);
+        }
+    }
+    
+    static function preparePagesDeGarde($templateProcessor, $annex_id, $customer, $project)
     {
 
-        $templateProcessor->setValue($ClauseId.$typeTag.$ControlID."#$i", $value);
-        $templateProcessor->setValue($ClauseId.$typeTag.$ControlID, $value);
-        $i++;
-    }
-    if($i==1)
-    {   echo $ClauseId.$typeTag.$ControlID;
-        $templateProcessor->cloneRowAndSetValues($ClauseId.$typeTag.$ControlID, []);
-    }
-}
-static function preparePagesDeGarde($templateProcessor, $annex_id,$customer, $project )
-{
-
-    $templateProcessor->setValue('SRV_TITLE', self::$AnnexesTitles[$annex_id]);
-    $templateProcessor->setValue('SRV_LETTER', self::$AnnexesLetters[$annex_id]);
-/*      $imageData = file_get_contents($customer->Logo);
+        $templateProcessor->setValue('SRV_TITLE', self::$AnnexesTitles[$annex_id]);
+        $templateProcessor->setValue('SRV_LETTER', self::$AnnexesLetters[$annex_id]);
+        /*      $imageData = file_get_contents($customer->Logo);
     $localImagePath = public_path('images/'.basename($customer->Logo)); // Specify the local path to save the image
     file_put_contents($localImagePath, $imageData);
     $templateProcessor->setImageValue('icon', $localImagePath); */
-    $templateProcessor->setValue('SN',  $customer->SN);
-    $templateProcessor->setValue('LN',  $customer->LN);
-    $templateProcessor->setValue('PRJ',  $project->Nom);
-    $templateProcessor->setValue('Y',  $project->year);
-    $templateProcessor->setValue('URL',  $project->URL);
-    $templateProcessor->setValue('DESC',  $project->description);
-
-   }
-   public static function send_whatsapp($message="Test"){
-    $url='https://api.callmebot.com/whatsapp.php?phone=21629961666&apikey=2415178&text='.urlencode($message);
-    if($ch = curl_init($url))
-    {
-        curl_setopt ($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 0);
-        $html = curl_exec($ch);
-        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        // echo "Output:".$html;  // you can print the output for troubleshooting
-        curl_close($ch);
-        return (int) $status;
+        $templateProcessor->setValue('SN',  $customer->SN);
+        $templateProcessor->setValue('LN',  $customer->LN);
+        $templateProcessor->setValue('PRJ',  $project->Nom);
+        $templateProcessor->setValue('Y',  $project->year);
+        $templateProcessor->setValue('URL',  $project->URL);
+        $templateProcessor->setValue('DESC',  $project->description);
     }
-    else return ;
-
-}
-
+    public static function send_whatsapp($message = "Test")
+    {
+        $url = 'https://api.callmebot.com/whatsapp.php?phone=21629961666&apikey=2415178&text=' . urlencode($message);
+        if ($ch = curl_init($url)) {
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+            $html = curl_exec($ch);
+            $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            // echo "Output:".$html;  // you can print the output for troubleshooting
+            curl_close($ch);
+            return (int) $status;
+        } else return;
+    }
 }
