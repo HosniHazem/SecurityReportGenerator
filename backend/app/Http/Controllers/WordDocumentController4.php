@@ -83,6 +83,9 @@ class WordDocumentController4 extends Controller
         $sqlNetworkDesign="SELECT `Network_Design` FROM `glb_customers` WHERE id=?";
         //sql for audit tools
         $sqlAuditTools="SELECT `Tool_name` as tool ,`Version` tool_version,`License` as tool_license,`Feature` as tool_features,`Composante_SI` as tool_sow FROM `Audit_Tools` ORDER BY `Composante_SI`;";
+        //sql for "equipe de projet"
+        $sqlProjectTeam="SELECT `Nom` as SPOC_Tech_Name ,`Titre` as SPOC_Tech_Title,`Adresse mail primaire` as SPOC_Tech_email ,`Adresse mail secondaire`,`Tél` as SPOC_Tech_Tel FROM `glb_pip` WHERE `Cusotmer_ID`=?";
+
 
         $templatePath = public_path("0.docx");
         $templateProcessor = new TemplateProcessor($templatePath);
@@ -91,12 +94,12 @@ class WordDocumentController4 extends Controller
         $outputFileName = 'ansi2023.docx';
         $outputPath = public_path('' . $outputFileName);
 
-
-
-
-
-
-
+        //table "equipe de projet"
+        $projectTeam = DB::select($sqlProjectTeam, [$request->customer]);
+        $projectTeamArray = self::processDatabaseData($projectTeam);
+        // twice becuz if I do once it only fills the first table
+        $templateProcessor->cloneRowAndSetValues('SPOC_Tech_Name', $projectTeamArray);
+        $templateProcessor->cloneRowAndSetValues('SPOC_Tech_Name', $projectTeamArray);
 
         //audit tools table
 
