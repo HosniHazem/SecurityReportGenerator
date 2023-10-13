@@ -85,7 +85,19 @@ class WordDocumentController4 extends Controller
         $sqlAuditTools="SELECT `Tool_name` as tool ,`Version` tool_version,`License` as tool_license,`Feature` as tool_features,`Composante_SI` as tool_sow FROM `Audit_Tools` ORDER BY `Composante_SI`;";
         //sql for "equipe de projet"
         $sqlProjectTeam="SELECT `Nom` as SPOC_Tech_Name ,`Titre` as SPOC_Tech_Title,`Adresse mail primaire` as SPOC_Tech_email ,`Adresse mail secondaire`,`Tél` as SPOC_Tech_Tel FROM `glb_pip` WHERE `Cusotmer_ID`=?";
-
+        //sql for domain table 
+        $sqlDomain = <<<HERE10
+        SELECT
+            `Clause_name` as Domain,
+            `controle_name` as Mesures,
+            ROUND(SUM(5 * `rm_questions`.`P` * rm_answers.Answer) / SUM(`rm_questions`.`P`), 1) as Value
+        FROM `standards_controls`
+        LEFT JOIN rm_questions ON standards_controls.ID = `rm_questions`.`Standard_Control_id`
+        LEFT JOIN rm_answers ON rm_answers.ID_Question = rm_questions.ID
+        GROUP BY `Clause`, `controle`
+        ORDER BY `Clause`, `controle` ASC;
+        HERE10;
+    
 
         $templatePath = public_path("0.docx");
         $templateProcessor = new TemplateProcessor($templatePath);
@@ -93,6 +105,17 @@ class WordDocumentController4 extends Controller
 
         $outputFileName = 'ansi2023.docx';
         $outputPath = public_path('' . $outputFileName);
+
+
+    //table "domaine"
+        $domain= DB::select($sqlDomain);
+        $domainArray= self::processDatabaseData($domain);
+        $templateProcessor->cloneRowAndSetValues('Domain', $domainArray);
+
+
+        
+
+
 
         //table "equipe de projet"
         $projectTeam = DB::select($sqlProjectTeam, [$request->customer]);
