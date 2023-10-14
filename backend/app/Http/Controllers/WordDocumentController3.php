@@ -28,6 +28,20 @@ class WordDocumentController3 extends Controller
     public static   $AnnexesTitles = array("","Serveurs","Solution Réseau", "Bases de donnees", "Poste de travail",  "Actifs externe", "Applications", "Solution VOIP", "Solution MAILS");
     public static   $AnnexesLetters = array("","B","C", "D", "E",  "F", "G", "H", "I");
 
+    public static function getPourcentage ($source, $ttl_hosts)
+    {
+        $v_Global=0;
+        if($ttl_hosts!=null)
+        if($source[0] > 0)
+        $v_Global = 75 + round(25 * ($source[0]/$ttl_hosts));
+        elseif ($source[1] > 0) $v_Global = 50 + round(25 * ($source[1]/$ttl_hosts));
+        elseif ($source[2] > 0) $v_Global = 25 + round(25 * ($source[2]/$ttl_hosts));
+        else $v_Global = round(25 * ($source[3]/$ttl_hosts));
+
+        return min(99, $v_Global);
+
+    }
+
     public function generateExcelDocument(Request $req)
     {
         set_time_limit(5000);
@@ -82,13 +96,48 @@ class WordDocumentController3 extends Controller
         return $string;
     }
 
+    private static function setVulnPatchValues($prjID, $templateProcessor )
+    {
+        $query = <<<HERE
+        select `t`.`Risk`,`t`.`age_of_vuln`,count(*) as nombre from
+        (select `vuln`.`Risk`,`plugins`.`age_of_vuln`,`vuln`.`Name`,count(*) from (`vuln` left join `plugins` on(`plugins`.`id` = `vuln`.`Plugin ID`))
+            where `vuln`.`upload_id` in (select `uploadanomalies`.`ID` from `uploadanomalies` where `uploadanomalies`.`ID_Projet` = ?) and `vuln`.`Risk` in ('Critical','High','Medium','Low')
+            group by `vuln`.`Risk`,`plugins`.`age_of_vuln`,`vuln`.`Name`,`vuln`.`Host`) `t` group by `t`.`Risk`,`t`.`age_of_vuln`;
+        HERE;
+        $listOfAgesOfVulns = ["0 - 7 days",        "7 - 30 days",        "30 - 60 days",        "60 - 180 days",        "180 - 365 days",        "365 - 730 days",        "730 days +"];
+        $AllRows=  DB::select($query,[$prjID,$prjID]);
+        foreach ($AllRows as $row)
+        {
+            $templateProcessor->setValue($row->Risk."_".$row->age_of_vuln,  $row->nombre);
+          //  var_dump($row->Risk."_".$row->age_of_vuln,  $row->nombre);
+        }
+        foreach($listOfAgesOfVulns as $age_of_vuln)
+        {
+            foreach (self::$arrayRisks as $risk)
+            {
+                $templateProcessor->setValue($risk."_".$age_of_vuln,  "-");
+            }
+        }
+    }
+
     private static function setTotalValues($prefix, $arraykeys,$templateProcessor,$AllRows )
     {
+     $totalStatsName= array(0=>"Hosts_CR",1=>"Hosts_HI",2=>"Hosts_MD",3=>"Hosts_LW");
+     $totalStats=[];
+
+
         foreach ($arraykeys as $key=>$value)
         {
             //print_r($key);exit(0);
             $templateProcessor->setValue($prefix.$key,  array_sum(array_column($AllRows, $key)));
         }
+        for($i=0;$i<4;$i++)
+        {
+            $totalStats[$i] = array_sum(array_column($AllRows, $totalStatsName[$i]));
+        }
+
+        $templateProcessor->setImageValue('V_Global', public_path('images/'. self::getPourcentage($totalStats, count($AllRows)).".png"));
+
     }
 
     private static function generateGlobalTableOfRowsWithTwoLevels( $templateProcessor,$query, $prjID, $KeyToDuplicateRows, $ColoredRowsArrays,$ColoredField, $prefixStats)
@@ -216,6 +265,7 @@ class WordDocumentController3 extends Controller
          if(isset($prefixStats))
          {
             $templateProcessor->SetValue($prefixStats,  count($AllRows));
+            self::setVulnPatchValues($prjID, $templateProcessor);
           //  var_dump($prefixStats,$singleRow,$templateProcessor,$AllRows );exit;
             if(isset($singleRow)) self::setTotalValues($prefixStats,$singleRow,$templateProcessor,$AllRows );
        }
@@ -283,12 +333,10 @@ class WordDocumentController3 extends Controller
     }
 static function preparePagesDeGarde($templateProcessor, $annex_id,$customer, $project )
 {
-
     $templateProcessor->setValue('SRV_TITLE', self::$AnnexesTitles[$annex_id]);
     $templateProcessor->setValue('SRV_LETTER', self::$AnnexesLetters[$annex_id]);
-//    $imageData = file_get_contents($customer->Logo);
-    $localImagePath = public_path('images/uploads/'.basename($customer->Logo)); // Specify the local path to save the image
-  //  file_put_contents($localImagePath, $imageData);
+
+    $localImagePath = public_path('images/uploads/'.$customer->Logo); // Specify the local path to save the image
     $templateProcessor->setImageValue('icon', $localImagePath);
     $templateProcessor->setValue('SN',  $customer->SN);
     $templateProcessor->setValue('LN',  $customer->LN);
@@ -296,7 +344,6 @@ static function preparePagesDeGarde($templateProcessor, $annex_id,$customer, $pr
     $templateProcessor->setValue('Y',  $project->year);
     $templateProcessor->setValue('URL',  $project->URL);
     $templateProcessor->setValue('DESC',  $project->description);
-
    }
    public static function send_whatsapp($message="Test"){
     $url='https://api.callmebot.com/whatsapp.php?phone=21629961666&apikey=2415178&text='.urlencode($message);

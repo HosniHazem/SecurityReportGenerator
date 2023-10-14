@@ -113,10 +113,11 @@ $DefaultQuery = array (
 $RowOfColoring = array(0=>null, 1=>"VulnSummary_Risk", 2=>"VulnPerHost_Risk", 3=>null);
 $keyToDuplicateRows = array(0=>"Hosts_Name", 1=>"VulnSummary_Risk", 2=>"VulnPerHost_host", 3=>"VulnDetails_ID");
 $prefixTLT = array(0=>"TLT_", 1=>null, 2=>null, 3=>null);
+$arrayRisks = array("Critical", "High", "Medium", "Low");
 $ColoredRowsArrays= array (
     0=>null,
-    1=> array("Critical", "High", "Medium", "Low"),
-    2=> array("Critical", "High", "Medium", "Low"),
+    1=> $arrayRisks,
+    2=> $arrayRisks,
     3=>null);
 $SqlQueriesMarks = array(
     "0" =>array(0=>"CLAUSENUMBER1", 1=>"CLAUSENUMBER2", 2=>"CLAUSENUMBER3"),
