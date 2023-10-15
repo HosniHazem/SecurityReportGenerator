@@ -307,9 +307,9 @@ class WordDocumentController3 extends Controller
             $project =Project::find($prj_id);
             $customer =Customer::find($project->customer_id);
             $arrayConfig=array(
-          //      "3.docx" => array(0,1,2),
-            //    "4.docx" => array(3),
-                "5.docx" => array(4),
+                "3.docx" => array(0,1,2),
+               // "4.docx" => array(3),
+             //   "5.docx" => array(4),
             );
 
             foreach($annex_id as $Annex)
@@ -339,8 +339,8 @@ class WordDocumentController3 extends Controller
                     {
                         $categories = array('A', 'B', 'C', 'D', 'E');
                         $series1 = array(1, 3, 2, 5, 4);
-                        //$chart = new Chart('doughnut', $categories, $series1);
-                        //$templateProcessor->setChartValue('myChart', $chart);
+                        $chart = new Chart('doughnut', $categories, $series1);
+                        $templateProcessor->setChartValue('Stats', $chart);
                         $templateProcessor->saveAs($outputPath);
                         $listOfFile[]=$outputPath;
                     self::send_whatsapp("[App2_TechReport] ". $outputFileName ." was created with sucess");
