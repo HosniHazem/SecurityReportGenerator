@@ -41,8 +41,9 @@ $DefaultQuery = array (
     GROUP BY
     `Host` ,  vuln.Name
     ) t
+    CLAUSENUMBER3
     GROUP BY hostip
-    ORDER BY  Critical_Ex DESC, High_Ex DESC, Exp_Malware DESC,Medium_Ex DESC,Critical  DESC,High  DESC CLAUSENUMBER3;
+    ORDER BY  Critical_Ex DESC, High_Ex DESC, Exp_Malware DESC,Medium_Ex DESC,Critical  DESC,High  DESC ;
     HERE0,
     1 => <<<HERE1
     SELECT  Risk AS VulnSummary_Risk,
@@ -58,7 +59,7 @@ $DefaultQuery = array (
     CLAUSENUMBER2
     AND `Risk` in ('Critical', 'High', 'Medium', 'Low')
     group by `Risk`,vuln.`Synopsis`
-    ORDER BY  exploited_by_malware DESC, exploit_available DESC,`Risk` DESC CLAUSENUMBER3;
+    ORDER BY  exploited_by_malware DESC, exploit_available DESC,`Risk` DESC ;
     HERE1,
     2 =><<<HERE2
     SELECT
@@ -76,13 +77,13 @@ $DefaultQuery = array (
         WHERE vuln.upload_id in (SELECT `ID`from uploadanomalies WHERE ID_Projet=?) and sow.Type='CLAUSENUMBER1'  and sow.Projet=?
         CLAUSENUMBER2 AND Risk in ('Critical', 'High', 'Medium', 'Low')
     GROUP BY Host, vuln.Name
-    ORDER BY  VulnPerHost_host,VulnPerHost_exploi DESC,VulnPerHost_Risk DESC CLAUSENUMBER3
+    ORDER BY  VulnPerHost_host,VulnPerHost_exploi DESC,VulnPerHost_Risk DESC
     HERE2,
     3 =>  <<<HERE3
     SELECT
     ROW_NUMBER() OVER() AS VulnDetails_ID,
     vuln.Risk AS VulnDetails_RISK,
-    plugins.name VulnDetails_Name_ToBeClean,
+    plugins.name AS VulnDetails_Name_ToBeClean,
     plugins.cvss3_base_score  AS VulnDetails_CVSS,
     GROUP_CONCAT(DISTINCT vuln.Host) AS VulnDetails_Hosts,
     GROUP_CONCAT(DISTINCT vuln.Port) AS VulnDetails_Hosts_ports,
@@ -101,34 +102,58 @@ $DefaultQuery = array (
     FROM vuln
     LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
     RIGHT JOIN sow ON vuln.`Host` = sow.IP_Host
-    WHERE vuln.upload_id in (SELECT `ID`from uploadanomalies WHERE `ID_Projet`=?) and sow.Type="CLAUSENUMBER1"   and sow.IP_Host = vuln.Host and sow.Projet=?
+    WHERE vuln.upload_id in (SELECT `ID`from uploadanomalies WHERE `ID_Projet`=?) and sow.Type="CLAUSENUMBER1"
+    and sow.IP_Host = vuln.Host and sow.Projet=?
     CLAUSENUMBER2
     AND `Risk` in ('Critical', 'High', 'Medium')
     group by `Risk`,plugins.`synopsis`
-    ORDER BY  exploited_by_malware DESC, exploit_available DESC,`Risk` DESC CLAUSENUMBER3
-    HERE3
+    ORDER BY  exploited_by_malware DESC, exploit_available DESC,`Risk` DESC
+    HERE3,
+    4 =>  <<<HERE4
+    SELECT
+    ROW_NUMBER() OVER() AS VulnDetails_ID,
+    vuln.Risk AS VulnDetails_RISK,
+    plugins.name AS VulnDetails_Name_ToBeClean,
+    plugins.cvss3_base_score  AS VulnDetails_CVSS,
+    GROUP_CONCAT(DISTINCT vuln.Host) AS VulnDetails_Hosts,
+    GROUP_CONCAT(DISTINCT vuln.Port) AS VulnDetails_Hosts_ports,
+    vuln.description AS VulnDetails_Desc_ToBeClean,
+    vuln.`Plugin ID` AS VulnDetails_pluginID,
+    vuln.synopsis AS VulnDetails_Synopsis_ToBeClean,
+    vuln.solution AS VulnDetails_Recomendations_ToBeClean,
+    vuln.`See Also` AS VulnDetails_ref_ToBeClean
+    FROM vuln
+    LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
+    RIGHT JOIN sow ON vuln.`Host` = sow.IP_Host
+    WHERE vuln.upload_id in (SELECT `ID`from uploadanomalies WHERE `ID_Projet`=?) and sow.Type="CLAUSENUMBER1"
+    and sow.IP_Host = vuln.Host and sow.Projet=?
+    CLAUSENUMBER2
+    AND `Risk` in ('FAILED', 'PASSED')
+    group by `Risk`,vuln.description
+    ORDER BY  `Risk` ASC
+    HERE4
 );
 
 
-$RowOfColoring = array(0=>null, 1=>"VulnSummary_Risk", 2=>"VulnPerHost_Risk", 3=>null);
-$keyToDuplicateRows = array(0=>"Hosts_Name", 1=>"VulnSummary_Risk", 2=>"VulnPerHost_host", 3=>"VulnDetails_ID");
-$prefixTLT = array(0=>"TLT_", 1=>null, 2=>null, 3=>null);
+$RowOfColoring = array(0=>null, 1=>"VulnSummary_Risk", 2=>"VulnPerHost_Risk", 3=>null, 4=>null);
+$keyToDuplicateRows = array(0=>"Hosts_Name", 1=>"VulnSummary_Risk", 2=>"VulnPerHost_host", 3=>"VulnDetails_ID", 4=>"VulnDetails_ID");
+$prefixTLT = array(0=>"TLT_", 1=>null, 2=>null, 3=>null, 4=>null);
 $arrayRisks = array("Critical", "High", "Medium", "Low");
 $ColoredRowsArrays= array (
     0=>null,
     1=> $arrayRisks,
     2=> $arrayRisks,
-    3=>null);
+    3=>null, 4=>null);
 $SqlQueriesMarks = array(
     "0" =>array(0=>"CLAUSENUMBER1", 1=>"CLAUSENUMBER2", 2=>"CLAUSENUMBER3"),
     "1" => array(0=>"Serveur", 1=>"AND vuln.Port NOT IN (SELECT `Ports_List` FROM PortsMapping)", 2=>""),
-    "2" => array(0=>"R_S", 1=>"", 2=>""),
-    "3" => array(0=>"Serveur", 1=>"AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='DB')", 2=>""),
+    "2" => array(0=>"R_S", 1=>"", 2=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
+    "3" => array(0=>"Serveur", 1=>" AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='DB')", 2=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
     "4" => array(0=>"PC", 1=>"", 2=>""),
-    "5" => array(0=>"Ext", 1 =>"", 2=>""),
-    "6" => array(0=>"Apps", 1=>"AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='Apps')", 3=>""),
-    "7" => array(0=>"Serveur", 1=>"AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='Mail')", 3=>""),
-    "8" => array(0=>"Serveur", 1=>"AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='Voip')", 3=>""),
+    "5" => array(0=>"Ext", 1 =>"", 2=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
+    "6" => array(0=>"Apps", 1=>"AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='Apps')", 2=>""),
+    "7" => array(0=>"Serveur", 1=>" AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='Mail')", 2=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
+    "8" => array(0=>"Serveur", 1=>" AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='Voip')", 2=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
 
 
 );

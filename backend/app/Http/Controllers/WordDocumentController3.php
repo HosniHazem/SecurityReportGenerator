@@ -27,6 +27,7 @@ class WordDocumentController3 extends Controller
 {
     public static   $AnnexesTitles = array("","Serveurs","Solution Réseau", "Bases de donnees", "Poste de travail",  "Actifs externe", "Applications", "Solution VOIP", "Solution MAILS");
     public static   $AnnexesLetters = array("","B","C", "D", "E",  "F", "G", "H", "I");
+    public static $currentAnnex=0;
 
     public static function getPourcentage ($source, $ttl_hosts)
     {
@@ -98,14 +99,25 @@ class WordDocumentController3 extends Controller
 
     private static function setVulnPatchValues($prjID, $templateProcessor )
     {
+        include("sqlRequests.php");
         $query = <<<HERE
-        select `t`.`Risk`,`t`.`age_of_vuln`,count(*) as nombre from
-        (select `vuln`.`Risk`,`plugins`.`age_of_vuln`,`vuln`.`Name`,count(*) from (`vuln` left join `plugins` on(`plugins`.`id` = `vuln`.`Plugin ID`))
-            where `vuln`.`upload_id` in (select `uploadanomalies`.`ID` from `uploadanomalies` where `uploadanomalies`.`ID_Projet` = ?) and `vuln`.`Risk` in ('Critical','High','Medium','Low')
-            group by `vuln`.`Risk`,`plugins`.`age_of_vuln`,`vuln`.`Name`,`vuln`.`Host`) `t` group by `t`.`Risk`,`t`.`age_of_vuln`;
+            SELECT `t`.`Risk`,`t`.`age_of_vuln`,count(*) AS nombre FROM
+                (
+                    SELECT `vuln`.`Risk`,`plugins`.`age_of_vuln`,`vuln`.`Name`,count(*)  FROM vuln
+                         LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
+                        RIGHT JOIN sow ON vuln.`Host` = sow.IP_Host
+                        WHERE vuln.upload_id in (SELECT `ID`from uploadanomalies WHERE `ID_Projet`=?) and sow.Type="CLAUSENUMBER1"   and sow.IP_Host = vuln.Host and sow.Projet=?
+                        CLAUSENUMBER2
+                         AND     `vuln`.`Risk` in ('Critical','High','Medium','Low')
+                        group by `vuln`.`Risk`,`plugins`.`age_of_vuln`,`vuln`.`Name`,`vuln`.`Host`
+                ) `t`
+              group by `t`.`Risk`,`t`.`age_of_vuln`;
         HERE;
-        $listOfAgesOfVulns = ["0 - 7 days",        "7 - 30 days",        "30 - 60 days",        "60 - 180 days",        "180 - 365 days",        "365 - 730 days",        "730 days +"];
+        $listOfAgesOfVulns = ["", "0 - 7 days",        "7 - 30 days",        "30 - 60 days",        "60 - 180 days",        "180 - 365 days",        "365 - 730 days",        "730 days +"];
+
+        $query=str_replace($SqlQueriesMarks[0], $SqlQueriesMarks[self::$currentAnnex], $query);
         $AllRows=  DB::select($query,[$prjID,$prjID]);
+
         foreach ($AllRows as $row)
         {
             $templateProcessor->setValue($row->Risk."_".$row->age_of_vuln,  $row->nombre);
@@ -113,7 +125,7 @@ class WordDocumentController3 extends Controller
         }
         foreach($listOfAgesOfVulns as $age_of_vuln)
         {
-            foreach (self::$arrayRisks as $risk)
+            foreach ($arrayRisks as $risk)
             {
                 $templateProcessor->setValue($risk."_".$age_of_vuln,  "-");
             }
@@ -143,7 +155,7 @@ class WordDocumentController3 extends Controller
     private static function generateGlobalTableOfRowsWithTwoLevels( $templateProcessor,$query, $prjID, $KeyToDuplicateRows, $ColoredRowsArrays,$ColoredField, $prefixStats)
     {
         $AllRows=  DB::select($query,[$prjID,$prjID]);
-//print_r( $AllRows);exit;
+//print_r( $query);
            $TwoLevelsTablesAllRows = [];
            for ($i=0;$i<count($AllRows);$i++)
            {
@@ -191,7 +203,12 @@ class WordDocumentController3 extends Controller
                                 $order++;
                             }
                     }
-                    else $templateProcessor->cloneRowAndSetValues($colorRow."_".$ColoredField."#".$hostNumber, []);
+                    else
+                    {
+                        $templateProcessor->cloneRowAndSetValues($colorRow."_".$ColoredField."#".$hostNumber, []);
+                        //$templateProcessor->cloneRowAndSetValues($colorRow."_".$ColoredField, []);
+                    }
+
 
                 }
 
@@ -215,9 +232,9 @@ class WordDocumentController3 extends Controller
     private static function generateGlobalTableOfRows( $templateProcessor,$query, $prjID, $KeyToDuplicateRows, $ColoredRowsArrays,$ColoredField, $prefixStats)
     {
 
-//var_dump($query);exit;
+//var_dump($query); return 0;
        $AllRows=  DB::select($query,[$prjID,$prjID]);
-    //   var_dump($AllRows);exit;
+
        $AllRowsPerColor=[];
 
         for ($i=0;$i<count($AllRows);$i++)
@@ -257,6 +274,7 @@ class WordDocumentController3 extends Controller
               {
                 $templateProcessor->cloneRowAndSetValues($colorRow."_".$ColoredField,  $AllRowsPerColor[$colorRow]);
            }
+           else  $templateProcessor->cloneRowAndSetValues($colorRow."_".$ColoredField, []);
 
             }
         }
@@ -289,14 +307,16 @@ class WordDocumentController3 extends Controller
             $project =Project::find($prj_id);
             $customer =Customer::find($project->customer_id);
             $arrayConfig=array(
-                "3.docx" => array(0,1,2),
-                "4.docx" => array(3),
+          //      "3.docx" => array(0,1,2),
+            //    "4.docx" => array(3),
+                "5.docx" => array(4),
             );
 
             foreach($annex_id as $Annex)
             {
                 $iteration=0;
                 $returnedArray[$prj_id][]=self::$AnnexesLetters[$Annex];
+                self::$currentAnnex=$Annex;
 
                 foreach($arrayConfig as $tmplate => $listOfDocParts)
                 {
@@ -317,10 +337,14 @@ class WordDocumentController3 extends Controller
                 $returnedArray[$prj_id][self::$AnnexesLetters[$Annex]][] = $nbrOfRowsAddedToFile;
                 if($nbrOfRowsAddedToFile>0)
                     {
+                        $categories = array('A', 'B', 'C', 'D', 'E');
+                        $series1 = array(1, 3, 2, 5, 4);
+                        //$chart = new Chart('doughnut', $categories, $series1);
+                        //$templateProcessor->setChartValue('myChart', $chart);
                         $templateProcessor->saveAs($outputPath);
                         $listOfFile[]=$outputPath;
                     self::send_whatsapp("[App2_TechReport] ". $outputFileName ." was created with sucess");
-                    }
+                    } else print_r($outputFileName);
                 }
             }
 
