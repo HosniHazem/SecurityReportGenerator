@@ -85,6 +85,14 @@ class WordDocumentController4 extends Controller
         $sqlAuditTools="SELECT `Tool_name` as tool ,`Version` tool_version,`License` as tool_license,`Feature` as tool_features,`Composante_SI` as tool_sow FROM `Audit_Tools` ORDER BY `Composante_SI`;";
         //sql for "equipe de projet"
         $sqlProjectTeam="SELECT `Nom` as SPOC_Tech_Name ,`Titre` as SPOC_Tech_Title,`Adresse mail primaire` as SPOC_Tech_email ,`Adresse mail secondaire`,`Tél` as SPOC_Tech_Tel FROM `glb_pip` WHERE `Cusotmer_ID`=?";
+
+        //sql for year
+        $sqlYear="SELECT p.Year
+        FROM glb_customers c
+        JOIN glb_contracts co ON c.ID = co.Customer_ID
+        JOIN glb_lots l ON co.ID = l.Contract_ID
+        JOIN glb_projects p ON l.ID = p.Lot_ID
+        WHERE c.ID = ?";
         //sql for domain table 
         $sqlDomain = <<<HERE10
         SELECT
@@ -105,9 +113,22 @@ class WordDocumentController4 extends Controller
 
         $outputFileName = 'ansi2023.docx';
         $outputPath = public_path('' . $outputFileName);
+        
+        //Year
 
+        $yearData = DB::select($sqlYear, [$request->customer]);
+        if (!empty($yearData)) {
+            $year = $yearData[0]->Year; 
+            $templateProcessor->setValue('Y', $year);
+            $templateProcessor->setValue('year', $year);
 
-    //table "domaine"
+        } 
+        
+        //today's date
+        $today=self::currentDate();
+        $templateProcessor->setValue('today',$today);
+
+        //table "domaine"
         $domain= DB::select($sqlDomain);
         $domainArray= self::processDatabaseData($domain);
         $templateProcessor->cloneRowAndSetValues('Domain', $domainArray);
@@ -208,7 +229,8 @@ class WordDocumentController4 extends Controller
             $templateProcessor->setValue('siteweb', $siteWeb);
             $templateProcessor->setValue('mailadress', $mailAddress);
             $templateProcessor->setValue('DescriptionCompany', $description);
-            $templateProcessor->setValue('organigrame:800:800', $organigrame);
+
+            $templateProcessor->setImageValue('organigrame:800:800', array('path'=>$organigrame,'width'=>500));
         } else {
             return response()->json("no customer with this id exists ");
         }
@@ -317,6 +339,11 @@ class WordDocumentController4 extends Controller
         }
     
         return $result;
+    }
+    static function currentDate(){
+        $current_date = date('Y-m-d'); 
+
+        return $current_date;
     }
     
 }
