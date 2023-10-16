@@ -77,9 +77,7 @@ public static function translateAllPlugins()
     {
 
         set_time_limit(50000);
-        echo "aa";
-        return WordDocumentController3::translate("t");
-        return self::translateAllVulnsCompliance();
+
         /*
         $id = 2;
         $pluginIds = DB::table('vuln as v')
@@ -91,8 +89,14 @@ public static function translateAllPlugins()
         })
         ->get();*/
 
-        $pluginIds=  "";//DB::select("SELECT DISTINCT `Plugin ID` FROM vuln WHERE `Plugin ID` NOT IN (SELECT ID from plugins) ");
+        $pluginIds = "UPDATE vuln SET Description = REPLACE(Description, char(?), '') WHERE LOCATE(char(?) ,Description) > 1;";
 
+        for ($i = 0; $i < 31; $i++) {
+            if ($i != 10 && $i != 13) {
+                DB::select($pluginIds, [$i, $i]);
+            }
+        }
+       
 
 
 }

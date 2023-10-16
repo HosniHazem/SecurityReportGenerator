@@ -6,7 +6,7 @@ function SOW() {
   const [serveur, setServeur] = useState([]);
   const [r_s, setRS] = useState([]);
   const [pc, setPC] = useState([]);
-  const [Apps, setApps] = useState([]);
+  const [apps, setApps] = useState([]);
   const [serveurInput, setServeurInput] = useState(null);
   const [r_sInput, setRSInput] = useState(null);
   const [pcInput, setPCInput] = useState(null);
@@ -19,19 +19,21 @@ function SOW() {
   const generateJSON = () => {
     const generateObjects = (content) => {
         const fields = Object.keys(content);
-     
-        const maxLines = Math.max(...fields.map((field) => content[field].split('\n').length));
       
-        const resultArray = [];
+        let maxLines = Math.max(...fields.map((field) => {
+          // Ensure that content[field] is a string before using split
+          return typeof content[field] === 'string' ? content[field].split('\n').length : 0;
+        }));
+      
+        let resultArray = [];
       
         for (let i = 0; i < maxLines; i++) {
           const newObj = {};
       
-
           for (const field of fields) {
-            const lines = content[field].split('\n');
+            // Ensure that content[field] is a string before using split
+            const lines = typeof content[field] === 'string' ? content[field].split('\n') : [];
       
- 
             newObj[field] = lines[i] || '';
           }
       
@@ -40,8 +42,8 @@ function SOW() {
       
         return resultArray;
       };
-
-    const appsArray = generateObjects(Apps); 
+    const appsArray = generateObjects(apps); 
+    console.log(appsArray)
     const srvArray = generateObjects(serveur); 
     const rsArray = generateObjects(r_s); 
     const pcArray = generateObjects(pc); 
@@ -84,8 +86,9 @@ function removeFromPcsubnetArray(pcsubnetArray, ipHostToRemove) {
 
   setServeurInput(srvArray);
   setRSInput(rsArray);
-  setApps(appsArray);
+  setAppsInput(appsArray);
   setPCInput(pcsubnetArray);
+
     function getIpRange(subnet) {
         // Get base IP and range 
         const [baseIp, ...range] = subnet.split('/');
@@ -101,7 +104,10 @@ function removeFromPcsubnetArray(pcsubnetArray, ipHostToRemove) {
         return ipRange;
       }
       
+    
 
+
+      
 
  
   };
@@ -116,8 +122,7 @@ function removeFromPcsubnetArray(pcsubnetArray, ipHostToRemove) {
 const handleServeurInputChange = (id) => {
 
 }
-
-
+console.log([serveurInput,appsInput,r_sInput,pcInput]) 
 /*   const adjustTextareaHeight = (id) => {
     const textarea = document.getElementById(id);
     textarea.rows = textarea.value.split('\n').length;
@@ -135,6 +140,7 @@ const handleServeurInputChange = (id) => {
                    <strong> Application </strong>
                 </td>
             </tr>
+
             <tr>
                 <td style={tableCellStyle}>Nom</td>
                 <td style={tableCellStyle}>Modules</td>
@@ -148,44 +154,44 @@ const handleServeurInputChange = (id) => {
                 <td style={tableCellStyle}> <textarea
           id="Nom"
           name="Nom"
-          value={Apps.Nom}
-        onChange={(e) => handleChange(e,setApps,Apps)}  
+          value={apps.Nom}
+        onChange={(e) => handleChange(e,setApps,apps)}  
         ></textarea></td>
                 <td style={tableCellStyle}> <textarea
           id="field3"
           name="field3"
-          value={Apps.field3}
-        onChange={(e) => handleChange(e,setApps,Apps)}  
+          value={apps.field3}
+        onChange={(e) => handleChange(e,setApps,apps)}  
         ></textarea></td>
                 <td style={tableCellStyle}> <textarea
           id="field4"
           name="field4"
-          value={Apps.field4}
-        onChange={(e) => handleChange(e,setApps,Apps)}  
+          value={apps.field4}
+        onChange={(e) => handleChange(e,setApps,apps)}  
         ></textarea></td>
                 <td style={tableCellStyle}> <textarea
           id="field5"
           name="field5"
-          value={Apps.field5}
-        onChange={(e) => handleChange(e,setApps,Apps)}  
+          value={apps.field5}
+        onChange={(e) => handleChange(e,setApps,apps)}  
         ></textarea></td>
                 <td style={tableCellStyle}> <textarea
           id="dev_by"
           name="dev_by"
-          value={Apps.dev_by}
-        onChange={(e) => handleChange(e,setApps,Apps)}  
+          value={apps.dev_by}
+        onChange={(e) => handleChange(e,setApps,apps)}  
         ></textarea></td>
                 <td style={tableCellStyle}> <textarea
           id="URL"
           name="URL"
-          value={Apps.URL}
-        onChange={(e) => handleChange(e,setApps,Apps)}  
+          value={apps.URL}
+        onChange={(e) => handleChange(e,setApps,apps)}  
         ></textarea></td>
                 <td style={tableCellStyle}> <textarea
           id="Number_users"
           name="Number_users"
-          value={Apps.Number_users}
-        onChange={(e) => handleChange(e,setApps,Apps)}  
+          value={apps.Number_users}
+        onChange={(e) => handleChange(e,setApps,apps)}  
         ></textarea></td>
             </tr>
         </table>
@@ -341,8 +347,8 @@ const handleServeurInputChange = (id) => {
       </div>
 
 
-      <button onClick={generateJSON}>Generate JSON</button>
-      {
+      <button onClick={generateJSON}>Generate and Import</button>
+{/*       {
   serveurInput ? (
     <div>
       <label htmlFor="Serveur">Serveur:</label>
@@ -357,7 +363,7 @@ const handleServeurInputChange = (id) => {
       ))}
     </div>
   ) : null
-}
+} */}
 
     </div>
   );
