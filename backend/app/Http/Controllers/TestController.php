@@ -23,11 +23,38 @@ class TestController extends Controller
 
 public static function translate($q)
 {
-
+    if(strlen($q) <10)  return $q;
+    //$q= preg_replace('/[\x00-\x1F\x7F]/u', '', $q);
+    $q=htmlspecialchars($q);
+    //echo $q;
+    $positionHttp = strpos($q, "http");
+    $secondPart="";
+    if($positionHttp >0)
+    {
+        $secondPart = substr($q,$positionHttp , strlen($q)-$positionHttp);
+        $q = substr($q,0,$positionHttp);
+    }
+   // echo $q;
     $res= file_get_contents("https://translate.googleapis.com/translate_a/single?client=gtx&ie=UTF-8&oe=UTF-8&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&dt=t&dt=at&sl=en&tl=fr&hl=hl&q=".urlencode($q), $_SERVER['DOCUMENT_ROOT']."/transes.html");
+    if(isset(json_decode($res)[0][0][0]))
     return json_decode($res)[0][0][0];
+    return $q.$secondPart;
+}
+public static function translateAllVulnsCompliance()
+{
+
+   $allVuns =  DB::select("SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  vuln WHERE Risk in ('FAILED', 'PASSED') and BID <> 'yes'");
+   $i=0;
+   foreach($allVuns as $vuln)
+   {
+    echo $allVuns[$i]->id."\n";
+    $re = DB::table('vuln')
+    ->where('id', $allVuns[$i]->id)
+    ->update(['BID' => 'yes', 'name' => self::translate($allVuns[$i]->name),'description' => self::translate($allVuns[$i]->description),'solution' => self::translate($allVuns[$i]->solution),'synopsis' => self::translate($allVuns[$i]->synopsis)]);
+    $i++;
 }
 
+}
 
 public static function translateAllPlugins()
 {
@@ -49,8 +76,10 @@ public static function translateAllPlugins()
     public function get()
     {
 
-        set_time_limit(5000);
-        echo self::translateAllPlugins(); //[]
+        set_time_limit(50000);
+        echo "aa";
+        return WordDocumentController3::translate("t");
+        return self::translateAllVulnsCompliance();
         /*
         $id = 2;
         $pluginIds = DB::table('vuln as v')
@@ -63,13 +92,6 @@ public static function translateAllPlugins()
         ->get();*/
 
         $pluginIds=  "";//DB::select("SELECT DISTINCT `Plugin ID` FROM vuln WHERE `Plugin ID` NOT IN (SELECT ID from plugins) ");
-
-<<<<<<< HEAD
-        $pluginIds =  DB::select("SELECT DISTINCT `Plugin ID`  as PluginID FROM vuln  WHERE `Plugin ID` NOT IN (SELECT DISTINCT id FROM  plugins)");
-        return  $pluginIds;
-=======
-        return $pluginIds;
->>>>>>> fb072f86f32a14399a2d88823a8ef5d09e269765
 
 
 

@@ -113,8 +113,8 @@ $DefaultQuery = array (
     SELECT
     ROW_NUMBER() OVER() AS VulnDetails_ID,
     vuln.Risk AS VulnDetails_RISK,
-    plugins.name AS VulnDetails_Name_ToBeClean,
-    plugins.cvss3_base_score  AS VulnDetails_CVSS,
+    name AS VulnDetails_Name_ToBeClean,
+    `CVSS v3.0 Base Score`  AS VulnDetails_CVSS,
     GROUP_CONCAT(DISTINCT vuln.Host) AS VulnDetails_Hosts,
     GROUP_CONCAT(DISTINCT vuln.Port) AS VulnDetails_Hosts_ports,
     vuln.description AS VulnDetails_Desc_ToBeClean,
@@ -123,7 +123,6 @@ $DefaultQuery = array (
     vuln.solution AS VulnDetails_Recomendations_ToBeClean,
     vuln.`See Also` AS VulnDetails_ref_ToBeClean
     FROM vuln
-    LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
     RIGHT JOIN sow ON vuln.`Host` = sow.IP_Host
     WHERE vuln.upload_id in (SELECT `ID`from uploadanomalies WHERE `ID_Projet`=?) and sow.Type="CLAUSENUMBER1"
     and sow.IP_Host = vuln.Host and sow.Projet=?

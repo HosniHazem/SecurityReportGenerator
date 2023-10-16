@@ -6,6 +6,8 @@ use Illuminate\Support\HtmlString;
 use Illuminate\Http\Request;
 use PhpOffice\PhpWord\Element\Image as PhpWordImage; // Alias for PhpWord Image class
 use PhpOffice\PhpWord\TemplateProcessor;
+use PhpOffice\PhpWord\Element\Chart;
+use PhpOffice\PhpWord\Shared\Converter;
 use App\Models\Vuln; // Replace with your actual model
 use App\Models\Sow; // Replace with your actual model
 
@@ -45,8 +47,9 @@ class WordDocumentController3 extends Controller
 
     public function generateExcelDocument(Request $req)
     {
-        set_time_limit(5000);
-        $sql=<<<HERE1
+        set_time_limit(50000);
+        $sqls=array(
+            <<<HERE1
         ((select "Plugin ID" ,"Risk" ,"Type", "Host" ,"name" ,"synopsis" ,"exploited_by_malware" ,"exploit_available" ,"age_of_vuln" ,"description" ,"Plugin Output" ,"solution")
         UNION ALL
         (select `Plugin ID` ,`Risk` ,Type,`Host` ,`plugins`.`name` ,`plugins`.`synopsis` ,`plugins`.`exploited_by_malware` ,`plugins`.`exploit_available` ,`plugins`.`age_of_vuln` ,`plugins`.`description` ,`Plugin Output` ,`plugins`.`solution` from `vuln`
@@ -54,21 +57,38 @@ class WordDocumentController3 extends Controller
         LEFT JOIN sow on vuln.Host=sow.IP_Host
         where `upload_id` in (select `uploadanomalies`.`ID` from `uploadanomalies` where `uploadanomalies`.`ID_Projet` = ?)
         AND sow.Projet=?
-        PLACEHOLDER1
+        AND Risk in ('Critical', 'Medium', 'High', 'Low')
         group by `Host`,`plugins`.`name`))
-        INTO OUTFILE 'c:/tmp/PLACEHOLDER2'
+        INTO OUTFILE 'PLACEHOLDER2'
         FIELDS ENCLOSED BY '\"' TERMINATED BY ';' ESCAPED BY '\"' LINES TERMINATED BY '\r\n'
-        HERE1;
-        $filename= $req->filename.time().".csv";
-        $sql= str_replace("PLACEHOLDER2", $filename, $sql);
-        if(isset($req->OnlyVuln)) $sql= str_replace("PLACEHOLDER1", "and Risk in ('Critical', 'Medium', 'High', 'Low')", $sql);
-        else $sql = str_replace("PLACEHOLDER1", " ", $sql);
-
-       // echo $sql;
-      DB::select($sql,array($req->project_id, $req->project_id ));
-      return response()->download("c:/tmp/".$filename)->deleteFileAfterSend();
+        HERE1,
+        <<<HERE2
+        ((select "Plugin ID" ,"Risk" ,"Type", "Host" ,"name" ,"synopsis" ,"exploited_by_malware" ,"exploit_available" ,"age_of_vuln" ,"description" ,"Plugin Output" ,"solution")
+        UNION ALL
+        (select `Plugin ID` ,`Risk` ,Type,`Host` ,`name` ,`synopsis` ,"" ,"" ,"" ,`description`  ,"" ,`solution` from `vuln`
+        LEFT JOIN sow on vuln.Host=sow.IP_Host
+        where `upload_id` in (select `uploadanomalies`.`ID` from `uploadanomalies` where `uploadanomalies`.`ID_Projet` = ?)
+        AND sow.Projet=?
+        AND Risk not in ('Critical', 'Medium', 'High', 'Low')
+        group by `Host`,`description`))
+        INTO OUTFILE 'PLACEHOLDER2'
+        FIELDS ENCLOSED BY '\"' TERMINATED BY ';' ESCAPED BY '\"' LINES TERMINATED BY '\r\n'
+        HERE2
+        );
+        $fileNames = [];
+        foreach($sqls as $sql)
+        {
+            $fileNames [] = $filename="c:/tmp/". $req->filename.time().".csv";
+            $sql= str_replace("PLACEHOLDER2", $filename, $sql);
+            if(isset($req->OnlyVuln)) $sql= str_replace("PLACEHOLDER1", "and Risk in ('Critical', 'Medium', 'High', 'Low')", $sql);
+            else $sql = str_replace("PLACEHOLDER1", " ", $sql);
+            DB::select($sql,array($req->project_id, $req->project_id ));
+        }
+//      return response()->download("c:/tmp/".$filename)->deleteFileAfterSend();
+      return self::ZipAndDownload($req->project_id."_", "CSV", $fileNames);
 
     }
+
 
    public static function cleanNewLineProblem ($string, $seeAlso)
     {
@@ -293,7 +313,7 @@ class WordDocumentController3 extends Controller
 
     public function generateWordDocument(Request $request)
     {
-        set_time_limit(5000);
+        set_time_limit(50000);
         //ini_set('memory_limit', '1G');
 
         $annex_id =  $request->annex_id;
@@ -308,8 +328,8 @@ class WordDocumentController3 extends Controller
             $customer =Customer::find($project->customer_id);
             $arrayConfig=array(
                 "3.docx" => array(0,1,2),
-               // "4.docx" => array(3),
-             //   "5.docx" => array(4),
+                "4.docx" => array(3),
+                "5.docx" => array(4),
             );
 
             foreach($annex_id as $Annex)
@@ -325,6 +345,7 @@ class WordDocumentController3 extends Controller
                     $nbrOfRowsAddedToFile=0;
                     $templatePath = public_path($tmplate);
                     $templateProcessor = new TemplateProcessor($templatePath);
+
                     self::preparePagesDeGarde($templateProcessor, $Annex,$customer, $project );
                     foreach($listOfDocParts as $i)
                         {
@@ -337,21 +358,18 @@ class WordDocumentController3 extends Controller
                 $returnedArray[$prj_id][self::$AnnexesLetters[$Annex]][] = $nbrOfRowsAddedToFile;
                 if($nbrOfRowsAddedToFile>0)
                     {
-                        $categories = array('A', 'B', 'C', 'D', 'E');
-                        $series1 = array(1, 3, 2, 5, 4);
-                        $chart = new Chart('doughnut', $categories, $series1);
-                        $templateProcessor->setChartValue('Stats', $chart);
+
                         $templateProcessor->saveAs($outputPath);
                         $listOfFile[]=$outputPath;
                     self::send_whatsapp("[App2_TechReport] ". $outputFileName ." was created with sucess");
-                    } else print_r($outputFileName);
+                    }// else print_r($outputFileName);
                 }
             }
 
         }
 
         if(isset($request->ZipIt))
-       return self::ZipAndDownload($project, "techAnnexes_", $listOfFile);
+       return self::ZipAndDownload($project->Nom, "techAnnexes_", $listOfFile);
         else  print_r($listOfFile);
 
     }
@@ -389,7 +407,7 @@ public static function ZipAndDownload($project, $prefix, $filePaths)
     // Create a zip archive
  $zip = new ZipArchive;
  $tempDirectory = storage_path('app/temp');
- $zipFileName = $prefix. $project->Nom . '.zip';
+ $zipFileName = $prefix. $project . '.zip';
  $zipFilePath = $tempDirectory . '/' . $zipFileName;
 
  if ($zip->open($zipFilePath, ZipArchive::CREATE) === true) {
@@ -409,4 +427,72 @@ public static function ZipAndDownload($project, $prefix, $filePaths)
  WordDocumentController3::send_whatsapp($zipFileName ." can't be downloaded");
  return response()->json(['error' => 'Failed to create zip archive'], 500);
 }
+
+public static function translate($q)
+{
+    if(strlen($q) <10)  return $q;
+    //$q= preg_replace('/[\x00-\x1F\x7F]/u', '', $q);
+   // $q=htmlspecialchars($q);
+    //echo $q;
+    $positionHttp = strpos($q, "http");
+    $secondPart="";
+   // echo $positionHttp."\n";
+    if($positionHttp >0)
+    {
+        $secondPart = substr($q,$positionHttp , strlen($q)-$positionHttp);
+      //  echo $secondPart."@@@@@@@@@@@@\n";
+        $q = substr($q,0,$positionHttp);
+      //  echo $q."@@@@@@@@@@@@€€€€€€\n";
+    }
+   // echo $q;
+    $res= file_get_contents("https://translate.googleapis.com/translate_a/single?client=gtx&ie=UTF-8&oe=UTF-8&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&dt=t&dt=at&sl=en&tl=fr&hl=hl&q=".urlencode($q), $_SERVER['DOCUMENT_ROOT']."/transes.html");
+   // var_dump($res);
+    $i=0;
+    if(isset(json_decode($res)[0][0][0]))
+    {
+        $q="";
+        foreach(json_decode($res)[0]  as $tabOfReturns)
+        {
+            if(isset($tabOfReturns[0])) $q.= $tabOfReturns[0];
+        }
+
+    }
+
+    return $q.$secondPart;
+}
+public static function translateAllVulnsCompliance()
+{
+
+   $allVuns =  DB::select("SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  vuln WHERE Risk in ('FAILED', 'PASSED') and BID <> 'yes'");
+   $i=0;
+   foreach($allVuns as $vuln)
+   {
+    echo $allVuns[$i]->id."\n";
+    $re = DB::table('vuln')
+    ->where('id', $allVuns[$i]->id)
+    ->update(['BID' => 'yes', 'name' => self::translate($allVuns[$i]->name),'description' => self::translate($allVuns[$i]->description),'solution' => self::translate($allVuns[$i]->solution),'synopsis' => self::translate($allVuns[$i]->synopsis)]);
+    $i++;
+}
+
+}
+
+public static function translateAllPlugins()
+{
+
+   $allPlugins =  DB::select("SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  plugins WHERE translated <> 'yes'");
+   $i=0;
+   foreach($allPlugins as $plugin)
+   {
+
+
+       $re = DB::table('plugins')
+    ->where('id', $allPlugins[$i]->id)
+    ->update(['translated' => 'yes', 'name' => self::translate($allPlugins[$i]->name),'description' => self::translate($allPlugins[$i]->description),'solution' => self::translate($allPlugins[$i]->solution),'synopsis' => self::translate($allPlugins[$i]->synopsis)]);
+    $i++;
+}
+
+}
+
+
+
 }
