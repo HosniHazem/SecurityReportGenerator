@@ -41,15 +41,51 @@ function SOW() {
         return resultArray;
       };
 
-    //const appsArray = generateObjects(Apps); 
-    //const srvArray = generateObjects(serveur); 
-   // const rsArray = generateObjects(r_s); 
+    const appsArray = generateObjects(Apps); 
+    const srvArray = generateObjects(serveur); 
+    const rsArray = generateObjects(r_s); 
     const pcArray = generateObjects(pc); 
-  
-  
- 
+    let pcsubnetArray = [];
+  pcArray.map((item) => {
+const subnet = getIpRange(item.IP_Host);
+subnet.map((ip)=>{
+    const jsonObject = {
+        Nom : item.Nom,
+        IP_Host: ip,
+      };
+pcsubnetArray.push(jsonObject);
 
-      
+})
+  }); 
+
+//test
+function removeFromPcsubnetArray(pcsubnetArray, ipHostToRemove) {
+    return pcsubnetArray.filter((pc) => pc.IP_Host !== ipHostToRemove);
+  }
+  
+  function removeDuplicatesFromPcsubnetArray(pcsubnetArray, ipHostArray) {
+    return pcsubnetArray.filter((pc) => !ipHostArray.includes(pc.IP_Host));
+  }
+  
+
+  
+  // Check and remove duplicates from pcsubnetArray
+  appsArray.forEach((app) => {
+    pcsubnetArray = removeFromPcsubnetArray(pcsubnetArray, app.IP_Host);
+  });
+  
+  srvArray.forEach((srv) => {
+    pcsubnetArray = removeFromPcsubnetArray(pcsubnetArray, srv.IP_Host);
+  });
+  
+  rsArray.forEach((rs) => {
+    pcsubnetArray = removeFromPcsubnetArray(pcsubnetArray, rs.IP_Host);
+  });
+
+  setServeurInput(srvArray);
+  setRSInput(rsArray);
+  setApps(appsArray);
+  setPCInput(pcsubnetArray);
     function getIpRange(subnet) {
         // Get base IP and range 
         const [baseIp, ...range] = subnet.split('/');
@@ -65,12 +101,12 @@ function SOW() {
         return ipRange;
       }
       
-      const subnet = "192.168.20.11/10/44/246/247/248/251/249";
-      const ipRange = getIpRange(subnet);
-      console.log(ipRange);
+
 
  
   };
+
+
   const handleChange = (e,set,val) => {
     e.persist();
  
@@ -80,6 +116,8 @@ function SOW() {
 const handleServeurInputChange = (id) => {
 
 }
+
+
 /*   const adjustTextareaHeight = (id) => {
     const textarea = document.getElementById(id);
     textarea.rows = textarea.value.split('\n').length;
