@@ -155,10 +155,12 @@ class WordDocumentController4 extends Controller
         $networkDesign = DB::select($sqlNetworkDesign, [$request->customer]);
         
         $networkDesignArray = self::processDatabaseData($networkDesign);
+        //NetworkDesign:800:800
+        $networkDesignRow = $networkDesignArray[0];
 
-        $networkDesignRow = $networkDesignArray[0]; 
-        $networkDesignValue = isset($networkDesignRow->Network_Design) ? networkDesignRow->Network_Design : "pas de network Design";
-        $templateProcessor->setValue('NetworkDesign:800:800', $networkDesignValue);
+        $networkDesignValue = $networkDesignRow['Network_Design'] ?? "pas de network Design";
+
+        $templateProcessor->setImageValue('NetworkDesign:800:800', array('path'=>$networkDesignValue ,'width'=>500));
         //table:Postes de travail
         $posteTravail=DB::select($sqlPosteTravail, [$request->customer]);
         $posteTravailArray= self::processDatabaseData($posteTravail);
@@ -269,6 +271,9 @@ class WordDocumentController4 extends Controller
 
 
     }
+
+    
+    
 
     static function setOneRowControl($templateProcessor, $ClauseId, $ControlID, $cellData, $type, $typeTag)
     {
