@@ -69,14 +69,14 @@ class CustomerController extends Controller
     }
     public function uploadimage(Request $request)
     {
-            $file      = $request->file('attach');
-            $filename  = $file->getClientOriginalName();
-            $extension = $file->getClientOriginalExtension();
-            $picture   = $filename;
-            //move image to public/img folder
-            $file->move(public_path('images/uploads'), $picture);
-            return response()->json(["message" => "Image Uploaded Succesfully",'status' => 200]);
-
+        $file = $request->file('attach');
+        $filename = $request->input('name') . '.' . $file->getClientOriginalExtension();
+        $picture = $filename;
+    
+        // Move image to public/images/uploads folder
+        $file->move(public_path('images/uploads'), $filename);
+    
+        return response()->json(["message" => "Image Uploaded Successfully", 'status' => 200]);
     }
     public function update(Request $req,$id)
     {

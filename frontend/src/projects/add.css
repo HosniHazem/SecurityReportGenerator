@@ -134,6 +134,13 @@ background-color: darkgray;
         border: 1px dotted rgb(198, 98, 98);
         cursor: pointer;
       }
+      .EButton {
+        padding: 2px 5px;
+        border-radius: 5px;
+        color: rgb(73, 6, 11);
+        border: 1px dotted rgb(73, 6, 11);
+        cursor: pointer;
+      }
     }
   }
   .loading {

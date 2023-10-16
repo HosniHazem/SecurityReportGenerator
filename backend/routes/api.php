@@ -7,6 +7,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\WordDocumentController;
 use App\Http\Controllers\WordDocumentController2;
 use App\Http\Controllers\WordDocumentController3;
+use App\Http\Controllers\WordDocumentController4;
 use App\Http\Controllers\ExcelDocumentController;
 use App\Http\Controllers\concatenateDocxFiles;
 use App\Http\Controllers\Sanctum\AuthController;
@@ -37,6 +38,7 @@ Route::post('/generateExcelDocument', [WordDocumentController3::class,'generateE
     Route::get('/get_vm', [VmController::class,'index']);
     Route::post('/generate-word-document', [WordDocumentController::class,'generateWordDocument']);
     Route::post('/generate-annexe', [WordDocumentController2::class,'generateWordDocument']);
+    Route::post('/generate-ansi', [WordDocumentController4::class,'generateWordDocument']);
     Route::post('/generate-annexe3', [WordDocumentController3::class,'generateWordDocument']);
     Route::get('/generate-concat', [concatenateDocxFiles::class,'mergeDocxFiles']);
     Route::post('/getScan', [NassusController::class,'GetAll']);
