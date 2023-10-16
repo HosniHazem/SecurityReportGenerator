@@ -19,6 +19,7 @@ use App\Http\Controllers\MyController;
 use App\Http\Controllers\VmController;
 use App\Http\Controllers\UploadanomaliesController;
 use App\Http\Controllers\TestController;
+use App\Http\Controllers\GlbPipController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -65,3 +66,8 @@ Route::post('/generateExcelDocument', [WordDocumentController3::class,'generateE
     Route::delete('Customer/{id}/delete', [CustomerController::class,'destroy']);
     Route::put('Customer/{id}/update', [CustomerController::class,'update']);
     Route::post('Customer/create',[CustomerController::class,'store']);
+    Route::Post('/add-glbPip', [GlbPipController::class,'store']);
+    Route::get('/get-glbPip/{id}', [GlbPipController::class,'show']);
+    Route::put('/update-glbPip/{id}', [GlbPipController::class,'update']);
+    Route::delete('/delete-glbPip/{id}', [GlbPipController::class,'destroy']);
+    Route::get('/all-glbpip', [GlbPipController::class,'index']);

@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Validator;
 class CustomerController extends Controller
 {
 
+
+   
+
     public function show($id)
     {
 
