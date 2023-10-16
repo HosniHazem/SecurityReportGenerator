@@ -37,7 +37,7 @@ const Dashboard = () => {
     const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
     
     useEffect(() => {
-      axios.get(`http://webapp.smartskills.local:8002/api/getProject`,).then((res) => {
+      axios.get(`http://webapp.smartskills.tn:8002/api/getProject`,).then((res) => {
         if(res.status === 200){
         setProject(res.data.Project);
    }
@@ -100,9 +100,12 @@ const Dashboard = () => {
           return (
             <div className="cellAction">
 
-                <div className="deleteButton"  onClick={(e) => Export(id,e)}>Export</div>
+              
+        <div className="deleteButton"  onClick={(e) => Export(id,e)}>Export</div>
 
-                <div className="deButton"  onClick={(e) => Export2(id,e)}>Export Annexe</div>
+        <div className="deButton"  onClick={(e) => Export2(name,id,e)}>Export Annexe</div>
+
+        <div className="EButton"  onClick={(e) => Export3(name,id,e)}>Export Excel</div>
               </div>
           );
          
@@ -117,7 +120,7 @@ const Dashboard = () => {
     const handleDelete = async (e,id) => {
 
       e.preventDefault();
-       await axios.delete(`http://webapp.smartskills.local:8002/api/Project/${id}/delete`).then(res=>{
+       await axios.delete(`http://webapp.smartskills.tn:8002/api/Project/${id}/delete`).then(res=>{
         if(res.status === 200)
           {
             
@@ -165,6 +168,7 @@ const Dashboard = () => {
       // Handle the logic for the checked button
       console.log('Checked button clicked');
     };
+
     const Export = (id, e) => {
       e.persist();
       setDownloading(true);
@@ -174,7 +178,7 @@ const Dashboard = () => {
       };
       setExporting(true);
       
-      axios.post(`http://webapp.smartskills.local:8002/api/generate-word-document/`, dataToSend, {
+      axios.post(`http://webapp.smartskills.tn:8002/api/generate-word-document/`, dataToSend, {
         responseType: 'blob', // Set responseType to 'blob' to indicate binary data
       })
         .then((response) => {
@@ -210,16 +214,68 @@ const Dashboard = () => {
         });
     };
     
-    const Export2 = (id, e) => {
+    const Export2 = (name,id, e) => {
+      e.persist();
+      setDownloading(true);
+      const project_id = sessionStorage.getItem('project_id');
+      const dataToSend = {
+        project_id: [id],
+        annex_id: [1,2,3,4,5,6,7,8],
+        ZipIt: "oui"
+      };
+      console.log(dataToSend);
+      
+      setExporting(true);
+      
+      axios.post(`http://webapp.smartskills.tn:8002/api/generate-annexe3/`, dataToSend, {
+        responseType: 'blob', // Set responseType to 'blob' to indicate binary data
+      })
+        .then((response) => {
+          // Use response.data as the blob
+          const blob = new Blob([response.data], { type: 'application/octet-stream' });
+    
+          // Create a URL for the blob
+          const url = window.URL.createObjectURL(blob);
+    
+          // Create a temporary <a> element to trigger the download
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = name+'downloaded_files.zip';
+          document.body.appendChild(a);
+          a.click();
+    
+          // Remove the temporary <a> element and revoke the URL to free up resources
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+    
+          setDownloading(false);
+          swal("Exported", "Successfully");
+        })
+        .catch((error) => {
+          // Handle errors
+          console.error('Error sending data:', error);
+          swal("Problem", "Detected");
+          setDownloading(false);
+        })
+        .finally(() => {
+          // Set exporting to false when export completes 
+          setExporting(false);
+        });
+        
+    };
+    const Export3 = (name,id, e) => {
       e.persist();
       setDownloading(true);
       const project_id = sessionStorage.getItem('project_id');
       const dataToSend = {
         project_id: id,
+        filename: name
       };
+      console.log(dataToSend);
+      
       setExporting(true);
       
-      axios.post(`http://webapp.smartskills.local:8002/api/generate-annexe/`, dataToSend, {
+      axios.post(`http://webapp.smartskills.tn:8002/api/generateExcelDocument/`, dataToSend, {
         responseType: 'blob', // Set responseType to 'blob' to indicate binary data
       })
         .then((response) => {
@@ -232,7 +288,7 @@ const Dashboard = () => {
           // Create a temporary <a> element to trigger the download
           const a = document.createElement('a');
           a.href = url;
-          a.download = 'downloaded_files.zip';
+          a.download = name+'.csv';
           document.body.appendChild(a);
           a.click();
     
@@ -253,8 +309,8 @@ const Dashboard = () => {
           // Set exporting to false when export completes 
           setExporting(false);
         });
+        
     };
-
     const cellStyle = {
       padding: '10px',
       textAlign: 'center',

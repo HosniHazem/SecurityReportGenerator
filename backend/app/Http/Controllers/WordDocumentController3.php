@@ -6,6 +6,8 @@ use Illuminate\Support\HtmlString;
 use Illuminate\Http\Request;
 use PhpOffice\PhpWord\Element\Image as PhpWordImage; // Alias for PhpWord Image class
 use PhpOffice\PhpWord\TemplateProcessor;
+use PhpOffice\PhpWord\Element\Chart;
+use PhpOffice\PhpWord\Shared\Converter;
 use App\Models\Vuln; // Replace with your actual model
 use App\Models\Sow; // Replace with your actual model
 
@@ -27,11 +29,27 @@ class WordDocumentController3 extends Controller
 {
     public static   $AnnexesTitles = array("","Serveurs","Solution Réseau", "Bases de donnees", "Poste de travail",  "Actifs externe", "Applications", "Solution VOIP", "Solution MAILS");
     public static   $AnnexesLetters = array("","B","C", "D", "E",  "F", "G", "H", "I");
+    public static $currentAnnex=0;
+
+    public static function getPourcentage ($source, $ttl_hosts)
+    {
+        $v_Global=0;
+        if($ttl_hosts!=null)
+        if($source[0] > 0)
+        $v_Global = 75 + round(25 * ($source[0]/$ttl_hosts));
+        elseif ($source[1] > 0) $v_Global = 50 + round(25 * ($source[1]/$ttl_hosts));
+        elseif ($source[2] > 0) $v_Global = 25 + round(25 * ($source[2]/$ttl_hosts));
+        else $v_Global = round(25 * ($source[3]/$ttl_hosts));
+
+        return min(99, $v_Global);
+
+    }
 
     public function generateExcelDocument(Request $req)
     {
-        set_time_limit(5000);
-        $sql=<<<HERE1
+        set_time_limit(50000);
+        $sqls=array(
+            <<<HERE1
         ((select "Plugin ID" ,"Risk" ,"Type", "Host" ,"name" ,"synopsis" ,"exploited_by_malware" ,"exploit_available" ,"age_of_vuln" ,"description" ,"Plugin Output" ,"solution")
         UNION ALL
         (select `Plugin ID` ,`Risk` ,Type,`Host` ,`plugins`.`name` ,`plugins`.`synopsis` ,`plugins`.`exploited_by_malware` ,`plugins`.`exploit_available` ,`plugins`.`age_of_vuln` ,`plugins`.`description` ,`Plugin Output` ,`plugins`.`solution` from `vuln`
@@ -39,21 +57,38 @@ class WordDocumentController3 extends Controller
         LEFT JOIN sow on vuln.Host=sow.IP_Host
         where `upload_id` in (select `uploadanomalies`.`ID` from `uploadanomalies` where `uploadanomalies`.`ID_Projet` = ?)
         AND sow.Projet=?
-        PLACEHOLDER1
+        AND Risk in ('Critical', 'Medium', 'High', 'Low')
         group by `Host`,`plugins`.`name`))
-        INTO OUTFILE 'c:/tmp/PLACEHOLDER2'
+        INTO OUTFILE 'PLACEHOLDER2'
         FIELDS ENCLOSED BY '\"' TERMINATED BY ';' ESCAPED BY '\"' LINES TERMINATED BY '\r\n'
-        HERE1;
-        $filename= $req->filename.time().".csv";
-        $sql= str_replace("PLACEHOLDER2", $filename, $sql);
-        if(isset($req->OnlyVuln)) $sql= str_replace("PLACEHOLDER1", "and Risk in ('Critical', 'Medium', 'High', 'Low')", $sql);
-        else $sql = str_replace("PLACEHOLDER1", " ", $sql);
-
-       // echo $sql;
-      DB::select($sql,array($req->project_id, $req->project_id ));
-      return response()->download("c:/tmp/".$filename)->deleteFileAfterSend();
+        HERE1,
+        <<<HERE2
+        ((select "Plugin ID" ,"Risk" ,"Type", "Host" ,"name" ,"synopsis" ,"exploited_by_malware" ,"exploit_available" ,"age_of_vuln" ,"description" ,"Plugin Output" ,"solution")
+        UNION ALL
+        (select `Plugin ID` ,`Risk` ,Type,`Host` ,`name` ,`synopsis` ,"" ,"" ,"" ,`description`  ,"" ,`solution` from `vuln`
+        LEFT JOIN sow on vuln.Host=sow.IP_Host
+        where `upload_id` in (select `uploadanomalies`.`ID` from `uploadanomalies` where `uploadanomalies`.`ID_Projet` = ?)
+        AND sow.Projet=?
+        AND Risk not in ('Critical', 'Medium', 'High', 'Low')
+        group by `Host`,`description`))
+        INTO OUTFILE 'PLACEHOLDER2'
+        FIELDS ENCLOSED BY '\"' TERMINATED BY ';' ESCAPED BY '\"' LINES TERMINATED BY '\r\n'
+        HERE2
+        );
+        $fileNames = [];
+        foreach($sqls as $sql)
+        {
+            $fileNames [] = $filename="c:/tmp/". $req->filename.time().".csv";
+            $sql= str_replace("PLACEHOLDER2", $filename, $sql);
+            if(isset($req->OnlyVuln)) $sql= str_replace("PLACEHOLDER1", "and Risk in ('Critical', 'Medium', 'High', 'Low')", $sql);
+            else $sql = str_replace("PLACEHOLDER1", " ", $sql);
+            DB::select($sql,array($req->project_id, $req->project_id ));
+        }
+//      return response()->download("c:/tmp/".$filename)->deleteFileAfterSend();
+      return self::ZipAndDownload($req->project_id."_", "CSV", $fileNames);
 
     }
+
 
    public static function cleanNewLineProblem ($string, $seeAlso)
     {
@@ -82,19 +117,65 @@ class WordDocumentController3 extends Controller
         return $string;
     }
 
+    private static function setVulnPatchValues($prjID, $templateProcessor )
+    {
+        include("sqlRequests.php");
+        $query = <<<HERE
+            SELECT `t`.`Risk`,`t`.`age_of_vuln`,count(*) AS nombre FROM
+                (
+                    SELECT `vuln`.`Risk`,`plugins`.`age_of_vuln`,`vuln`.`Name`,count(*)  FROM vuln
+                         LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
+                        RIGHT JOIN sow ON vuln.`Host` = sow.IP_Host
+                        WHERE vuln.upload_id in (SELECT `ID`from uploadanomalies WHERE `ID_Projet`=?) and sow.Type="CLAUSENUMBER1"   and sow.IP_Host = vuln.Host and sow.Projet=?
+                        CLAUSENUMBER2
+                         AND     `vuln`.`Risk` in ('Critical','High','Medium','Low')
+                        group by `vuln`.`Risk`,`plugins`.`age_of_vuln`,`vuln`.`Name`,`vuln`.`Host`
+                ) `t`
+              group by `t`.`Risk`,`t`.`age_of_vuln`;
+        HERE;
+        $listOfAgesOfVulns = ["", "0 - 7 days",        "7 - 30 days",        "30 - 60 days",        "60 - 180 days",        "180 - 365 days",        "365 - 730 days",        "730 days +"];
+
+        $query=str_replace($SqlQueriesMarks[0], $SqlQueriesMarks[self::$currentAnnex], $query);
+        $AllRows=  DB::select($query,[$prjID,$prjID]);
+
+        foreach ($AllRows as $row)
+        {
+            $templateProcessor->setValue($row->Risk."_".$row->age_of_vuln,  $row->nombre);
+          //  var_dump($row->Risk."_".$row->age_of_vuln,  $row->nombre);
+        }
+        foreach($listOfAgesOfVulns as $age_of_vuln)
+        {
+            foreach ($arrayRisks as $risk)
+            {
+                $templateProcessor->setValue($risk."_".$age_of_vuln,  "-");
+            }
+        }
+    }
+
     private static function setTotalValues($prefix, $arraykeys,$templateProcessor,$AllRows )
     {
+     $totalStatsName= array(0=>"Hosts_CR",1=>"Hosts_HI",2=>"Hosts_MD",3=>"Hosts_LW");
+     $totalStats=[];
+
+
         foreach ($arraykeys as $key=>$value)
         {
             //print_r($key);exit(0);
             $templateProcessor->setValue($prefix.$key,  array_sum(array_column($AllRows, $key)));
         }
+        for($i=0;$i<4;$i++)
+        {
+            $totalStats[$i] = array_sum(array_column($AllRows, $totalStatsName[$i]));
+        }
+
+        $templateProcessor->setImageValue('V_Global', public_path('images/'. self::getPourcentage($totalStats, count($AllRows)).".png"));
+
     }
 
     private static function generateGlobalTableOfRowsWithTwoLevels( $templateProcessor,$query, $prjID, $KeyToDuplicateRows, $ColoredRowsArrays,$ColoredField, $prefixStats)
     {
         $AllRows=  DB::select($query,[$prjID,$prjID]);
-//print_r( $AllRows);exit;
+//print_r( $query);
            $TwoLevelsTablesAllRows = [];
            for ($i=0;$i<count($AllRows);$i++)
            {
@@ -142,7 +223,12 @@ class WordDocumentController3 extends Controller
                                 $order++;
                             }
                     }
-                    else $templateProcessor->cloneRowAndSetValues($colorRow."_".$ColoredField."#".$hostNumber, []);
+                    else
+                    {
+                        $templateProcessor->cloneRowAndSetValues($colorRow."_".$ColoredField."#".$hostNumber, []);
+                        //$templateProcessor->cloneRowAndSetValues($colorRow."_".$ColoredField, []);
+                    }
+
 
                 }
 
@@ -166,9 +252,9 @@ class WordDocumentController3 extends Controller
     private static function generateGlobalTableOfRows( $templateProcessor,$query, $prjID, $KeyToDuplicateRows, $ColoredRowsArrays,$ColoredField, $prefixStats)
     {
 
-//var_dump($query);exit;
+//var_dump($query); return 0;
        $AllRows=  DB::select($query,[$prjID,$prjID]);
-    //   var_dump($AllRows);exit;
+
        $AllRowsPerColor=[];
 
         for ($i=0;$i<count($AllRows);$i++)
@@ -208,6 +294,7 @@ class WordDocumentController3 extends Controller
               {
                 $templateProcessor->cloneRowAndSetValues($colorRow."_".$ColoredField,  $AllRowsPerColor[$colorRow]);
            }
+           else  $templateProcessor->cloneRowAndSetValues($colorRow."_".$ColoredField, []);
 
             }
         }
@@ -216,6 +303,7 @@ class WordDocumentController3 extends Controller
          if(isset($prefixStats))
          {
             $templateProcessor->SetValue($prefixStats,  count($AllRows));
+            self::setVulnPatchValues($prjID, $templateProcessor);
           //  var_dump($prefixStats,$singleRow,$templateProcessor,$AllRows );exit;
             if(isset($singleRow)) self::setTotalValues($prefixStats,$singleRow,$templateProcessor,$AllRows );
        }
@@ -225,7 +313,7 @@ class WordDocumentController3 extends Controller
 
     public function generateWordDocument(Request $request)
     {
-        set_time_limit(5000);
+        set_time_limit(50000);
         //ini_set('memory_limit', '1G');
 
         $annex_id =  $request->annex_id;
@@ -241,12 +329,14 @@ class WordDocumentController3 extends Controller
             $arrayConfig=array(
                 "3.docx" => array(0,1,2),
                 "4.docx" => array(3),
+                "5.docx" => array(4),
             );
 
             foreach($annex_id as $Annex)
             {
                 $iteration=0;
                 $returnedArray[$prj_id][]=self::$AnnexesLetters[$Annex];
+                self::$currentAnnex=$Annex;
 
                 foreach($arrayConfig as $tmplate => $listOfDocParts)
                 {
@@ -255,6 +345,7 @@ class WordDocumentController3 extends Controller
                     $nbrOfRowsAddedToFile=0;
                     $templatePath = public_path($tmplate);
                     $templateProcessor = new TemplateProcessor($templatePath);
+
                     self::preparePagesDeGarde($templateProcessor, $Annex,$customer, $project );
                     foreach($listOfDocParts as $i)
                         {
@@ -267,28 +358,27 @@ class WordDocumentController3 extends Controller
                 $returnedArray[$prj_id][self::$AnnexesLetters[$Annex]][] = $nbrOfRowsAddedToFile;
                 if($nbrOfRowsAddedToFile>0)
                     {
+
                         $templateProcessor->saveAs($outputPath);
                         $listOfFile[]=$outputPath;
                     self::send_whatsapp("[App2_TechReport] ". $outputFileName ." was created with sucess");
-                    }
+                    }// else print_r($outputFileName);
                 }
             }
 
         }
 
         if(isset($request->ZipIt))
-       return self::ZipAndDownload($project, "techAnnexes_", $listOfFile);
+       return self::ZipAndDownload($project->Nom, "techAnnexes_", $listOfFile);
         else  print_r($listOfFile);
 
     }
 static function preparePagesDeGarde($templateProcessor, $annex_id,$customer, $project )
 {
-
     $templateProcessor->setValue('SRV_TITLE', self::$AnnexesTitles[$annex_id]);
     $templateProcessor->setValue('SRV_LETTER', self::$AnnexesLetters[$annex_id]);
-//    $imageData = file_get_contents($customer->Logo);
-    $localImagePath = public_path('images/uploads/'.basename($customer->Logo)); // Specify the local path to save the image
-  //  file_put_contents($localImagePath, $imageData);
+
+    $localImagePath = public_path('images/uploads/'.$customer->Logo); // Specify the local path to save the image
     $templateProcessor->setImageValue('icon', $localImagePath);
     $templateProcessor->setValue('SN',  $customer->SN);
     $templateProcessor->setValue('LN',  $customer->LN);
@@ -296,7 +386,6 @@ static function preparePagesDeGarde($templateProcessor, $annex_id,$customer, $pr
     $templateProcessor->setValue('Y',  $project->year);
     $templateProcessor->setValue('URL',  $project->URL);
     $templateProcessor->setValue('DESC',  $project->description);
-
    }
    public static function send_whatsapp($message="Test"){
     $url='https://api.callmebot.com/whatsapp.php?phone=21629961666&apikey=2415178&text='.urlencode($message);
@@ -318,7 +407,7 @@ public static function ZipAndDownload($project, $prefix, $filePaths)
     // Create a zip archive
  $zip = new ZipArchive;
  $tempDirectory = storage_path('app/temp');
- $zipFileName = $prefix. $project->Nom . '.zip';
+ $zipFileName = $prefix. $project . '.zip';
  $zipFilePath = $tempDirectory . '/' . $zipFileName;
 
  if ($zip->open($zipFilePath, ZipArchive::CREATE) === true) {
@@ -338,4 +427,72 @@ public static function ZipAndDownload($project, $prefix, $filePaths)
  WordDocumentController3::send_whatsapp($zipFileName ." can't be downloaded");
  return response()->json(['error' => 'Failed to create zip archive'], 500);
 }
+
+public static function translate($q)
+{
+    if(strlen($q) <10)  return $q;
+    //$q= preg_replace('/[\x00-\x1F\x7F]/u', '', $q);
+   // $q=htmlspecialchars($q);
+    //echo $q;
+    $positionHttp = strpos($q, "http");
+    $secondPart="";
+   // echo $positionHttp."\n";
+    if($positionHttp >0)
+    {
+        $secondPart = substr($q,$positionHttp , strlen($q)-$positionHttp);
+      //  echo $secondPart."@@@@@@@@@@@@\n";
+        $q = substr($q,0,$positionHttp);
+      //  echo $q."@@@@@@@@@@@@€€€€€€\n";
+    }
+   // echo $q;
+    $res= file_get_contents("https://translate.googleapis.com/translate_a/single?client=gtx&ie=UTF-8&oe=UTF-8&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&dt=t&dt=at&sl=en&tl=fr&hl=hl&q=".urlencode($q), $_SERVER['DOCUMENT_ROOT']."/transes.html");
+   // var_dump($res);
+    $i=0;
+    if(isset(json_decode($res)[0][0][0]))
+    {
+        $q="";
+        foreach(json_decode($res)[0]  as $tabOfReturns)
+        {
+            if(isset($tabOfReturns[0])) $q.= $tabOfReturns[0];
+        }
+
+    }
+
+    return $q.$secondPart;
+}
+public static function translateAllVulnsCompliance()
+{
+
+   $allVuns =  DB::select("SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  vuln WHERE Risk in ('FAILED', 'PASSED') and BID <> 'yes'");
+   $i=0;
+   foreach($allVuns as $vuln)
+   {
+    echo $allVuns[$i]->id."\n";
+    $re = DB::table('vuln')
+    ->where('id', $allVuns[$i]->id)
+    ->update(['BID' => 'yes', 'name' => self::translate($allVuns[$i]->name),'description' => self::translate($allVuns[$i]->description),'solution' => self::translate($allVuns[$i]->solution),'synopsis' => self::translate($allVuns[$i]->synopsis)]);
+    $i++;
+}
+
+}
+
+public static function translateAllPlugins()
+{
+
+   $allPlugins =  DB::select("SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  plugins WHERE translated <> 'yes'");
+   $i=0;
+   foreach($allPlugins as $plugin)
+   {
+
+
+       $re = DB::table('plugins')
+    ->where('id', $allPlugins[$i]->id)
+    ->update(['translated' => 'yes', 'name' => self::translate($allPlugins[$i]->name),'description' => self::translate($allPlugins[$i]->description),'solution' => self::translate($allPlugins[$i]->solution),'synopsis' => self::translate($allPlugins[$i]->synopsis)]);
+    $i++;
+}
+
+}
+
+
+
 }
