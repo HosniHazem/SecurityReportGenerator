@@ -28,7 +28,7 @@ class GlbPipController extends Controller
 
         $item =GlbPip::all();
 
-        return response()->json(['Customer'=>$item,'status' => 200]);
+        return response()->json(['GlbPip'=>$item,'status' => 200]);
     }
 
     /**
@@ -47,20 +47,33 @@ class GlbPipController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    //done 
+    //tested  with sucess 
     public function store(Request $request)
     {
        // Validate the incoming request data
-         $validatedData = $request->validate([
+       $validator = Validator::make($request ->all(),[
         'Nom' => 'required',
         'Titre' => 'required',
         'adresse_mail_primaire' => 'required|email',
         'adresse_mail_secondaire' => 'email',
         'tel' => 'required',
-        // Add more validation rules if needed
+    ]);
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 422,
+            'validate_err' => $validator->getMessageBag(),
         ]);
+    }
+        
+        $existingGlbPip = GlbPip::where('Adresse mail primaire', $request->input('adresse_mail_primaire'))
+        ->orWhere('Adresse mail secondaire', $request->input('adresse_mail_primaire'))
+        ->first();
 
-    // Create a new GlbPip instance with the validated data
+    if ($existingGlbPip) {
+        return response()->json(['message' => 'Email address already exists'], 422);
+    }
+
+        // Create a new GlbPip instance with the validated data
         $glbPip = new GlbPip();
         $glbPip->Nom = $request->input('Nom');
         $glbPip->Titre = $request->input('Titre');
@@ -83,6 +96,8 @@ class GlbPipController extends Controller
      * @param  \App\Models\GlbPip  $glbPip
      * @return \Illuminate\Http\Response
      */
+
+     //tested with sucess
     public function show($id)
     {
         $item=GlbPip::find($id);
@@ -118,15 +133,30 @@ class GlbPipController extends Controller
     public function update(Request $request, $id)
     {
         // Validate the incoming request data
-        $validatedData = $request->validate([
+        $validator = Validator::make($request ->all(),[
             'Nom' => 'required',
             'Titre' => 'required',
             'adresse_mail_primaire' => 'required|email',
             'adresse_mail_secondaire' => 'email',
             'tel' => 'required',
-            // Add more validation rules if needed
         ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'validate_err' => $validator->getMessageBag(),
+            ]);
+        }
+        $existingGlbPip = GlbPip::where('id', '!=', $id)
+        ->where(function ($query) use ($request) {
+            $query->where('Adresse mail primaire', $request->input('adresse_mail_primaire'))
+                ->orWhere('Adresse mail secondaire', $request->input('adresse_mail_primaire'));
+        })
+        ->first();
     
+
+    if ($existingGlbPip) {
+        return response()->json(['message' => 'Email address already exists'], 422);
+    }
         // Find the GlbPip record by its ID
         $glbPip = GlbPip::find($id);
     
@@ -135,7 +165,12 @@ class GlbPipController extends Controller
         }
     
         // Update the GlbPip model with the new data
-        $glbPip->update($request->all());
+        $glbPip->Nom = $request->input('Nom');
+        $glbPip->Titre = $request->input('Titre');
+        $glbPip["Adresse mail primaire"] = $request->input('adresse_mail_primaire');
+        $glbPip["Adresse mail secondaire"] = $request->input('adresse_mail_secondaire');
+        $glbPip->Tél = $request->input('tel');
+        $glbPip->update();
     
         // Respond with a success message and the updated record
         return response()->json(['message' => 'Record updated', 'data' => $glbPip], 200);
