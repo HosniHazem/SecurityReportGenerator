@@ -48,7 +48,7 @@ class WordDocumentController extends Controller
 
     {
 
-        set_time_limit(5000);
+        set_time_limit(50000);
 
         $matrix_stats[0][0]=0;
         $matrix_stats[0][1]=0;
@@ -765,9 +765,9 @@ if($v===1){
 }
 
 
-$imageData = file_get_contents($customer->Logo);
-$localImagePath = public_path('images/logo.png'); // Specify the local path to save the image
-file_put_contents($localImagePath, $imageData);
+
+
+$localImagePath = public_path('images/uploads/'.$customer->Logo);
 $templateProcessor->setImageValue('icon', $localImagePath);
 $templateProcessor->setValue('SN',  $customer->SN);
 $templateProcessor->setValue('LN',  $customer->LN);
@@ -978,6 +978,7 @@ $text1 = preg_replace($pattern1, $replacement, $te);
  $text2 = preg_replace($pattern2, $replacement, $text1);
 $text = preg_replace($pattern3, " ", $text2);
 
+
                 $trieCounter++;
                 $templateProcessor->setValue('SRV_VULN_ID' . '#' . $m, htmlspecialchars($trieValue));
                 $templateProcessor->setValue('SRV_VULN_RISK' . '#' . $m, htmlspecialchars($item3->Risk));
@@ -1007,9 +1008,7 @@ $text = preg_replace($pattern3, " ", $text2);
 
         $templatePath2 = public_path('storage/app/file0.docx');
         $templateProcessor2 = new TemplateProcessor($templatePath2);
-         $imageData = file_get_contents($customer->Logo);
-        $localImagePath = public_path('images/logo.png'); // Specify the local path to save the image
-        file_put_contents($localImagePath, $imageData);
+        $localImagePath = public_path('images/uploads/'.$customer->Logo);
         $templateProcessor2->setImageValue('icon', $localImagePath);
 
 

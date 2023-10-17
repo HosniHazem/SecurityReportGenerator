@@ -48,6 +48,7 @@ class WordDocumentController3 extends Controller
     public function generateExcelDocument(Request $req)
     {
         set_time_limit(50000);
+//        '''SELECT ... FROM someTable WHERE etcINTO OUTFILE 'someTableExport.csv' CHARACTER SET utf8mb4FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"' ESCAPED BY ''LINES TERMINATED BY '\r\n';'''
         $sqls=array(
             <<<HERE1
         ((select "Plugin ID" ,"Risk" ,"Type", "Host" ,"name" ,"synopsis" ,"exploited_by_malware" ,"exploit_available" ,"age_of_vuln" ,"description" ,"Plugin Output" ,"solution")
@@ -59,7 +60,7 @@ class WordDocumentController3 extends Controller
         AND sow.Projet=?
         AND Risk in ('Critical', 'Medium', 'High', 'Low')
         group by `Host`,`plugins`.`name`))
-        INTO OUTFILE 'PLACEHOLDER2'
+        INTO OUTFILE 'PLACEHOLDER2'  CHARACTER SET utf8mb4
         FIELDS ENCLOSED BY '\"' TERMINATED BY ';' ESCAPED BY '\"' LINES TERMINATED BY '\r\n'
         HERE1,
         <<<HERE2
@@ -71,7 +72,7 @@ class WordDocumentController3 extends Controller
         AND sow.Projet=?
         AND Risk not in ('Critical', 'Medium', 'High', 'Low')
         group by `Host`,`description`))
-        INTO OUTFILE 'PLACEHOLDER2'
+        INTO OUTFILE 'PLACEHOLDER2'  CHARACTER SET utf8mb4
         FIELDS ENCLOSED BY '\"' TERMINATED BY ';' ESCAPED BY '\"' LINES TERMINATED BY '\r\n'
         HERE2
         );
@@ -92,25 +93,24 @@ class WordDocumentController3 extends Controller
 
    public static function cleanNewLineProblem ($string, $seeAlso)
     {
-
         $pattern1 = "/([[:punct:]]+ *)(\n)+/";
-		$pattern11 = "/([[:punct:]]+ *)(\{\{1\}\})+/";
+//		$pattern11 = "/([[:punct:]]+ *)(\{\{1\}\})+/";
 
         $pattern2 = "/(\n)+( *-)/";
-		$pattern21 = "/(\{\{1\}\})+( *-)/";
+//		$pattern21 = "/(\{\{1\}\})+( *-)/";
 
         $pattern3 = "/(\n)+/";
-		$pattern31 = "/(\{\{1\}\})+/";
+//		$pattern31 = "/(\{\{1\}\})+/";
 
         $replacement = "</w:t></w:r><w:r><w:br/><w:t>";
         $string = htmlspecialchars($string);
         $string = preg_replace($pattern1, '${1}'.$replacement, $string);
-		$string = preg_replace($pattern11, '${1}'.$replacement, $string);
+	//	$string = preg_replace($pattern11, '${1}'.$replacement, $string);
         $string = preg_replace($pattern2, $replacement.'${2}', $string);
-		$string = preg_replace($pattern21, $replacement.'${2}', $string);
+	//	$string = preg_replace($pattern21, $replacement.'${2}', $string);
 
         if ($seeAlso==1)  $string = preg_replace( $pattern3 , $replacement, $string);
-        $string = preg_replace( $pattern31 , " ", $string);
+   //     $string = preg_replace( $pattern31 , " ", $string);
 
 
         $string = preg_replace('/[\x00-\x1F\x7F]/u', '', $string);
@@ -120,6 +120,7 @@ class WordDocumentController3 extends Controller
     private static function setVulnPatchValues($prjID, $templateProcessor )
     {
         include("sqlRequests.php");
+
         $query = <<<HERE
             SELECT `t`.`Risk`,`t`.`age_of_vuln`,count(*) AS nombre FROM
                 (
@@ -192,7 +193,7 @@ class WordDocumentController3 extends Controller
 
            {
             $singleRow=$AllRows[0];
-
+            echo $KeyToDuplicateRows;
             $templateProcessor->cloneRow($KeyToDuplicateRows,  count($TwoLevelsTablesAllRows));
             $hostNumber=0;
             foreach ($TwoLevelsTablesAllRows as $HostSection)
@@ -434,20 +435,22 @@ public static function translate($q)
     //$q= preg_replace('/[\x00-\x1F\x7F]/u', '', $q);
    // $q=htmlspecialchars($q);
     //echo $q;
-    $positionHttp = strpos($q, "http");
+ //   $positionHttp = strpos($q, "http");
+    $q= str_replace("http://", "",$q);
+    $q= str_replace("https://", "",$q);
     $secondPart="";
    // echo $positionHttp."\n";
-    if($positionHttp >0)
+ /*   if($positionHttp >0)
     {
         $secondPart = substr($q,$positionHttp , strlen($q)-$positionHttp);
       //  echo $secondPart."@@@@@@@@@@@@\n";
         $q = substr($q,0,$positionHttp);
       //  echo $q."@@@@@@@@@@@@€€€€€€\n";
-    }
+    }*/
    // echo $q;
     $res= file_get_contents("https://translate.googleapis.com/translate_a/single?client=gtx&ie=UTF-8&oe=UTF-8&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&dt=t&dt=at&sl=en&tl=fr&hl=hl&q=".urlencode($q), $_SERVER['DOCUMENT_ROOT']."/transes.html");
    // var_dump($res);
-    $i=0;
+
     if(isset(json_decode($res)[0][0][0]))
     {
         $q="";
@@ -462,8 +465,9 @@ public static function translate($q)
 }
 public static function translateAllVulnsCompliance()
 {
+    set_time_limit(50000);
 
-   $allVuns =  DB::select("SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  vuln WHERE Risk in ('FAILED', 'PASSED') and BID <> 'yes'");
+   $allVuns =  DB::select("SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  vuln WHERE Risk in ('FAILED', 'PASSED', 'WARNING') and BID <> 'yes'");
    $i=0;
    foreach($allVuns as $vuln)
    {
@@ -473,11 +477,13 @@ public static function translateAllVulnsCompliance()
     ->update(['BID' => 'yes', 'name' => self::translate($allVuns[$i]->name),'description' => self::translate($allVuns[$i]->description),'solution' => self::translate($allVuns[$i]->solution),'synopsis' => self::translate($allVuns[$i]->synopsis)]);
     $i++;
 }
+return 0;
 
 }
 
 public static function translateAllPlugins()
 {
+    set_time_limit(50000);
 
    $allPlugins =  DB::select("SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  plugins WHERE translated <> 'yes'");
    $i=0;
@@ -490,6 +496,7 @@ public static function translateAllPlugins()
     ->update(['translated' => 'yes', 'name' => self::translate($allPlugins[$i]->name),'description' => self::translate($allPlugins[$i]->description),'solution' => self::translate($allPlugins[$i]->solution),'synopsis' => self::translate($allPlugins[$i]->synopsis)]);
     $i++;
 }
+return  0;
 
 }
 
