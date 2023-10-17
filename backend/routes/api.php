@@ -20,6 +20,7 @@ use App\Http\Controllers\VmController;
 use App\Http\Controllers\UploadanomaliesController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\GlbPipController;
+use App\Http\Controllers\SowController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -66,6 +67,20 @@ Route::post('/generateExcelDocument', [WordDocumentController3::class,'generateE
     Route::delete('Customer/{id}/delete', [CustomerController::class,'destroy']);
     Route::put('Customer/{id}/update', [CustomerController::class,'update']);
     Route::post('Customer/create',[CustomerController::class,'store']);
+
+    /// SOw
+    Route::get('Sow/{id}/show', [SowController::class,'show']);
+    Route::get('Sow', [SowController::class,'index']);
+    Route::get('LastOne', [SowController::class,'default']);
+    Route::delete('Sow/{id}/delete', [SowController::class,'destroy']);
+    Route::put('Sow/{id}/update', [SowController::class,'update']);
+    Route::post('Sow/create',[SowController::class,'store']);
+    Route::post('Sow/import',[SowController::class,'multiple']);
+
+
+
+
+
     Route::Post('/add-glbPip', [GlbPipController::class,'store']);
     Route::get('/get-glbPip/{id}', [GlbPipController::class,'show']);
     Route::put('/update-glbPip/{id}', [GlbPipController::class,'update']);

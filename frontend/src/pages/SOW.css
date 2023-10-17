@@ -46,9 +46,25 @@
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s;
+    margin-right: 12px;
   }
   
   button:hover {
     background-color: #45a049;
+  }
+  
+  .button2 {
+    background-color: #0888f0;
+    color: #fff;
+    padding: 10px 15px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .button2:hover {
+    background-color: #0888f0;
   }
   

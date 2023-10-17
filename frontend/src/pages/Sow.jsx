@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import './SOW.css'; // Import your CSS file for styling
 import ipAddress from 'ip-address';
+import swal from 'sweetalert';
+import axios from 'axios';
 
 function SOW() {
   const [serveur, setServeur] = useState([]);
@@ -11,11 +13,13 @@ function SOW() {
   const [r_sInput, setRSInput] = useState(null);
   const [pcInput, setPCInput] = useState(null);
   const [appsInput, setAppsInput] = useState(null);
-  const [ipJson, setIpJson] = useState(null);
+  const [Button, setButton] = useState(null);
   const tableCellStyle = {
     textAlign: 'center',
     verticalAlign: 'middle',
   };
+
+  const project_id = sessionStorage.getItem('project_id');
   const generateJSON = () => {
     const generateObjects = (content) => {
         const fields = Object.keys(content);
@@ -103,13 +107,10 @@ function removeFromPcsubnetArray(pcsubnetArray, ipHostToRemove) {
         ipRange.unshift(baseIp); // Add the base IP to the beginning of the array
         return ipRange;
       }
-      
     
+      setButton("yes");
 
 
-      
-
- 
   };
 
 
@@ -119,10 +120,31 @@ function removeFromPcsubnetArray(pcsubnetArray, ipHostToRemove) {
     set({...val, [e.target.name]: e.target.value });
 }
 
-const handleServeurInputChange = (id) => {
+const imported = () => {
 
+    let parsedData = {};
+    parsedData.serveur = serveurInput;
+    parsedData.apps = appsInput;
+    parsedData.pc = pcInput;
+    parsedData.rs = r_sInput;
+    parsedData.project_id = project_id;
+console.log(parsedData);
+  axios.post('http://webapp.smartskills.tn:8002/api/Sow/import',parsedData)
+  .then((response) => {
+    if(response.data.status===200){
+      swal("Imported","Successfully");
+
+    }else if(response.data.status===404) {
+      swal("Error","Problem while importing");
+    }
+  })
+  .catch((error) => {
+    // Handle error
+    console.error('Error sending data:', error);
+    swal("Error","Problem while importing");
+  }) 
 }
-console.log([serveurInput,appsInput,r_sInput,pcInput]) 
+
 /*   const adjustTextareaHeight = (id) => {
     const textarea = document.getElementById(id);
     textarea.rows = textarea.value.split('\n').length;
@@ -182,9 +204,9 @@ console.log([serveurInput,appsInput,r_sInput,pcInput])
         onChange={(e) => handleChange(e,setApps,apps)}  
         ></textarea></td>
                 <td style={tableCellStyle}> <textarea
-          id="URL"
-          name="URL"
-          value={apps.URL}
+          id="IP_Host"
+          name="IP_Host"
+          value={apps.IP_Host}
         onChange={(e) => handleChange(e,setApps,apps)}  
         ></textarea></td>
                 <td style={tableCellStyle}> <textarea
@@ -347,23 +369,12 @@ console.log([serveurInput,appsInput,r_sInput,pcInput])
       </div>
 
 
-      <button onClick={generateJSON}>Generate and Import</button>
-{/*       {
-  serveurInput ? (
-    <div>
-      <label htmlFor="Serveur">Serveur:</label>
-      {serveurInput.map((item, index) => (
-        <div key={index}>
-          <textarea
-            id={`serveur-${index}`}
-            value={item.IP_Host}
-            onChange={(e) => handleServeurInputChange(e, index)}
-          ></textarea>
-        </div>
-      ))}
-    </div>
-  ) : null
-} */}
+      <button  onClick={generateJSON}>Generate</button>
+ 
+      {
+  Button ?   <button className='button2' onClick={imported}>Import</button>
+ : null
+} 
 
     </div>
   );
