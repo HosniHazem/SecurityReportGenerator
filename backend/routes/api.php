@@ -34,7 +34,8 @@ use App\Http\Controllers\SowController;
 
 
 Route::post('/generateExcelDocument', [WordDocumentController3::class,'generateExcelDocument']);
-
+Route::get('/translatePlugins', [WordDocumentController3::class,'translateAllPlugins']);
+Route::get('/translateVulns', [WordDocumentController3::class,'translateAllVulnsCompliance']);
     Route::get('/test2', [TestController::class,'get']);
 
     Route::get('/get_vm', [VmController::class,'index']);
