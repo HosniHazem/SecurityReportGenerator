@@ -1,0 +1,177 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\AuditPreviousAudit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+
+class AuditPreviousAuditController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        $item=AuditPreviousAudit;
+        return response()->json(['auditPrev'=>$item,'status'=>200]);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+  
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+    $validator=Validator::make($request->all(),[
+        'ProjetNumero' => 'required|integer',
+        'Project_name' => 'required|string',
+        'ActionNumero' => 'required|integer',
+        'Action' => 'required|string|max:600',
+        'Criticite' => 'required|string',
+        'Chargee_action' => 'required|string',
+        'ChargeHJ' => 'required|string',
+        'TauxRealisation' => 'required|string',
+        'Evaluation' => 'required|string',
+
+    ]);
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 422,
+            'validate_err' => $validator->getMessageBag(),
+        ]);
+    }
+    $exisitngAuditPrevious=AuditPreviousAudit::where('ProjetNumero',$request->input('ProjetNumero'))
+    ->orWhere('Project_name',$request->input('Project_name'))
+    ->first();
+    if($exisitngAuditPrevious){
+        return response()->json(['message'=>'A project with number or name already exists !']);
+    }
+        $auditPreviousAudit = new AuditPreviousAudit();
+        $auditPreviousAudit->ProjetNumero = $request->input('ProjetNumero');
+        $auditPreviousAudit->Project_name = $request->input('Project_name');
+        $auditPreviousAudit->ActionNumero = $request->input('ActionNumero');
+        $auditPreviousAudit->Action = $request->input('Action');
+        $auditPreviousAudit->Criticite = $request->input('Criticite');
+        $auditPreviousAudit->Chargee_action = $request->input('Chargee_action');
+        $auditPreviousAudit->ChargeHJ = $request->input('ChargeHJ');
+        $auditPreviousAudit->TauxRealisation = $request->input('TauxRealisation');
+        $auditPreviousAudit->Evaluation = $request->input('Evaluation');
+
+        $auditPreviousAudit->save();
+
+        return response()->json(['message' => 'Record created', 'data' => $auditPreviousAudit], 201);
+
+
+
+    }
+
+
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\Models\AuditPreviousAudit  $auditPreviousAudit
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        $item=AuditPreviousAudit::find($id);
+        if($item){
+                return response()->json(["audit prev "=>$item,'satus'=>200]);
+        }
+        return response()->json(["message"=>'not found','status'=>404]);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  \App\Models\AuditPreviousAudit  $auditPreviousAudit
+     * @return \Illuminate\Http\Response
+     */
+    public function edit(AuditPreviousAudit $auditPreviousAudit)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\AuditPreviousAudit  $auditPreviousAudit
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
+    {
+        $validator=Validator::make($request->all(),[
+            'ProjetNumero' => 'required|integer',
+            'Project_name' => 'required|string',
+            'ActionNumero' => 'required|integer',
+            'Action' => 'required|string|max:600',
+            'Criticite' => 'required|string',
+            'Chargee_action' => 'required|string',
+            'ChargeHJ' => 'required|string',
+            'TauxRealisation' => 'required|string',
+            'Evaluation' => 'required|string',
+    
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'validate_err' => $validator->getMessageBag(),
+            ]);
+        }
+        $existingAuditPrevious = AuditPreviousAudit::where('id', '!=', $id)
+        ->where(function ($query) use ($request) {
+            $query->where('ProjetNumero', $request->input('ProjetNumero'))
+                ->orWhere('Project_name', $request->input('Project_name'));
+        })
+        ->first();
+      
+        if($exisitngAuditPrevious){
+            return response()->json(['message'=>'A project with number or name already exists !']);
+        }
+            $auditPreviousAudit = new AuditPreviousAudit();
+            $auditPreviousAudit->ProjetNumero = $request->input('ProjetNumero');
+            $auditPreviousAudit->Project_name = $request->input('Project_name');
+            $auditPreviousAudit->ActionNumero = $request->input('ActionNumero');
+            $auditPreviousAudit->Action = $request->input('Action');
+            $auditPreviousAudit->Criticite = $request->input('Criticite');
+            $auditPreviousAudit->Chargee_action = $request->input('Chargee_action');
+            $auditPreviousAudit->ChargeHJ = $request->input('ChargeHJ');
+            $auditPreviousAudit->TauxRealisation = $request->input('TauxRealisation');
+            $auditPreviousAudit->Evaluation = $request->input('Evaluation');
+            $auditPreviousAudit->update();
+            return response()->json(['message'=>'audit prev is updated','data'=>$auditPreviousAudit]);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  \App\Models\AuditPreviousAudit  $auditPreviousAudit
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
+    {
+        $auditPreviousAudit=AuditPreviousAudit::find($id);
+        if( !$auditPreviousAudit){
+            return response()->json(['message' => 'Record not found', 'status' => 404], 404);
+
+        }
+        $auditPreviousAudit->delete();
+        return response()->json(['message' => 'Record deleted', 'status' => 200], 200);
+
+    }
+}
