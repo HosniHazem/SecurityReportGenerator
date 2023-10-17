@@ -27,7 +27,7 @@ function App() {
                 <Route path='/newcustomer' element={<AddCustomer />} />
                 <Route path='/newproject' element={<AddProject />} />
                 <Route path='/import' element={<Nessus />} />
-                <Route path='/sow' element={<Sow />} />
+                <Route path='/sow/:id' element={<Sow />} />
             </Routes>
         </BrowserRouter>
     );

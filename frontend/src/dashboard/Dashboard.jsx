@@ -32,7 +32,8 @@ const Dashboard = () => {
     const [exporting, setExporting] = useState(false); // Add loading state
     const [downloading, setDownloading] = useState(false);
     const {open, setOpen} = useDialogState();
-    const [selectedIp, setSelectedIp] = useState('');
+    const selected = sessionStorage.getItem('selectedIp');
+    const [selectedIp, setSelectedIp] = useState(selected);
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
     
@@ -75,7 +76,7 @@ const Dashboard = () => {
       {
         field: "Import",
         headerName: "Import",
-        width: 100,
+        width: 130,
         renderCell: (params) => {
           const id=params.row.id;
           const name=params.row.Nom;
@@ -83,7 +84,10 @@ const Dashboard = () => {
             <div className="cellAction">
 
                 <div className="Pick"  onClick={(e) => Popup(name,id,e)}>Import</div>
-
+                
+                <Link to={`/sow/${id}`} style={{ textDecoration: "none" }}>
+                <div className="Pick2" >Sow</div>
+          </Link>
                
               </div>
           );

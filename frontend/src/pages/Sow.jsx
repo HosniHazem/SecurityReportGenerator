@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import './SOW.css'; // Import your CSS file for styling
-import ipAddress from 'ip-address';
 import swal from 'sweetalert';
 import axios from 'axios';
+import { useParams , Link } from 'react-router-dom';
+
 
 function SOW() {
   const [serveur, setServeur] = useState([]);
@@ -14,12 +15,13 @@ function SOW() {
   const [pcInput, setPCInput] = useState(null);
   const [appsInput, setAppsInput] = useState(null);
   const [Button, setButton] = useState(null);
+  
   const tableCellStyle = {
     textAlign: 'center',
     verticalAlign: 'middle',
   };
+  const { id } = useParams();
 
-  const project_id = sessionStorage.getItem('project_id');
   const generateJSON = () => {
     const generateObjects = (content) => {
         const fields = Object.keys(content);
@@ -127,7 +129,7 @@ const imported = () => {
     parsedData.apps = appsInput;
     parsedData.pc = pcInput;
     parsedData.rs = r_sInput;
-    parsedData.project_id = project_id;
+    parsedData.project_id = id;
 console.log(parsedData);
   axios.post('http://webapp.smartskills.tn:8002/api/Sow/import',parsedData)
   .then((response) => {
@@ -367,7 +369,9 @@ console.log(parsedData);
             </tr>
         </table>
       </div>
-
+      <Link to={`/`} style={{ textDecoration: "none" }}>
+      <button className='button3'>Back</button>
+          </Link>
 
       <button  onClick={generateJSON}>Generate</button>
  
