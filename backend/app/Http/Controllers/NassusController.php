@@ -26,7 +26,21 @@ class NassusController extends Controller
         'synopsis',
         'see_also'
     );
+    public static function send_whatsapp($message="Test"){
+        $url='https://api.callmebot.com/whatsapp.php?phone=21629961666&apikey=2415178&text='.urlencode($message);
+        if($ch = curl_init($url))
+        {
+            curl_setopt ($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 0);
+            $html = curl_exec($ch);
+            $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            // echo "Output:".$html;  // you can print the output for troubleshooting
+            curl_close($ch);
+            return (int) $status;
+        }
+        else return ;
 
+    }
     public static function PrepareForUploadToDB ($fieldName, $string)
     {
 
@@ -55,7 +69,7 @@ class NassusController extends Controller
             'secretKey' => '663fd55660cbdd8ccf1d603d4adf3d4b8c2d6394122c77ddea66ad311e77decb',
         ];
 
-       
+
     }
     private function getApiKeysHeader()
     {
@@ -192,7 +206,7 @@ foreach ($filesData as $item) {
     ])->get("https://{$ipp}/scans/{$e}/export/{$i}/status");
 
     $responseData = json_decode($response->body(), true);
-  
+
 
     if ($response->successful()) {
         $stats[$e]=[
@@ -202,7 +216,7 @@ foreach ($filesData as $item) {
         ];
     } else {
         $stats[$e]=[
-            "ver" => "not done",  
+            "ver" => "not done",
             "scan" => $e,
             "name" =>$n
         ];
@@ -221,7 +235,7 @@ foreach ($filesData as $item) {
     public function ImportAll(Request $request)
     {
         set_time_limit(5000);
-        
+
         $json = $request->all();
         $jsonData = $json['links'];
         $prj_id = $json['project_id'];
@@ -256,9 +270,9 @@ while ($createdId === null) {
             $responseData = json_decode($response->body(), true);
 
             if ($response->successful()) {
-              
+
             } else {
-              
+
                 $verif = 'false';
             }
         }
@@ -316,7 +330,7 @@ while ($createdId === null) {
                     "number" => $count,
                     "scan" => $sc
                 ];
-               
+
             }
 
             // Get plugin IDs not present in the local database
@@ -332,63 +346,72 @@ while ($createdId === null) {
                 ])->get("https://{$ip}/plugins/plugin/{$pid}");
 
                 $responseData = json_decode($response->body(), true);
-                $attributes = $responseData['attributes'];
+                if(isset($responseData))
+                {
+                    $attributes = $responseData['attributes'];
 
-          // making a one json file
-        $Finale_data = [];
-        $Finale_data["id"] = $responseData['id'];
-        $Finale_data["name"] = $responseData['name'];
-        $Finale_data["family_name"] = $responseData['family_name'];
+                    // making a one json file
+                    $Finale_data = [];
+                    $Finale_data["id"] = $responseData['id'];
+                    $Finale_data["name"] = $responseData['name'];
+                    $Finale_data["family_name"] = $responseData['family_name'];
 
-        foreach ($attributes as $attribute) {
-            $Finale_data[$attribute['attribute_name']] = $attribute['attribute_value'];
-        }
+                    foreach ($attributes as $attribute) {
+                        $Finale_data[$attribute['attribute_name']] = $attribute['attribute_value'];
+                    }
 
 
-        $item = new Plugins();
+                $item = new Plugins();
 
-        // Define a list of attributes to map
-        $attributesToMap = [
-            'id',
-            'fname',
-            'name',
-            'plugin_name',
-            'description',
-            'solution',
-            'script_version',
-            'script_copyright',
-            'cvss3_vector',
-            'cvss_score_source',
-            'cvss_temporal_vector',
-            'exploit_framework_core',
-            'exploit_framework_metasploit',
-            'exploit_framework_canvas',
-            'risk_factor',
-            'cvss_temporal_score',
-            'plugin_publication_date',
-            'metasploit_name',
-            'exploited_by_malware',
-            'cvss3_base_score',
-            'cvss_vector',
-            'plugin_type',
-            'synopsis',
-            'see_also',
-            'exploit_available',
-            'cvss_base_score',
-            'stig_severity',
-            'age_of_vuln',
-            'cvssV3_impactScore',
-            'exploit_code_maturity',
-            'family_name',
-        ];
+                // Define a list of attributes to map
+                $attributesToMap = [
+                    'id',
+                    'fname',
+                    'name',
+                    'plugin_name',
+                    'description',
+                    'solution',
+                    'script_version',
+                    'script_copyright',
+                    'cvss3_vector',
+                    'cvss_score_source',
+                    'cvss_temporal_vector',
+                    'exploit_framework_core',
+                    'exploit_framework_metasploit',
+                    'exploit_framework_canvas',
+                    'risk_factor',
+                    'cvss_temporal_score',
+                    'plugin_publication_date',
+                    'metasploit_name',
+                    'exploited_by_malware',
+                    'cvss3_base_score',
+                    'cvss_vector',
+                    'plugin_type',
+                    'synopsis',
+                    'see_also',
+                    'exploit_available',
+                    'cvss_base_score',
+                    'stig_severity',
+                    'age_of_vuln',
+                    'cvssV3_impactScore',
+                    'exploit_code_maturity',
+                    'family_name',
+                ];
 
-        foreach ($attributesToMap as $attribute) {
-            if (isset($Finale_data[$attribute])) {
-                $item->{$attribute} = $Finale_data[$attribute];
+                foreach ($attributesToMap as $attribute) {
+                    if (isset($Finale_data[$attribute])) {
+                        $item->{$attribute} = $Finale_data[$attribute];
+                    }
+                }
+                $item->save();
             }
-        }
-        // Save the model
-        $item->save();
+            else
+            {
+
+                self::send_whatsapp("[Nessus_Plugins_Problem] ". $pid ." Plugin was not found in nessus in the project with id ".$prj_id);
+            }
+                // Save the model
+
             }
 
             return response()->json(['message' => 'done','stats'=>$stats, 'status' => 200]);
