@@ -27,7 +27,7 @@ use Stichoza\GoogleTranslate\GoogleTranslate;
 
 class WordDocumentController3 extends Controller
 {
-    public static   $AnnexesTitles = array("","Serveurs","Solution Réseau", "Bases de donnees", "Poste de travail",  "Actifs externe", "Applications", "Solution VOIP", "Solution MAILS");
+    public static   $AnnexesTitles = array("","Serveurs","Solutions Réseaux et Infra", "Bases des données", "Postes de travail",  "Actifs externes", "Applications", "Solutions VOIP", "Solutions MAILS");
     public static   $AnnexesLetters = array("","B","C", "D", "E",  "F", "G", "H", "I");
     public static $currentAnnex=0;
 
@@ -421,7 +421,7 @@ public static function ZipAndDownload($project, $prefix, $filePaths)
      $zip->close();
      WordDocumentController3::send_whatsapp($zipFileName ." Ready");
      // Download the zip archive
-     return response()->download($zipFilePath)->deleteFileAfterSend();
+     return response()->download($zipFilePath);//->deleteFileAfterSend();
  }
 
  // If zip creation fails, return an error response

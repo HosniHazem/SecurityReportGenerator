@@ -113,7 +113,7 @@ $DefaultQuery = array (
     SELECT
     ROW_NUMBER() OVER() AS VulnDetails_ID,
     vuln.Risk AS VulnDetails_RISK,
-    name AS VulnDetails_Name_ToBeClean,
+    if(SUBSTRING(`Name`, 1, 28)="Vérifications de conformité", Substring(`Description`, 1, LEAST (300,LOCATE(":",`Description`))), `Name`) AS VulnDetails_Name_ToBeClean,
     `CVSS v3.0 Base Score`  AS VulnDetails_CVSS,
     GROUP_CONCAT(DISTINCT vuln.Host) AS VulnDetails_Hosts,
     GROUP_CONCAT(DISTINCT vuln.Port) AS VulnDetails_Hosts_ports,
