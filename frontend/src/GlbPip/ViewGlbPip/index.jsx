@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Card, CardContent, Typography, CardActions, Button, Grid } from "@mui/material";
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, TablePagination } from "@mui/material";
 import { axiosInstance } from "../../axios/axiosInstance";
+import "./index.css"
+import Sidebar from "../../Sidbar/Sidbar";
 
-const GlbPipList = () => {
+export default function ViewGlbPip() {
   const [glbPips, setGlbPips] = useState([]);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   useEffect(() => {
-    axiosInstance.get("/all-glbpip")
+    axiosInstance
+      .get("/all-glbpip")
       .then((response) => {
         if (response.status === 200) {
           setGlbPips(response.data.GlbPip);
@@ -18,31 +23,54 @@ const GlbPipList = () => {
       });
   }, []);
 
-  return (
-    <Grid container spacing={2}>
-      {glbPips.map((glbPip) => (
-        <Grid item key={glbPip.ID} xs={12} sm={6} md={4}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6">{glbPip.Nom}</Typography>
-              <Typography variant="subtitle1">{glbPip.Titre}</Typography>
-              <Typography variant="body2">
-                Email primaire: {glbPip["Adresse mail primaire"]}
-              </Typography>
-              <Typography variant="body2">
-                Tél: {glbPip.Tél}
-              </Typography>
-            </CardContent>
-            <CardActions>
-              <Button size="small" color="primary">
-                Learn More
-              </Button>
-            </CardActions>
-          </Card>
-        </Grid>
-      ))}
-    </Grid>
-  );
-};
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
 
-export default GlbPipList;
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0); // Reset the page to the first page when changing rows per page.
+  };
+
+  return (
+    <div className="center-container">
+      <TableContainer sx={{ maxHeight: 440 }}>
+        <Table stickyHeader aria-label="sticky table">
+          <TableHead>
+            <TableRow>
+              <TableCell>Nom</TableCell>
+              <TableCell>Titre</TableCell>
+              <TableCell>Email primaire</TableCell>
+              <TableCell>Email Secondaire</TableCell>
+              <TableCell>Tél</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {glbPips.slice(page * rowsPerPage, (page + 1) * rowsPerPage).map((glbPip) => (
+              <TableRow key={glbPip.ID}>
+                <TableCell>{glbPip.Nom}</TableCell>
+                <TableCell>{glbPip.Titre}</TableCell>
+                <TableCell>{glbPip["Adresse mail primaire"]}</TableCell>
+                <TableCell>{glbPip["Adresse mail secondaire"]}</TableCell>
+                <TableCell>{glbPip.Tél}</TableCell>
+                <TableCell>
+                  <Button>Modifier</Button>
+                  <Button>Supprimer</Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        component="div"
+        count={glbPips.length}
+        page={page}
+        onPageChange={handleChangePage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
+    </div>
+  );
+}
