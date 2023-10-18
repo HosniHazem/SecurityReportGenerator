@@ -333,7 +333,20 @@ while ($createdId === null) {
 
             }
 
-            // Get plugin IDs not present in the local database
+            getPlugins ($ip);
+
+            return response()->json(['message' => 'done','stats'=>$stats, 'status' => 200]);
+        }
+    }
+
+    public static function getPluginsRequest ($request)
+    {
+        return getPlugins ($request->ip);
+    }
+public static function getPlugins ($ip)
+{
+                $ApiKeys = getApiKeysForIP($ip);
+                // Get plugin IDs not present in the local database
                 $pluginIds =  DB::select("SELECT DISTINCT `Plugin ID`  as PluginID FROM vuln  WHERE `Plugin ID` NOT IN (SELECT DISTINCT id FROM  plugins)");
                 foreach ($pluginIds as $plugin) {
                 $pid = $plugin->PluginID;
@@ -342,7 +355,7 @@ while ($createdId === null) {
                 $response = Http::withOptions([
                     'verify' => false,
                 ])->withHeaders([
-                    'X-ApiKeys' => $this->getApiKeysHeader(),
+                    'X-ApiKeys' => $ApiKeys,
                 ])->get("https://{$ip}/plugins/plugin/{$pid}");
 
                 $responseData = json_decode($response->body(), true);
@@ -412,11 +425,7 @@ while ($createdId === null) {
             }
                 // Save the model
 
-            }
 
-            return response()->json(['message' => 'done','stats'=>$stats, 'status' => 200]);
-        }
-    }
-
-
+}
+}
 }
