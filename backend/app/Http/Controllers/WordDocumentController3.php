@@ -30,7 +30,11 @@ class WordDocumentController3 extends Controller
     public static   $AnnexesTitles = array("","Serveurs","Solutions Réseaux et Infra", "Bases des données", "Postes de travail",  "Actifs externes", "Applications", "Solutions VOIP", "Solutions MAILS");
     public static   $AnnexesLetters = array("","B","C", "D", "E",  "F", "G", "H", "I");
     public static $currentAnnex=0;
-
+    public static function QualityCheck(Request $req)
+    {
+        $qualityChecher = array ( array("A", "B", "C", "link"),  array("A", "B", "C", "link"),  array("A", "B", "C", "link"));
+        return json_encode($qualityChecher);
+    }
     public static function getPourcentage ($source, $ttl_hosts)
     {
         $v_Global=0;
@@ -117,7 +121,69 @@ class WordDocumentController3 extends Controller
         return $string;
     }
 
-    private static function setVulnPatchValues($prjID, $templateProcessor )
+        public static function setGlobalStats ($prjID, $templateProcessor, $isitAnnexeA )
+        {
+            $sql =<<<HERE0
+            SELECT
+             SUM(TLT_Hosts_MLW) AS TLT_Hosts_MLW,
+             SUM(TLT_Hosts_MLW) AS TLT_Hosts_ExC,
+             SUM(TLT_Hosts_MLW) AS TLT_Hosts_ExH,
+             SUM(TLT_Hosts_MLW) AS TLT_Hosts_ExM,
+             SUM(TLT_Hosts_MLW) AS TLT_Hosts_ExL,
+             SUM(TLT_Hosts_MLW) AS TLT_Hosts_CR,
+             SUM(TLT_Hosts_MLW) AS TLT_Hosts_HI,
+             SUM(TLT_Hosts_MLW) AS TLT_Hosts_MD,
+             SUM(TLT_Hosts_MLW) AS TLT_Hosts_LW,
+             SUM(TLT_Hosts_MLW) AS TLT_Hosts_NC,
+             SUM(TLT_Hosts_MLW) AS TLT_Hosts_CF
+            FROM
+            (
+            SELECT
+    COUNT(IF(Exp_Malware>0,1,NULL))as TLT_Hosts_MLW,
+    COUNT(IF(Critical_Ex>0,1,NULL))as TLT_Hosts_ExC,
+    COUNT(IF(High_Ex>0,1,NULL))as TLT_Hosts_ExH,
+    COUNT(IF(Medium_Ex>0,1,NULL))as TLT_Hosts_ExM,
+    COUNT(IF(Low_Ex>0,1,NULL))as TLT_Hosts_ExL,
+    COUNT(IF(Critical>0,1,NULL))as TLT_Hosts_CR,
+    COUNT(IF(High>0,1,NULL))as TLT_Hosts_HI,
+    COUNT(IF(Mediu>0,1,NULL))as TLT_Hosts_MD,
+    COUNT(IF(Low>0,1,NULL))as TLT_Hosts_LW,
+    max(FAILED2)as TLT_Hosts_NC, max(PASSED2)as TLT_Hosts_CF
+
+    FROM (
+    SELECT
+    vuln.`Host` as Hostip,
+        sow.Nom as Nom,
+        sow.field4,
+        COUNT(IF( `exploited_by_malware` = 'true' , 1, NULL)) AS Exp_Malware,
+        COUNT(IF(vuln.`Risk` = 'Critical' AND ( `exploit_available` = 'true' ), 1, NULL)) AS Critical_Ex,
+        COUNT(IF(vuln.`Risk` = 'High' AND ( `exploit_available` = 'true' ), 1, NULL)) AS High_Ex,
+        COUNT(IF(vuln.`Risk` = 'Medium' AND ( `exploit_available` = 'true' ), 1, NULL)) AS Medium_Ex,
+        COUNT(IF(vuln.`Risk` = 'Low' AND ( `exploit_available` = 'true' ), 1, NULL)) AS Low_Ex,
+        COUNT(IF(vuln.`Risk` = 'Critical', 1, NULL)) AS Critical,
+        COUNT(IF(vuln.`Risk` = 'High', 1, NULL)) AS High,
+        COUNT(IF(vuln.`Risk` = 'Medium', 1, NULL)) AS Mediu,
+        COUNT(IF(vuln.`Risk` = 'Low', 1, NULL)) AS Low,
+        COUNT(IF(vuln.`Risk` = 'FAILED', 1, NULL)) AS FAILED2,
+        COUNT(IF(vuln.`Risk` = 'PASSED', 1, NULL)) AS PASSED2
+    FROM vuln
+    LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
+    RIGHT JOIN sow ON vuln.`Host` = sow.IP_Host
+        WHERE vuln.upload_id in (SELECT `ID`from uploadanomalies WHERE `ID_Projet`=?)  and sow.IP_Host = vuln.Host and sow.Projet=?
+
+    GROUP BY
+    `Host` ,  vuln.Name
+    ) t
+
+    GROUP BY hostip
+    )tt
+    HERE0;
+    $AllRows=  DB::select($sql,[$prjID,$prjID]);
+    print_r(json_decode(json_encode($AllRows)));
+    //$templateProcessor->setValues(json_decode(json_encode($AllRows)));
+
+        }
+        public static function setVulnPatchValues($prjID, $templateProcessor, $isitAnnexeA )
     {
         include("sqlRequests.php");
 
@@ -127,7 +193,7 @@ class WordDocumentController3 extends Controller
                     SELECT `vuln`.`Risk`,`plugins`.`age_of_vuln`,`vuln`.`Name`,count(*)  FROM vuln
                          LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
                         RIGHT JOIN sow ON vuln.`Host` = sow.IP_Host
-                        WHERE vuln.upload_id in (SELECT `ID`from uploadanomalies WHERE `ID_Projet`=?) and sow.Type="CLAUSENUMBER1"   and sow.IP_Host = vuln.Host and sow.Projet=?
+                        WHERE vuln.upload_id in (SELECT `ID`from uploadanomalies WHERE `ID_Projet`=?) CLAUSENUMBER1   and sow.IP_Host = vuln.Host and sow.Projet=?
                         CLAUSENUMBER2
                          AND     `vuln`.`Risk` in ('Critical','High','Medium','Low')
                         group by `vuln`.`Risk`,`plugins`.`age_of_vuln`,`vuln`.`Name`,`vuln`.`Host`
@@ -135,8 +201,15 @@ class WordDocumentController3 extends Controller
               group by `t`.`Risk`,`t`.`age_of_vuln`;
         HERE;
         $listOfAgesOfVulns = ["", "0 - 7 days",        "7 - 30 days",        "30 - 60 days",        "60 - 180 days",        "180 - 365 days",        "365 - 730 days",        "730 days +"];
+                    if($isitAnnexeA==1)
+                    {
+                        $query=str_replace($SqlQueriesMarks[0], " ", $query);
+                    }
+                    else
+                    {
+                        $query=str_replace($SqlQueriesMarks[0], " and sow.Type=\"".$SqlQueriesMarks[self::$currentAnnex]."\"", $query);
+                    }
 
-        $query=str_replace($SqlQueriesMarks[0], $SqlQueriesMarks[self::$currentAnnex], $query);
         $AllRows=  DB::select($query,[$prjID,$prjID]);
 
         foreach ($AllRows as $row)
@@ -304,7 +377,7 @@ class WordDocumentController3 extends Controller
          if(isset($prefixStats))
          {
             $templateProcessor->SetValue($prefixStats,  count($AllRows));
-            self::setVulnPatchValues($prjID, $templateProcessor);
+            self::setVulnPatchValues($prjID, $templateProcessor,0);
           //  var_dump($prefixStats,$singleRow,$templateProcessor,$AllRows );exit;
             if(isset($singleRow)) self::setTotalValues($prefixStats,$singleRow,$templateProcessor,$AllRows );
        }
@@ -322,6 +395,7 @@ class WordDocumentController3 extends Controller
         include ("sqlRequests.php");
         $listOfFile=[];
         $returnedArray = [];
+     //   $prj_id=7;
         foreach($request->project_id as $prj_id)
         {
             $returnedArray [] = $prj_id;
@@ -332,7 +406,7 @@ class WordDocumentController3 extends Controller
                 "4.docx" => array(3),
                 "5.docx" => array(4),
             );
-
+            $annex_id=[1,2,3,4,5,6,7,8] ;
             foreach($annex_id as $Annex)
             {
                 $iteration=0;
@@ -369,7 +443,7 @@ class WordDocumentController3 extends Controller
 
         }
 
-        if(isset($request->ZipIt))
+        if(isset($request->ZipIt) or 1==1)
        return self::ZipAndDownload($project->Nom, "techAnnexes_", $listOfFile);
         else  print_r($listOfFile);
 

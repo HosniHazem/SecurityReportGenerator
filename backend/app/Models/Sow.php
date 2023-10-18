@@ -10,9 +10,9 @@ class Sow extends Model
 {
     use HasFactory;
     public $timestamps = false;
-    protected  $table='sow2';
+    protected  $table='sow';
 
 
-  
-  
+
+
 }

@@ -1010,7 +1010,8 @@ $text = preg_replace($pattern3, " ", $text2);
         $templateProcessor2 = new TemplateProcessor($templatePath2);
         $localImagePath = public_path('images/uploads/'.$customer->Logo);
         $templateProcessor2->setImageValue('icon', $localImagePath);
-
+        WordDocumentController3::setVulnPatchValues($request->project_id, $templateProcessor2, 1);
+        WordDocumentController3::setGlobalStats($request->project_id, $templateProcessor2, 1);
 
 
         $templateProcessor2->setImageValue('V_Global', public_path('images/'. self::getPourcentage($matrix_stats, 0, $ttl_hosts).".png"));

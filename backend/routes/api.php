@@ -32,7 +32,7 @@ use App\Http\Controllers\SowController;
 |
 */
 
-
+Route::get('/QualityCheck', [WordDocumentController3::class,'QualityCheck']);
 Route::post('/generateExcelDocument', [WordDocumentController3::class,'generateExcelDocument']);
 Route::get('/translatePlugins', [WordDocumentController3::class,'translateAllPlugins']);
 Route::get('/translateVulns', [WordDocumentController3::class,'translateAllVulnsCompliance']);
