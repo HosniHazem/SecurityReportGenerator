@@ -22,11 +22,25 @@ class ProjectController extends Controller
     return response()->json(['message'=>'not found','status' => 404]);
     }
     }
-
+    static function CheckQualityAll($AllProjects)
+    {
+        $i=0;
+        foreach ($AllProjects as $project)
+        {
+            $project->quality= self::checkQuality($project->id);
+        }
+       // var_dump($AllProjects);exit;
+       // return $AllProjects;
+    }
+    static function checkQuality($project)
+    {
+        return 0;
+    }
     public function index()
     {
 
         $item =Project::all();
+        $item2 = self::CheckQualityAll($item);
 
         return response()->json(['Project'=>$item,'status' => 200]);
     }
@@ -34,13 +48,13 @@ class ProjectController extends Controller
     {
         // Get the latest project record
         $latestProject = Project::latest()->first();
-    
+
         if ($latestProject) {
             $lastProjectId = $latestProject;
         } else {
             $lastProjectId = null; // Handle the case where no projects exist
         }
-    
+
         return response()->json(['lastProjectId' => $lastProjectId, 'status' => 200]);
     }
 
@@ -51,7 +65,7 @@ class ProjectController extends Controller
             'URL' => 'required',
             'Description' => 'required'
         ]);
-      
+
         if ($validator->fails()) {
             return response()->json([
                 'status' => 422,
@@ -77,7 +91,7 @@ class ProjectController extends Controller
             'URL' => 'required',
             'Description' => 'required'
         ]);
-      
+
 
         if ($validator->fails()) {
             return response()->json([
