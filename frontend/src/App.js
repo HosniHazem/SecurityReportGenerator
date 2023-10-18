@@ -12,10 +12,15 @@ import UpdateProject from "./projects/UpdateProject";
 import Sow from "./pages/Sow";
 import Nessus from "./Nessus";
 import AddGlbPip from "./GlbPip/AddGlbPip";
+import toast, { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
     <BrowserRouter>
+    <Toaster
+  position="top-center"
+  reverseOrder={false}
+/>
       <Routes>
         <Route path="/" element={<AppLayout />}>
           <Route index element={<Dashboard />} />
@@ -29,7 +34,7 @@ function App() {
         <Route path="/newproject" element={<AddProject />} />
         <Route path="/import" element={<Nessus />} />
         <Route path="/sow/:id" element={<Sow />} />
-        <Route path="/glb-pip" element={<AddGlbPip />} />
+        <Route path="/add-glb-pip" element={<AddGlbPip />} />
       </Routes>
     </BrowserRouter>
   );

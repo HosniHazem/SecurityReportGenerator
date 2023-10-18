@@ -1,47 +1,188 @@
-import React from "react";
+import React, { useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  TextField,
+  Button,
+} from "@mui/material";
+import axios from "axios";
+import "./index.css";
+import { axiosInstance } from "../../axios/axiosInstance";
 
 export default function AddGlbPip() {
-  return (
-    <table style={{ borderCollapse: "collapse", border: "1px solid black" }}>
-      <tbody>
-        <tr>
-          <td style={{ border: "1px solid black", padding: "8px" }}>
-            <p>
-              <span>nom</span>
-            </p>
-          </td>
-          <td style={{ border: "1px solid black", padding: "8px" }}>
-            <p>
-              <span>Titre</span>
-            </p>
-          </td>
-          <td style={{ border: "1px solid black", padding: "8px" }}>
-            <p>
-              <span>Tél</span>
-            </p>
-          </td>
-          <td style={{ border: "1px solid black", padding: "8px" }}>
-            <p>
-              <span>Mail</span>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td style={{ border: "1px solid black", padding: "8px" }}>
-            <input type="text" placeholder="Enter nom" />
-          </td>
-          <td style={{ border: "1px solid black", padding: "8px" }}>
-            <input type="text" placeholder="Enter Titre" />
-          </td>
+  const [formData, setFormData] = useState({
+    Nom: "",
+    Titre: "",
+    adresse_mail_primaire: "",
+    adresse_mail_secondaire: "",
+    tel: "",
+  });
 
-          <td style={{ border: "1px solid black", padding: "8px" }}>
-            <input type="text" placeholder="Enter Tél" />
-          </td>
-          <td style={{ border: "1px solid black", padding: "8px" }}>
-            <input type="text" placeholder="Enter Mail" />
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  const initialFormData = {
+    Nom: "",
+    Titre: "",
+    adresse_mail_primaire: "",
+    adresse_mail_secondaire: "",
+    tel: "",
+  };
+
+  const [telError, setTelError] = useState(false);
+  const [emailError, setEmailError] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+
+    if (name === "tel") {
+      setTelError(!validateTel(value));
+    } else if (name === "adresse_mail_primaire") {
+      setEmailError(!validateEmail(value));
+    }
+  };
+
+  const validateEmail = (email) => {
+    // Regular expression to validate email format
+    const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i;
+    return emailRegex.test(email);
+  };
+
+  const validateTel = (tel) => {
+    // Regular expression to validate phone number format
+    const telRegex = /^(2|5|8)\d{7}$/;
+    return telRegex.test(tel);
+  };
+
+  const handleSubmit = async () => {
+    const { adresse_mail_primaire, tel } = formData;
+
+    if (!validateEmail(adresse_mail_primaire)) {
+      setEmailError(true);
+      return;
+    }
+
+    if (!validateTel(tel)) {
+      setTelError(true);
+      return;
+    }
+
+    try {
+      const response = await axiosInstance.post("/add-glbPip", formData);
+      console.log(response.data);
+      setFormData(initialFormData);
+      setTelError(false);
+      setEmailError(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  return (
+    <div className="add-glb-pip-div">
+      <h1 className="add-glb-pip-title">Ajouter un Glb Pip</h1>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>
+                <span>Nom et Prénom</span>
+              </TableCell>
+              <TableCell>
+                <span>Titre</span>
+              </TableCell>
+              <TableCell>
+                <span>Tél</span>
+              </TableCell>
+              <TableCell>
+                <span>Mail primaire</span>
+              </TableCell>
+              <TableCell>
+                <span>Mail secondaire</span>
+              </TableCell>
+              <TableCell>
+                <span> </span>
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <TableRow>
+              <TableCell>
+                <TextField
+                  variant="outlined"
+                  placeholder="Saisir nom et prénom"
+                  fullWidth
+                  name="Nom"
+                  value={formData.Nom}
+                  onChange={handleChange}
+                />
+              </TableCell>
+              <TableCell>
+                <TextField
+                  variant="outlined"
+                  placeholder="Saisir Titre"
+                  fullWidth
+                  name="Titre"
+                  value={formData.Titre}
+                  onChange={handleChange}
+                />
+              </TableCell>
+              <TableCell>
+                <TextField
+                  variant="outlined"
+                  placeholder="Saisir Tél"
+                  fullWidth
+                  name="tel"
+                  value={formData.tel}
+                  onChange={handleChange}
+                  helperText={
+                    telError
+                      ? "Entrer un numéro Ooredoo/Tunisie Télécom/Orange"
+                      : ""
+                  }
+                  error={telError}
+                />
+              </TableCell>
+              <TableCell>
+                <TextField
+                  variant="outlined"
+                  placeholder="Saisir E-mail"
+                  fullWidth
+                  name="adresse_mail_primaire"
+                  value={formData.adresse_mail_primaire}
+                  onChange={handleChange}
+                  helperText={
+                    emailError ? "Entrer un email valide" : ""
+                  }
+                  error={emailError}
+                />
+              </TableCell>
+              <TableCell>
+                <TextField
+                  variant="outlined"
+                  placeholder="Enter Mail secondaire"
+                  fullWidth
+                  name="adresse_mail_secondaire"
+                  value={formData.adresse_mail_secondaire}
+                  onChange={handleChange}
+                />
+              </TableCell>
+              <TableCell>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleSubmit}
+                >
+                  Ajouter
+                </Button>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </div>
   );
 }

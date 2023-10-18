@@ -61,7 +61,8 @@ class GlbPipController extends Controller
     if ($validator->fails()) {
         return response()->json([
             'status' => 422,
-            'validate_err' => $validator->getMessageBag(),
+            'message' => $validator->getMessageBag(),
+
         ]);
     }
         
@@ -70,7 +71,7 @@ class GlbPipController extends Controller
         ->first();
 
     if ($existingGlbPip) {
-        return response()->json(['message' => 'Email address already exists'], 422);
+        return response()->json(['success'=>false,'message' => 'Email address already exists']);
     }
 
         // Create a new GlbPip instance with the validated data
@@ -86,7 +87,7 @@ class GlbPipController extends Controller
         $glbPip->save();
 
     // Respond with a success message and the created record
-        return response()->json(['message' => 'Record created', 'data' => $glbPip], 201);
+    return response()->json(['success' => true, 'message' => 'glb pip ajouté avec succées', 'data' => $glbPip], 201);
 
     }
 
