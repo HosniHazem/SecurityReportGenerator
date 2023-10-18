@@ -13,6 +13,7 @@ use App\Models\Vuln;
 use App\Models\Sow;
 use App\Models\Uploadanomalies;
 use App\Models\Plugins;
+use App\Models\Vm;
 use clsTbsZip;
 session_start();
 
@@ -41,6 +42,11 @@ class NassusController extends Controller
         else return ;
 
     }
+    public static function getApiKeysForIP ($ip)
+    {
+        $vm = Vm::where('IP_Port', $ip)->first();
+return "accessKey={$vm->accessKey}; secretKey={$vm->secretKey}";
+    }
     public static function PrepareForUploadToDB ($fieldName, $string)
     {
 
@@ -62,19 +68,7 @@ class NassusController extends Controller
     }
 
 
-    public function __construct()
-    {
-        $this->apiKeys = [
-            'accessKey' => 'a507ad2749850e9acc8543f56284896b8792e9cf9b0dd54f8c35802e47c3fed5',
-            'secretKey' => '663fd55660cbdd8ccf1d603d4adf3d4b8c2d6394122c77ddea66ad311e77decb',
-        ];
 
-
-    }
-    private function getApiKeysHeader()
-    {
-        return "accessKey={$this->apiKeys['accessKey']}; secretKey={$this->apiKeys['secretKey']}";
-    }
 
 
 
@@ -84,11 +78,11 @@ class NassusController extends Controller
     public function GetAll(Request $request)
     {
         $jsonData = $request->all();
-
+        $ApiKeys = self::getApiKeysForIP($request->selectedIp);
         $response = Http::withOptions([
             'verify' => false, // Disable SSL verification
         ])->withHeaders([
-            'X-ApiKeys' => $this->getApiKeysHeader(),
+            'X-ApiKeys' => $ApiKeys,
         ])->get("https://{$request->selectedIp}/scans");
         // Decode the JSON response data
         $responseData = json_decode($response->body(), true); // true to convert it to an associative array
@@ -113,14 +107,14 @@ class NassusController extends Controller
 
 $jsonData = $request->all();
 $ipp = $jsonData[0]['ip'];
-
+$ApiKeys = self::getApiKeysForIP($ipp);
 foreach ($jsonData as $item) {
     $e=$item["value"];
     $n=$item["name"];
     $response = Http::withOptions([
         'verify' => false, // Disable SSL verification
     ])->withHeaders([
-        'X-ApiKeys' => $this->getApiKeysHeader(),
+        'X-ApiKeys' => $ApiKeys,
     ])->post("https://{$ipp}/scans/{$e}/export", [
         'format' => 'csv',
         'template_id' => 'false',
@@ -149,7 +143,7 @@ foreach ($jsonData as $item) {
     $response = Http::withOptions([
         'verify' => false, // Disable SSL verification
     ])->withHeaders([
-        'X-ApiKeys' => $this->getApiKeysHeader(),
+        'X-ApiKeys' => $ApiKeys,
     ])->get("https://{$ipp}/scans/{$e}");
 
     // Decode the JSON response data
@@ -159,7 +153,7 @@ foreach ($jsonData as $item) {
  $response = Http::withOptions([
     'verify' => false, // Disable SSL verification
 ])->withHeaders([
-    'X-ApiKeys' => $this->getApiKeysHeader(),
+    'X-ApiKeys' => $ApiKeys,
 ])->get("https://{$ipp}/scans/{$e}/hosts/{$one}");
 
 $responseData2 = json_decode($response->body(), true); // true to convert it to an associative array
@@ -202,7 +196,7 @@ foreach ($filesData as $item) {
     $response = Http::withOptions([
         'verify' => false,
     ])->withHeaders([
-        'X-ApiKeys' => $this->getApiKeysHeader(),
+        'X-ApiKeys' => $ApiKeys,
     ])->get("https://{$ipp}/scans/{$e}/export/{$i}/status");
 
     $responseData = json_decode($response->body(), true);
@@ -242,7 +236,7 @@ foreach ($filesData as $item) {
         $lab = $json['Label'];
         $des = $json['description'];
         $ip = $json['selectedIp'];
-
+        $ApiKeys = self::getApiKeysForIP($ip);
         $verif = 'true';
 /////Upload Anomalie Creation
 $createdId=null;
@@ -264,7 +258,7 @@ while ($createdId === null) {
             $response = Http::withOptions([
                 'verify' => false,
             ])->withHeaders([
-                'X-ApiKeys' => $this->getApiKeysHeader(),
+                'X-ApiKeys' => $ApiKeys,
             ])->get("https://{$ip}/scans/{$e}/export/{$i}/status");
 
             $responseData = json_decode($response->body(), true);
@@ -289,7 +283,7 @@ while ($createdId === null) {
                 $response = Http::withOptions([
                     'verify' => false,
                 ])->withHeaders([
-                    'X-ApiKeys' => $this->getApiKeysHeader(),
+                    'X-ApiKeys' => $ApiKeys,
                 ])->get("https://{$ip}/scans/{$e}/export/{$i}/download");
 
                 if ($response->successful()) {
@@ -333,7 +327,7 @@ while ($createdId === null) {
 
             }
 
-            getPlugins ($ip);
+            self::getPlugins ($ip);
 
             return response()->json(['message' => 'done','stats'=>$stats, 'status' => 200]);
         }
@@ -341,11 +335,13 @@ while ($createdId === null) {
 
     public static function getPluginsRequest ($request)
     {
-        return getPlugins ($request->ip);
+        return self::getPlugins($request->ip);
     }
+
+
 public static function getPlugins ($ip)
 {
-                $ApiKeys = getApiKeysForIP($ip);
+                $ApiKeys = self::getApiKeysForIP($ip);
                 // Get plugin IDs not present in the local database
                 $pluginIds =  DB::select("SELECT DISTINCT `Plugin ID`  as PluginID FROM vuln  WHERE `Plugin ID` NOT IN (SELECT DISTINCT id FROM  plugins)");
                 foreach ($pluginIds as $plugin) {
