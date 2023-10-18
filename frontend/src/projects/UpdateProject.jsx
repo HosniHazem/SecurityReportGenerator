@@ -11,7 +11,7 @@ import swal from 'sweetalert';
 import { Span } from './Typography'
 
 import TextField from '@mui/material/TextField';
-import "./Add.css";
+import "./add.css";
 
 const Container = styled('div')(({ theme }) => ({
     margin: '30px',

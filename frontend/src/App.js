@@ -11,6 +11,7 @@ import UpdateCustomer from "./customer/UpdateCustomer";
 import UpdateProject from "./projects/UpdateProject";
 import Sow from "./pages/Sow";
 import Nessus from "./Nessus";
+import AddGlbPip from "./GlbPip/AddGlbPip";
 
 function App() {
   return (
