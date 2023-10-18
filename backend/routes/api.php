@@ -32,7 +32,7 @@ use App\Http\Controllers\AuditPreviousAuditController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-
+Route::get('/getPluginsFromAllServers', [NassusController::class,'getPluginsFromAllServers']);
 Route::get('/QualityCheck', [WordDocumentController3::class,'QualityCheck']);
 Route::post('/generateExcelDocument', [WordDocumentController3::class,'generateExcelDocument']);
 Route::get('/translatePlugins', [WordDocumentController3::class,'translateAllPlugins']);

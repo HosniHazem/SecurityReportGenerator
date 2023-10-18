@@ -32,7 +32,34 @@ class WordDocumentController3 extends Controller
     public static $currentAnnex=0;
     public static function QualityCheck(Request $req)
     {
-        $qualityChecher = array ( array("A", "B", "C", "link"),  array("A", "B", "C", "link"),  array("A", "B", "C", "link"));
+        $actionlink = array("translatePlugins", "translateVulns", "getPluginsFromAllServers");
+        $sqls = array(
+            <<< HERE0
+        SELECT count(DISTINCT `Plugin ID`)  as 'Nombre de Plugins non traduit' FROM vuln where vuln.upload_id in  (select id from uploadanomalies where uploadanomalies.ID_Projet=?) and `Plugin ID` in (SELECT id FROM `plugins` WHERE `translated`<>'yes' )
+        HERE0,
+        <<< HERE1
+        SELECT count(DISTINCT `id`)  as 'Nombre de Vulns non traduit' FROM vuln where vuln.upload_id in  (select id from uploadanomalies where uploadanomalies.ID_Projet=?) and Risk in ('PASSED', 'FAILED') AND  `BID`<>'yes'
+        HERE1,
+        <<< HERE2
+        SELECT count(DISTINCT `Plugin ID`)  as 'Nombre de Plugins manquants' FROM vuln where vuln.upload_id in  (select id from uploadanomalies where uploadanomalies.ID_Projet=?) and `Plugin ID` not in (SELECT id FROM `plugins` )
+        HERE2);
+        $qualityChecher=[];
+        $qualityChecher[0] = array("Item" , "Valeur", "link");
+        $i=0;
+        foreach($sqls as $sql)
+        {
+            $returnedRow=DB::select($sql,array($req->project_id, $req->project_id ))[0] ;
+            foreach ($returnedRow as $key => $value)
+            {
+                $i++;
+                $qualityChecher[$i] [] = $key;
+                $qualityChecher[$i] [] = $value;
+                $qualityChecher[$i] [] = $actionlink[$i-1];
+
+            }
+        }
+       // return $qualityChecher;
+        //$qualityChecher = array ( array("A", "B", "C", "link"),  array("A", "B", "C", "link"),  array("A", "B", "C", "link"));
         return json_encode($qualityChecher);
     }
     public static function getPourcentage ($source, $ttl_hosts)
