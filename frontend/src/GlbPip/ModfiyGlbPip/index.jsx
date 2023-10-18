@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Table,
   TableBody,
@@ -10,11 +11,12 @@ import {
   TextField,
   Button,
 } from "@mui/material";
-import axios from "axios";
-import "./index.css";
 import { axiosInstance } from "../../axios/axiosInstance";
+import { useNavigate, useParams } from "react-router-dom";
+import toast from "react-hot-toast";
 
-export default function AddGlbPip() {
+export default function ModifyGlbPip() {
+  const { id } = useParams();
   const [formData, setFormData] = useState({
     Nom: "",
     Titre: "",
@@ -23,16 +25,28 @@ export default function AddGlbPip() {
     tel: "",
   });
 
-  const initialFormData = {
-    Nom: "",
-    Titre: "",
-    adresse_mail_primaire: "",
-    adresse_mail_secondaire: "",
-    tel: "",
-  };
-
   const [telError, setTelError] = useState(false);
   const [emailError, setEmailError] = useState(false);
+
+  useEffect(() => {
+    axiosInstance
+      .get(`/get-glbPip/${id}`)
+      .then((response) => {
+        if (response.status === 200) {
+          const glbPip = response.data.GlbPip;
+          setFormData({
+            Nom: glbPip.Nom || "",
+            Titre: glbPip.Titre || "",
+            adresse_mail_primaire: glbPip["Adresse mail primaire"] || "",
+            adresse_mail_secondaire: glbPip["Adresse mail secondaire"] || "",
+            tel: glbPip.Tél,
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -56,7 +70,7 @@ export default function AddGlbPip() {
     const telRegex = /^(2|5|9)\d{7}$/;
     return telRegex.test(tel);
   };
-
+   const navigate=useNavigate();
   const handleSubmit = async () => {
     const { adresse_mail_primaire, tel } = formData;
 
@@ -71,19 +85,28 @@ export default function AddGlbPip() {
     }
 
     try {
-      const response = await axiosInstance.post("/add-glbPip", formData);
+      const response = await axiosInstance.put(
+        `/update-glbPip/${id}`,
+        formData
+      );
       console.log(response.data);
-      setFormData(initialFormData);
-      setTelError(false);
-      setEmailError(false);
+      if(response.data.success){
+        toast.success(response.data.message);
+        setTimeout(() => {
+            navigate("/all-glb-pip");
+          }, 2000);
+      }else {
+        toast.error(response.data.message)
+      }
     } catch (error) {
       console.error(error);
+      toast.error("Something went wrong");
     }
   };
 
   return (
     <div className="add-glb-pip-div">
-      <h1 className="add-glb-pip-title">Ajouter un Glb Pip</h1>
+      <h1 className="add-glb-pip-title">Modifier un Glb Pip</h1>
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -154,16 +177,14 @@ export default function AddGlbPip() {
                   name="adresse_mail_primaire"
                   value={formData.adresse_mail_primaire}
                   onChange={handleChange}
-                  helperText={
-                    emailError ? "Entrer un email valide" : ""
-                  }
+                  helperText={emailError ? "Entrer un email valide" : ""}
                   error={emailError}
                 />
               </TableCell>
               <TableCell>
                 <TextField
                   variant="outlined"
-                  placeholder="Enter Mail secondaire"
+                  placeholder="Saisir Mail secondaire"
                   fullWidth
                   name="adresse_mail_secondaire"
                   value={formData.adresse_mail_secondaire}
@@ -176,7 +197,7 @@ export default function AddGlbPip() {
                   color="primary"
                   onClick={handleSubmit}
                 >
-                  Ajouter
+                  Enregistrer
                 </Button>
               </TableCell>
             </TableRow>

@@ -104,7 +104,7 @@ class GlbPipController extends Controller
         $item=GlbPip::find($id);
         if($item){
 
-            return response()->json(['Customer'=>$item,'status' => 200]);
+            return response()->json(['GlbPip'=>$item,'status' => 200]);
             }
         else
         {
@@ -143,8 +143,9 @@ class GlbPipController extends Controller
         ]);
         if ($validator->fails()) {
             return response()->json([
-                'status' => 422,
-                'validate_err' => $validator->getMessageBag(),
+                'message' => $validator->getMessageBag(),
+                'success'=>false,
+                
             ]);
         }
         $existingGlbPip = GlbPip::where('id', '!=', $id)
@@ -156,7 +157,8 @@ class GlbPipController extends Controller
     
 
     if ($existingGlbPip) {
-        return response()->json(['message' => 'Email address already exists'], 422);
+        return response()->json(['message' => 'Email address already exists','success'=>false,
+    ]);
     }
         // Find the GlbPip record by its ID
         $glbPip = GlbPip::find($id);
@@ -174,7 +176,7 @@ class GlbPipController extends Controller
         $glbPip->update();
     
         // Respond with a success message and the updated record
-        return response()->json(['message' => 'Record updated', 'data' => $glbPip], 200);
+        return response()->json(['success'=>true,'message' => 'un glbpip a été mis a jour', 'data' => $glbPip]);
     }
 
     /**
@@ -189,13 +191,13 @@ class GlbPipController extends Controller
         $glbPip = GlbPip::find($id);
     
         if (!$glbPip) {
-            return response()->json(['message' => 'Record not found', 'status' => 404], 404);
+            return response()->json(['success'=>false,'message' => 'Record not found', 'status' => 404]);
         }
     
         // Delete the GlbPip model
         $glbPip->delete();
     
         // Respond with a success message
-        return response()->json(['message' => 'Record deleted', 'status' => 200], 200);
+        return response()->json(['success'=>true,'message' => 'un glb_pip a été supprimé', 'status' => 200]);
     }
 }
