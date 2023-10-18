@@ -33,7 +33,7 @@ use App\Http\Controllers\AuditPreviousAuditController;
 |
 */
 Route::get('/getPluginsFromAllServers', [NassusController::class,'getPluginsFromAllServers']);
-Route::get('/QualityCheck', [WordDocumentController3::class,'QualityCheck']);
+Route::post('/QualityCheck', [WordDocumentController3::class,'QualityCheck']);
 Route::post('/generateExcelDocument', [WordDocumentController3::class,'generateExcelDocument']);
 Route::get('/translatePlugins', [WordDocumentController3::class,'translateAllPlugins']);
 Route::get('/translateVulns', [WordDocumentController3::class,'translateAllVulnsCompliance']);

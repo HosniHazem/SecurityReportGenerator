@@ -60,6 +60,7 @@ class WordDocumentController3 extends Controller
         }
        // return $qualityChecher;
         //$qualityChecher = array ( array("A", "B", "C", "link"),  array("A", "B", "C", "link"),  array("A", "B", "C", "link"));
+        return response()->json(['QC' => $qualityChecher, 'status' => 200]);
         return json_encode($qualityChecher);
     }
     public static function getPourcentage ($source, $ttl_hosts)
@@ -578,7 +579,7 @@ public static function translateAllVulnsCompliance()
     ->update(['BID' => 'yes', 'name' => self::translate($allVuns[$i]->name),'description' => self::translate($allVuns[$i]->description),'solution' => self::translate($allVuns[$i]->solution),'synopsis' => self::translate($allVuns[$i]->synopsis)]);
     $i++;
 }
-return 0;
+
 
 }
 
