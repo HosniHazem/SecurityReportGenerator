@@ -10,4 +10,6 @@ class GlbPip extends Model
     use HasFactory;
     public $timestamps = false;
     protected  $table='glb_pip';
+    protected $primaryKey='ID';
+
 }

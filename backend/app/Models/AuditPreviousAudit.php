@@ -8,4 +8,21 @@ use Illuminate\Database\Eloquent\Model;
 class AuditPreviousAudit extends Model
 {
     use HasFactory;
+    public $timestamps = false;
+
+    protected  $table='audit_previousaudits_ap';
+    protected $fillable = [
+        'ID_Projet',
+        'ProjetNumero',
+        'Project_name',
+        'ActionNumero',
+        'Action',
+        'Criticite',
+        'Chargee_action',
+        'ChargeHJ',
+        'TauxRealisation',
+        'Evaluation',
+    ];
+    
+    protected $primaryKey='ID';
 }
