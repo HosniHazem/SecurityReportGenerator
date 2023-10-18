@@ -21,6 +21,7 @@ use App\Http\Controllers\UploadanomaliesController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\GlbPipController;
 use App\Http\Controllers\SowController;
+use App\Http\Controllers\AuditPreviousAuditController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -87,3 +88,9 @@ Route::get('/translateVulns', [WordDocumentController3::class,'translateAllVulns
     Route::put('/update-glbPip/{id}', [GlbPipController::class,'update']);
     Route::delete('/delete-glbPip/{id}', [GlbPipController::class,'destroy']);
     Route::get('/all-glbpip', [GlbPipController::class,'index']);
+
+    Route::get('/ all-audit-previous-audits', [AuditPreviousAuditController::class, 'index']);
+    Route::post('/add-audit-previous-audits', [AuditPreviousAuditController::class, 'store']);
+    Route::get('/get-audit-previous-audits/{id}', [AuditPreviousAuditController::class, 'show']);
+    Route::put('/update-audit-previous-audits/{id}', [AuditPreviousAuditController::class, 'update']);
+    Route::delete('/delete-audit-previous-audits/{id}', [AuditPreviousAuditController::class, 'destroy']);

@@ -45,6 +45,8 @@ class AuditPreviousAuditController extends Controller
         'ChargeHJ' => 'required|string',
         'TauxRealisation' => 'required|string',
         'Evaluation' => 'required|string',
+        'ID_Projet' => 'required|integer', 
+
 
     ]);
     if ($validator->fails()) {
@@ -69,6 +71,8 @@ class AuditPreviousAuditController extends Controller
         $auditPreviousAudit->ChargeHJ = $request->input('ChargeHJ');
         $auditPreviousAudit->TauxRealisation = $request->input('TauxRealisation');
         $auditPreviousAudit->Evaluation = $request->input('Evaluation');
+        $auditPreviousAudit->ID_Projet = $request->input('ID_Projet');
+
 
         $auditPreviousAudit->save();
 
@@ -115,7 +119,7 @@ class AuditPreviousAuditController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $validator=Validator::make($request->all(),[
+        $validator = Validator::make($request->all(), [
             'ProjetNumero' => 'required|integer',
             'Project_name' => 'required|string',
             'ActionNumero' => 'required|integer',
@@ -125,25 +129,18 @@ class AuditPreviousAuditController extends Controller
             'ChargeHJ' => 'required|string',
             'TauxRealisation' => 'required|string',
             'Evaluation' => 'required|string',
-    
         ]);
+    
         if ($validator->fails()) {
             return response()->json([
                 'status' => 422,
                 'validate_err' => $validator->getMessageBag(),
             ]);
         }
-        $existingAuditPrevious = AuditPreviousAudit::where('id', '!=', $id)
-        ->where(function ($query) use ($request) {
-            $query->where('ProjetNumero', $request->input('ProjetNumero'))
-                ->orWhere('Project_name', $request->input('Project_name'));
-        })
-        ->first();
-      
-        if($exisitngAuditPrevious){
-            return response()->json(['message'=>'A project with number or name already exists !']);
-        }
-            $auditPreviousAudit = new AuditPreviousAudit();
+    
+        $auditPreviousAudit = AuditPreviousAudit::find($id);
+    
+        if ($auditPreviousAudit) {
             $auditPreviousAudit->ProjetNumero = $request->input('ProjetNumero');
             $auditPreviousAudit->Project_name = $request->input('Project_name');
             $auditPreviousAudit->ActionNumero = $request->input('ActionNumero');
@@ -153,9 +150,14 @@ class AuditPreviousAuditController extends Controller
             $auditPreviousAudit->ChargeHJ = $request->input('ChargeHJ');
             $auditPreviousAudit->TauxRealisation = $request->input('TauxRealisation');
             $auditPreviousAudit->Evaluation = $request->input('Evaluation');
-            $auditPreviousAudit->update();
-            return response()->json(['message'=>'audit prev is updated','data'=>$auditPreviousAudit]);
+            $auditPreviousAudit->update(); // Save the changes to the database
+    
+            return response()->json(['message' => 'Audit prev is updated', 'data' => $auditPreviousAudit]);
+        } else {
+            return response()->json(['message' => 'Record not found', 'status' => 404]);
+        }
     }
+    
 
     /**
      * Remove the specified resource from storage.
