@@ -18,7 +18,7 @@ const Projects = () => {
 
     
     useEffect(() => {
-      axios.get(`http://webapp.smartskills.tn:8002/api/getProject`,).then((res) => {
+      axios.get(`http://webapp.smartskills.tn:8002/api/Project`,).then((res) => {
         if(res.status === 200){
         setProject(res.data.Project);
    }

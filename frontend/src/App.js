@@ -14,6 +14,7 @@ import Nessus from "./Nessus";
 import AddGlbPip from "./GlbPip/AddGlbPip";
 import toast, { Toaster } from 'react-hot-toast';
 import ViewGlbPip from "./GlbPip/ViewGlbPip";
+import Quality from "./Sidbar/QualityTable/Quality";
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
         <Route path="/sow/:id" element={<Sow />} />
         <Route path="/add-glb-pip" element={<AddGlbPip />} />
         <Route path='/all-glb-pip' element={<ViewGlbPip />} /> 
+        <Route path="/quality/:id" element={<Quality />} />
       </Routes>
     </BrowserRouter>
   );

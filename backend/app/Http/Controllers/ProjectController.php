@@ -29,8 +29,8 @@ class ProjectController extends Controller
         {
             $project->quality= self::checkQuality($project->id);
         }
-       // var_dump($AllProjects);exit;
-       // return $AllProjects;
+
+     return $AllProjects;
     }
     static function checkQuality($project)
     {

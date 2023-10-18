@@ -38,7 +38,7 @@ const Dashboard = () => {
     const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
     
     useEffect(() => {
-      axios.get(`http://webapp.smartskills.tn:8002/api/getProject`,).then((res) => {
+      axios.get(`http://webapp.smartskills.tn:8002/api/Project`,).then((res) => {
         if(res.status === 200){
         setProject(res.data.Project);
    }
@@ -105,11 +105,12 @@ const Dashboard = () => {
             <div className="cellAction">
 
               
-        <div className="deleteButton"  onClick={(e) => Export(id,e)}>Export</div>
+        <div className={`deleteButton ${params.row.quality === 0 ? 'disabled' : ''}`}  onClick={(e) => {
+    if (params.row.quality !== 0) { Export(id,e)}}}>Export</div>
 
-        <div className="deButton"  onClick={(e) => Export2(name,id,e)}>Export Annexe</div>
+        <div className={`deButton ${params.row.quality === 0 ? 'disabled' : ''}`}   onClick={(e) => {if (params.row.quality !== 0) { Export2(name,id,e)}}}>Export Annexe</div>
 
-        <div className="EButton"  onClick={(e) => Export3(name,id,e)}>Export Excel</div>
+        <div className={`EButton ${params.row.quality === 0 ? 'disabled' : ''}`} onClick={(e) =>{if (params.row.quality !== 0) { Export3(name,id,e)}}}>Export Excel</div>
               </div>
           );
          
