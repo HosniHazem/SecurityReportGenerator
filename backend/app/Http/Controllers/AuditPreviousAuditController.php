@@ -16,7 +16,7 @@ class AuditPreviousAuditController extends Controller
      */
     public function index()
     {
-        $item=AuditPreviousAudit;
+        $item=AuditPreviousAudit::all();
         return response()->json(['auditPrev'=>$item,'status'=>200]);
     }
 
@@ -59,7 +59,7 @@ class AuditPreviousAuditController extends Controller
     ->orWhere('Project_name',$request->input('Project_name'))
     ->first();
     if($exisitngAuditPrevious){
-        return response()->json(['message'=>'A project with number or name already exists !']);
+        return response()->json(['message'=>'A project with number or name already exists !','success'=>false]);
     }
         $auditPreviousAudit = new AuditPreviousAudit();
         $auditPreviousAudit->ProjetNumero = $request->input('ProjetNumero');
@@ -76,7 +76,7 @@ class AuditPreviousAuditController extends Controller
 
         $auditPreviousAudit->save();
 
-        return response()->json(['sucess'=>true,'message' => 'Record created', 'data' => $auditPreviousAudit]);
+        return response()->json(['success'=>true,'message' => ' un audit prév à été crée avec succées', 'data' => $auditPreviousAudit]);
 
 
 

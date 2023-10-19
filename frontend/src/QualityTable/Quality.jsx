@@ -13,7 +13,7 @@ function Quality() {
       // Function to fetch data when the component mounts
       const fetchData = async () => {
         try {
-          const response = await axios.post('http://webapp.smartskills.local:8002/api/QualityCheck', parsedData);
+          const response = await axios.post('http://webapp.smartskills.tn:8002/api/QualityCheck', parsedData);
   
           if (response.status === 200) {
             setQuality(response.data.QC);

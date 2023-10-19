@@ -89,7 +89,7 @@ Route::get('/translateVulns', [WordDocumentController3::class,'translateAllVulns
     Route::delete('/delete-glbPip/{id}', [GlbPipController::class,'destroy']);
     Route::get('/all-glbpip', [GlbPipController::class,'index']);
 
-    Route::get('/ all-audit-previous-audits', [AuditPreviousAuditController::class, 'index']);
+    Route::get('/all-audit-previous-audits', [AuditPreviousAuditController::class, 'index']);
     Route::post('/add-audit-previous-audits', [AuditPreviousAuditController::class, 'store']);
     Route::get('/get-audit-previous-audits/{id}', [AuditPreviousAuditController::class, 'show']);
     Route::put('/update-audit-previous-audits/{id}', [AuditPreviousAuditController::class, 'update']);

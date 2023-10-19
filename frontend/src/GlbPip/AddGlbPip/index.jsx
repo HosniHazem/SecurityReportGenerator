@@ -13,6 +13,7 @@ import {
 import axios from "axios";
 import "./index.css";
 import { axiosInstance } from "../../axios/axiosInstance";
+import toast from "react-hot-toast";
 
 export default function AddGlbPip() {
   const [formData, setFormData] = useState({
@@ -76,8 +77,14 @@ export default function AddGlbPip() {
       setFormData(initialFormData);
       setTelError(false);
       setEmailError(false);
+      if(response.data.success){
+        toast.success(response.data.message);
+      }
+      else {
+        toast.error(response.data.message);
+      }
     } catch (error) {
-      console.error(error);
+      toast.error("error")
     }
   };
 
