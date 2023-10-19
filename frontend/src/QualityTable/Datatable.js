@@ -5,6 +5,7 @@ import axios from 'axios';
 import Avatar from '@mui/material/Avatar';
 import Stack from '@mui/material/Stack';
 import FolderIcon from '@mui/icons-material/Folder';
+import { useParams , Link } from 'react-router-dom';
 
 const DataTable = ({ data ,id}) => {
   if (!data || data.length === 0) {
@@ -65,6 +66,12 @@ const DataTable = ({ data ,id}) => {
           ))}
         </tbody>
       </table>
+      {
+        data ?
+        <Link to={`/`} style={{ textDecoration: "none" }}>
+      <button className='button3'>Back</button>
+          </Link> : null
+      }
     </div>
   );
 };
