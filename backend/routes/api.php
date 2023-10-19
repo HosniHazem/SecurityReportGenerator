@@ -94,3 +94,5 @@ Route::get('/translateVulns', [WordDocumentController3::class,'translateAllVulns
     Route::get('/get-audit-previous-audits/{id}', [AuditPreviousAuditController::class, 'show']);
     Route::put('/update-audit-previous-audits/{id}', [AuditPreviousAuditController::class, 'update']);
     Route::delete('/delete-audit-previous-audits/{id}', [AuditPreviousAuditController::class, 'destroy']);
+
+    

@@ -76,7 +76,7 @@ class AuditPreviousAuditController extends Controller
 
         $auditPreviousAudit->save();
 
-        return response()->json(['message' => 'Record created', 'data' => $auditPreviousAudit], 201);
+        return response()->json(['sucess'=>true,'message' => 'Record created', 'data' => $auditPreviousAudit]);
 
 
 
