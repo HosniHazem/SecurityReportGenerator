@@ -77,29 +77,9 @@ public static function translateAllPlugins()
     public function get()
     {
 
-        set_time_limit(50000);
 
-        /*
-        $id = 2;
-        $pluginIds = DB::table('vuln as v')
-        ->select('v.Plugin ID as PluginID')
-        ->distinct()
-        ->whereNotIn('v.Plugin ID', function ($query) {
-            $query->select('id')
-                ->from('plugins');
-        })
-        ->get();*/
 
-       /*  $pluginIds = "UPDATE vuln SET Description = REPLACE(Description, char(?), '') WHERE LOCATE(char(?) ,Description) > 1;";
-
-        for ($i = 0; $i < 31; $i++) {
-            if ($i != 10 && $i != 13) {
-                DB::select($pluginIds, [$i, $i]);
-            }
-        } */
-        $ip ="10.0.33.58:8834";
-        $vm = Vm::where('IP_Port', $ip)->first();
-        return $vm;
+        sleep(100);
 
 }
 }

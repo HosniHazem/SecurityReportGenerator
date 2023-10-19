@@ -13,6 +13,8 @@ import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
+import Avatar from '@mui/material/Avatar';
+import FolderIcon from '@mui/icons-material/Folder';
 
 
 
@@ -53,7 +55,7 @@ const project_name = sessionStorage.getItem('project_name');
     }
   
     console.log(dataToSend)
-    axios.post("http://webapp.smartskills.local:8002/api/getScan",dataToSend).then((res) => {
+    axios.post("http://webapp.smartskills.tn:8002/api/getScan",dataToSend).then((res) => {
       if (res.status === 200) {
         
         const filteredFolders = res.data.Folders.folders.filter(folder => folder.name.toLowerCase().includes(project_name.toLowerCase()));
@@ -71,7 +73,7 @@ const project_name = sessionStorage.getItem('project_name');
 
 
   useEffect(() => {
-    axios.get("http://webapp.smartskills.local:8002/api/get_vm").then((res) => {
+    axios.get("http://webapp.smartskills.tn:8002/api/get_vm").then((res) => {
       if (res.status === 200) {
         setVm(res.data.Vm);
       }
@@ -151,7 +153,7 @@ parsedData.selectedIp = selectedIp;
 
 
      setExporting(true);
-    axios.post('http://webapp.smartskills.local:8002/api/ImportAll',parsedData)
+    axios.post('http://webapp.smartskills.tn:8002/api/ImportAll',parsedData)
     .then((response) => {
       if(response.data.status===200){
         setReady("no");
@@ -193,7 +195,7 @@ parsedData.selectedIp = selectedIp;
     }));
  console.log(selectedIdsJSON);
      setExporting(true);
-    axios.post('http://webapp.smartskills.local:8002/api/ExportAll',selectedIdsJSON)
+    axios.post('http://webapp.smartskills.tn:8002/api/ExportAll',selectedIdsJSON)
     .then((response) => {
       if(response.data.status===200){
 
@@ -231,6 +233,17 @@ parsedData.selectedIp = selectedIp;
 console.log(StatExport);
   return (
 <div>
+<div className='project'>
+       <Stack direction="row" spacing={2}>
+      <Avatar>
+        <FolderIcon />  
+      </Avatar>
+      
+      <h3>Project Name:</h3>
+      <span>{project_name}</span>
+   
+      </Stack>
+      </div>
     {exporting ? ( // Conditional rendering based on the exporting state
     <div className="loading">
     <Box sx={{ display: 'flex' }}>

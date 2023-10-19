@@ -595,7 +595,7 @@ public static function translateAllVulnsCompliance()
     $i++;
 }
 
-
+return response()->json(['message'=>'done','status' => 200]);
 }
 
 public static function translateAllPlugins()
@@ -613,7 +613,7 @@ public static function translateAllPlugins()
     ->update(['translated' => 'yes', 'name' => self::translate($allPlugins[$i]->name),'description' => self::translate($allPlugins[$i]->description),'solution' => self::translate($allPlugins[$i]->solution),'synopsis' => self::translate($allPlugins[$i]->synopsis)]);
     $i++;
 }
-return  0;
+return response()->json(['message'=>'done','status' => 200]);
 
 }
 

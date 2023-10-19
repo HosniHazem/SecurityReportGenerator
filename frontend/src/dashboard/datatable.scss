@@ -103,6 +103,15 @@
       }
       .Pick {
         padding: 2px 5px;
+        width: 60px;
+        border-radius: 5px;
+        color: rgb(236, 116, 12);
+        border: 1px dotted rgb(236, 116, 12);
+        cursor: pointer;
+      }
+      .Pick3 {
+        padding: 2px 5px;
+        width: 100px;
         border-radius: 5px;
         color: rgb(236, 116, 12);
         border: 1px dotted rgb(236, 116, 12);

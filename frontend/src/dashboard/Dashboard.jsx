@@ -103,10 +103,11 @@ const Dashboard = () => {
           const name=params.row.Nom;
           return (
             <div className="cellAction">
-
-              
-        <div className={`deleteButton ${params.row.quality === 0 ? 'disabled' : ''}`}  onClick={(e) => {
-    if (params.row.quality !== 0) { Export(id,e)}}}>Export</div>
+<Link to={`/quality/${id}`} style={{ textDecoration: "none" }}>
+          <div className="Pick3" onClick={()=>{sessionStorage.setItem('project_name',name);}} >QualityCheck</div>
+          </Link>
+        <div className={`deleteButton ${params.row.quality === 1 ? 'disabled' : ''}`}  onClick={(e) => {
+    if (params.row.quality !== 1) { Export(id,e)}}}>Export</div>
 
         <div className={`deButton ${params.row.quality === 0 ? 'disabled' : ''}`}   onClick={(e) => {if (params.row.quality !== 0) { Export2(name,id,e)}}}>Export Annexe</div>
 

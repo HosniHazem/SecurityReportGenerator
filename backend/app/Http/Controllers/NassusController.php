@@ -226,6 +226,12 @@ foreach ($filesData as $item) {
 
 
 
+    public function getPluginsFromAllServers(Request $request)
+    {
+
+        return response()->json(['message'=>'done','status' => 200]);
+    }
+
     public function ImportAll(Request $request)
     {
         set_time_limit(5000);
