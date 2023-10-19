@@ -10,7 +10,7 @@ function Quality() {
     let parsedData = {};
     parsedData.project_id = id;
     useEffect(() => {
-   axios.post('http://webapp.smartskills.tn:8002/api/QualityCheck', parsedData).then((res) => {
+   axios.post('http://webapp.smartskills.local/AppGenerator/backend/api/QualityCheck', parsedData).then((res) => {
 console.log(res.data);
           if (res.data.status === 200) {
             setQuality(res.data.QC);

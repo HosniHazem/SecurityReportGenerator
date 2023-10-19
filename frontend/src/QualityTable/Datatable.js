@@ -9,14 +9,14 @@ import FolderIcon from '@mui/icons-material/Folder';
 const DataTable = ({ data ,id}) => {
   if (!data || data.length === 0) {
     // Handle the case where data is undefined or an empty array
-    return <div>No data available</div>;
+    return <div>Data Not Ready</div>;
   }
  const project_name=sessionStorage.getItem('project_name');
   console.log(id)
   const Action = (cellData) => {
     let parsedData = {};
     parsedData.project_id = id;
-   axios.post(`http://webapp.smartskills.tn:8002/api/${cellData}`,parsedData)
+   axios.post(`http://webapp.smartskills.local/AppGenerator/backend/api/${cellData}`,parsedData)
     .then((response) => {
       if(response.data.status===200){
         swal("Request","Done","Successfuly");
