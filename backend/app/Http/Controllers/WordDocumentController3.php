@@ -32,30 +32,45 @@ class WordDocumentController3 extends Controller
     public static $currentAnnex=0;
     public static function QualityCheck(Request $req)
     {
-        $actionlink = array("translatePlugins", "translateVulns", "getPluginsFromAllServers");
+        set_time_limit(50000);
+        $actionlink = array("translatePlugins", "translateVulns", "getPluginsFromAllServers"," ", "", "", "", "", "", "");
         $sqls = array(
             <<< HERE0
-        SELECT count(DISTINCT `Plugin ID`)  as 'Nombre de Plugins non traduit' FROM vuln where vuln.upload_id in  (select id from uploadanomalies where uploadanomalies.ID_Projet=?) and `Plugin ID` in (SELECT id FROM `plugins` WHERE `translated`<>'yes' )
-        HERE0,
-        <<< HERE1
-        SELECT count(DISTINCT `id`)  as 'Nombre de Vulns non traduit' FROM vuln where vuln.upload_id in  (select id from uploadanomalies where uploadanomalies.ID_Projet=?) and Risk in ('PASSED', 'FAILED') AND  `BID`<>'yes'
-        HERE1,
-        <<< HERE2
-        SELECT count(DISTINCT `Plugin ID`)  as 'Nombre de Plugins manquants' FROM vuln where vuln.upload_id in  (select id from uploadanomalies where uploadanomalies.ID_Projet=?) and `Plugin ID` not in (SELECT id FROM `plugins` )
-        HERE2);
+            SELECT  'Nombre de Plugins non traduit', count(DISTINCT `Plugin ID`), 'translatePlugins'  FROM vuln where vuln.upload_id in  (select id from uploadanomalies where uploadanomalies.ID_Projet=?) and `Plugin ID` in (SELECT id FROM `plugins` WHERE `translated`<>'yes' )
+            HERE0,
+            <<< HERE1
+            SELECT 'Nombre de Vulns non traduit', count(DISTINCT `id`),'translateVulns'  FROM vuln where vuln.upload_id in  (select id from uploadanomalies where uploadanomalies.ID_Projet=?) and Risk in ('PASSED', 'FAILED') AND  `BID`<>'yes'
+            HERE1,
+            <<< HERE2
+            SELECT 'Nombre de Plugins manquants', count(DISTINCT `Plugin ID`) , 'getPluginsFromAllServers' FROM vuln where vuln.upload_id in  (select id from uploadanomalies where uploadanomalies.ID_Projet=?) and `Plugin ID` not in (SELECT id FROM `plugins` )
+            HERE2,
+            <<< HERE3
+            SELECT sow.Type As "Type", count(*) ,'no Link' FROM `vuln` LEFT Join sow on sow.IP_Host=Host WHERE `upload_id` in (select id from uploadanomalies where uploadanomalies.ID_Projet = ?) GROUP BY sow.Type;
+            HERE3,
+            <<< HERE4
+            SELECT Concat (sow.Type," non encore scannee") As "Type",  IP_Host ,'Danger !!!' FROM `sow` WHERE Type<>'PC' AND `Projet`= ?  AND IP_Host not in (SELECT DISTINCT Host FROM vuln WHERE ID_Projet=?)  order by sow.Type;
+            HERE4,
+
+    );
+    /* */
+        //$listOfCombinedItems()
         $qualityChecher=[];
         $qualityChecher[0] = array("Item" , "Valeur", "link");
         $i=0;
         foreach($sqls as $sql)
         {
-            $returnedRow=DB::select($sql,array($req->project_id, $req->project_id ))[0] ;
-            foreach ($returnedRow as $key => $value)
-            {
+            $returnedRows=DB::select($sql,array($req->project_id, $req->project_id )) ;
+            foreach ($returnedRows as $singleRow)
+              {
                 $i++;
-                $qualityChecher[$i] [] = $key;
-                $qualityChecher[$i] [] = $value;
-                $qualityChecher[$i] [] = $actionlink[$i-1];
+                foreach ($singleRow as $key => $value)
+                {
 
+                    //$qualityChecher[$i] [] = $key;
+                    $qualityChecher[$i] [] = $value;
+
+
+                }
             }
         }
        // return $qualityChecher;

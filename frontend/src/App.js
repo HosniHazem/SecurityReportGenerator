@@ -14,7 +14,7 @@ import Nessus from "./Nessus";
 import AddGlbPip from "./GlbPip/AddGlbPip";
 import toast, { Toaster } from 'react-hot-toast';
 import ViewGlbPip from "./GlbPip/ViewGlbPip";
-import Quality from "./Sidbar/QualityTable/Quality";
+import Quality from "./QualityTable/Quality";
 import ModifyGlbPip from "./GlbPip/ModfiyGlbPip";
 
 function App() {

@@ -316,7 +316,7 @@ while ($createdId === null) {
                     LINES TERMINATED BY '\r\n'
                     IGNORE 1 LINES
                     (`Plugin ID`,CVE,`CVSS v2.0 Base Score`,Risk,Host,Protocol,Port,Name,Synopsis,Description,Solution,`See Also`,`Plugin Output`)
-                    SET upload_id={$createdId}, scan={$sc} , file={$fi};";
+                    SET upload_id={$createdId}, scan={$sc} , file={$fi}, ID_Projet={$prj_id};";
 
                 DB::statement($loadDataSQL);
                 $count = Vuln::where('scan', $sc)->count();

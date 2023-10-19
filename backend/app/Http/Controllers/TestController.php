@@ -17,6 +17,7 @@ use PhpOffice\PhpWord\Element\Image as PhpWordImage; // Alias for PhpWord Image 
 use PhpOffice\PhpWord\TemplateProcessor;
 use PhpOffice\PhpWord\Element\Chart;
 use Illuminate\Support\Facades\DB;
+use App\Models\Vm;
 
 class TestController extends Controller
 {
@@ -89,15 +90,16 @@ public static function translateAllPlugins()
         })
         ->get();*/
 
-        $pluginIds = "UPDATE vuln SET Description = REPLACE(Description, char(?), '') WHERE LOCATE(char(?) ,Description) > 1;";
+       /*  $pluginIds = "UPDATE vuln SET Description = REPLACE(Description, char(?), '') WHERE LOCATE(char(?) ,Description) > 1;";
 
         for ($i = 0; $i < 31; $i++) {
             if ($i != 10 && $i != 13) {
                 DB::select($pluginIds, [$i, $i]);
             }
-        }
-       
-
+        } */
+        $ip ="10.0.33.58:8834";
+        $vm = Vm::where('IP_Port', $ip)->first();
+        return $vm;
 
 }
 }
