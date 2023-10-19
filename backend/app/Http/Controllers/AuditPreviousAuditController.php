@@ -169,11 +169,11 @@ class AuditPreviousAuditController extends Controller
     {
         $auditPreviousAudit=AuditPreviousAudit::find($id);
         if( !$auditPreviousAudit){
-            return response()->json(['message' => 'Record not found', 'status' => 404], 404);
+            return response()->json(['message' => 'Record not found', 'status' => 404,'success'=>false]);
 
         }
         $auditPreviousAudit->delete();
-        return response()->json(['message' => 'Record deleted', 'status' => 200], 200);
+        return response()->json(['message' => 'Record deleted', 'status' => 200,'success'=>true]);
 
     }
 }
