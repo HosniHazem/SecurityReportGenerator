@@ -16,6 +16,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import ViewGlbPip from "./GlbPip/ViewGlbPip";
 import Quality from "./QualityTable/Quality";
 import ModifyGlbPip from "./GlbPip/ModfiyGlbPip";
+import AddAuditPreviousAudit from "./AuditPreviousAudit/AddAuditPreviousAudit";
 
 function App() {
   return (
@@ -41,6 +42,8 @@ function App() {
         <Route path='/all-glb-pip' element={<ViewGlbPip />} /> 
         <Route path="/quality/:id" element={<Quality />} />
         <Route path="/modify-glb-pip/:id" element={<ModifyGlbPip />} />
+        <Route path="/add-audit-previous-audit" element={<AddAuditPreviousAudit />} />
+
       </Routes>
     </BrowserRouter>
   );
