@@ -44,6 +44,7 @@ Route::get('/translateVulns', [WordDocumentController3::class,'translateAllVulns
     Route::post('/generate-annexe', [WordDocumentController2::class,'generateWordDocument']);
     Route::post('/generate-ansi', [WordDocumentController4::class,'generateWordDocument']);
     Route::post('/generate-annexe3', [WordDocumentController3::class,'generateWordDocument']);
+    Route::get('/generate-annexe3', [WordDocumentController3::class,'generateWordDocument']);
     Route::get('/generate-concat', [concatenateDocxFiles::class,'mergeDocxFiles']);
     Route::post('/getScan', [NassusController::class,'GetAll']);
     Route::Post('/ExportAll', [NassusController::class,'ExportAll']);
@@ -95,4 +96,3 @@ Route::get('/translateVulns', [WordDocumentController3::class,'translateAllVulns
     Route::put('/update-audit-previous-audits/{id}', [AuditPreviousAuditController::class, 'update']);
     Route::delete('/delete-audit-previous-audits/{id}', [AuditPreviousAuditController::class, 'destroy']);
 
-    

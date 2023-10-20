@@ -47,7 +47,7 @@ function AddProject() {
     }
 
     useEffect(() => {
-      axios.get(`http://webapp.smartskills.tn:8002/api/Customer`,).then((res) => {
+      axios.get(`http://webapp.smartskills.local/AppGenerator/backend/api/Customer`,).then((res) => {
         if(res.status === 200){
         setCustomer(res.data.Customer);
    }
@@ -76,7 +76,7 @@ function AddProject() {
 
               }
 console.log(data);
-      axios.post(`http://webapp.smartskills.tn:8002/api/Project/create`, data).then(res=>{
+      axios.post(`http://webapp.smartskills.local/AppGenerator/backend/api/Project/create`, data).then(res=>{
           if(res.data.status === 200)
           {
               

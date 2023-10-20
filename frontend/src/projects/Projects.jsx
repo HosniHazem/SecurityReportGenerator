@@ -18,7 +18,7 @@ const Projects = () => {
 
     
     useEffect(() => {
-      axios.get(`http://webapp.smartskills.tn:8002/api/Project`,).then((res) => {
+      axios.get(`http://webapp.smartskills.local/AppGenerator/backend/api/Project`,).then((res) => {
         if(res.status === 200){
         setProject(res.data.Project);
    }
@@ -104,7 +104,7 @@ const Projects = () => {
     const handleDelete = async (e,id) => {
 
       e.preventDefault();
-       await axios.delete(`http://webapp.smartskills.tn:8002/api/Project/${id}/delete`).then(res=>{
+       await axios.delete(`http://webapp.smartskills.local/AppGenerator/backend/api/Project/${id}/delete`).then(res=>{
         if(res.status === 200)
           {
             
@@ -138,7 +138,7 @@ const Projects = () => {
       };
       setExporting(true);
       
-      axios.post(`http://webapp.smartskills.tn:8002/api/generate-word-document/`, dataToSend, {
+      axios.post(`http://webapp.smartskills.local/AppGenerator/backend/api/generate-word-document/`, dataToSend, {
         responseType: 'blob', // Set responseType to 'blob' to indicate binary data
       })
         .then((response) => {
@@ -187,7 +187,7 @@ const Projects = () => {
       
       setExporting(true);
       
-      axios.post(`http://webapp.smartskills.tn:8002/api/generate-annexe3/`, dataToSend, {
+      axios.post(`http://webapp.smartskills.local/AppGenerator/backend/api/generate-annexe3/`, dataToSend, {
         responseType: 'blob', // Set responseType to 'blob' to indicate binary data
       })
         .then((response) => {
@@ -235,7 +235,7 @@ const Projects = () => {
       
       setExporting(true);
       
-      axios.post(`http://webapp.smartskills.tn:8002/api/generateExcelDocument/`, dataToSend, {
+      axios.post(`http://webapp.smartskills.local/AppGenerator/backend/api/generateExcelDocument/`, dataToSend, {
         responseType: 'blob', // Set responseType to 'blob' to indicate binary data
       })
         .then((response) => {

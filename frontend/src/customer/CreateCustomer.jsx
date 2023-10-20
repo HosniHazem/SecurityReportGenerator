@@ -14,7 +14,7 @@ function CreateCustomer() {
 
   
   useEffect(() => {
-    axios.get(`http://webapp.smartskills.tn:8002/api/Customer`,).then((res) => {
+    axios.get(`http://webapp.smartskills.local/AppGenerator/backend/api/Customer`,).then((res) => {
       if(res.status === 200){
       setCustomer(res.data.Customer);
  }
@@ -76,7 +76,7 @@ function CreateCustomer() {
   const handleDelete = async (e,id) => {
 
     e.preventDefault();
-     await axios.delete(`http://webapp.smartskills.tn:8002/api/Customer/${id}/delete`).then(res=>{
+     await axios.delete(`http://webapp.smartskills.local/AppGenerator/backend/api/Customer/${id}/delete`).then(res=>{
       if(res.status === 200)
         {
           

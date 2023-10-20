@@ -250,7 +250,8 @@ class WordDocumentController3 extends Controller
                     }
                     else
                     {
-                        $query=str_replace($SqlQueriesMarks[0], " and sow.Type=\"".$SqlQueriesMarks[self::$currentAnnex]."\"", $query);
+                        //var_dump($SqlQueriesMarks[0], " and sow.Type=\"".self::$currentAnnex."\"", $query);
+                        $query=str_replace($SqlQueriesMarks[0], " and sow.Type=\"".$SqlQueriesMarks[self::$currentAnnex][0]."\"", $query);
                     }
 
         $AllRows=  DB::select($query,[$prjID,$prjID]);
@@ -431,10 +432,10 @@ class WordDocumentController3 extends Controller
     public function generateWordDocument(Request $request)
     {
         set_time_limit(50000);
-        //ini_set('memory_limit', '1G');
 
+    //    print_r($request->project_id);exit;
         $annex_id =  $request->annex_id;
-    //    var_dump(get_object_vars($request)); exit;
+      //  var_dump(get_object_vars($request)); exit;
         include ("sqlRequests.php");
         $listOfFile=[];
         $returnedArray = [];
@@ -553,8 +554,10 @@ public static function translate($q)
    // $q=htmlspecialchars($q);
     //echo $q;
  //   $positionHttp = strpos($q, "http");
-    $q= str_replace("http://", "",$q);
-    $q= str_replace("https://", "",$q);
+ $q=urlencode($q);
+    $q= str_replace("http://", " ",$q);
+    $q= str_replace("https://", " ",$q);
+
     $secondPart="";
    // echo $positionHttp."\n";
  /*   if($positionHttp >0)
@@ -565,7 +568,8 @@ public static function translate($q)
       //  echo $q."@@@@@@@@@@@@€€€€€€\n";
     }*/
    // echo $q;
-    $res= file_get_contents("https://translate.googleapis.com/translate_a/single?client=gtx&ie=UTF-8&oe=UTF-8&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&dt=t&dt=at&sl=en&tl=fr&hl=hl&q=".urlencode($q), $_SERVER['DOCUMENT_ROOT']."/transes.html");
+
+    $res= @file_get_contents("https://translate.googleapis.com/translate_a/single?client=gtx&ie=UTF-8&oe=UTF-8&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&dt=t&dt=at&sl=en&tl=fr&hl=hl&q=".urlencode($q), $_SERVER['DOCUMENT_ROOT']."/transes.html");
    // var_dump($res);
 
     if(isset(json_decode($res)[0][0][0]))
@@ -584,11 +588,14 @@ public static function translateAllVulnsCompliance()
 {
     set_time_limit(50000);
 
-   $allVuns =  DB::select("SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  vuln WHERE Risk in ('FAILED', 'PASSED', 'WARNING') and BID <> 'yes'");
+   $allVuns =  DB::select("SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  vuln WHERE Risk in ('FAILED', 'PASSED', 'WARNING') and BID not in ('noway', 'yes' )");
    $i=0;
    foreach($allVuns as $vuln)
    {
     echo $allVuns[$i]->id."\n";
+    $re = DB::table('vuln')
+    ->where('id', $allVuns[$i]->id)
+    ->update(['BID'  => 'noway']);
     $re = DB::table('vuln')
     ->where('id', $allVuns[$i]->id)
     ->update(['BID' => 'yes', 'name' => self::translate($allVuns[$i]->name),'description' => self::translate($allVuns[$i]->description),'solution' => self::translate($allVuns[$i]->solution),'synopsis' => self::translate($allVuns[$i]->synopsis)]);
@@ -602,11 +609,13 @@ public static function translateAllPlugins()
 {
     set_time_limit(50000);
 
-   $allPlugins =  DB::select("SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  plugins WHERE translated <> 'yes'");
+   $allPlugins =  DB::select("SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  plugins WHERE translated not in ('noway', 'yes' )");
    $i=0;
    foreach($allPlugins as $plugin)
    {
-
+    $re = DB::table('plugins')
+    ->where('id', $allPlugins[$i]->id)
+->update(['translated' => 'noway']);
 
        $re = DB::table('plugins')
     ->where('id', $allPlugins[$i]->id)
