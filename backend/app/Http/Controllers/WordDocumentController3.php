@@ -57,9 +57,13 @@ class WordDocumentController3 extends Controller
         $qualityChecher=[];
         $qualityChecher[0] = array("Item" , "Valeur", "link");
         $i=0;
-        foreach($sqls as $sql)
-        {
-            $returnedRows=DB::select($sql,array($req->project_id, $req->project_id )) ;
+        foreach ($sqls as $index => $sql) {
+            if ($index===4){
+                $returnedRows=DB::select($sql,array($req->project_id, $req->project_id )) ;
+            }else {
+                $returnedRows=DB::select($sql,array($req->project_id)) ;
+            }
+ 
             foreach ($returnedRows as $singleRow)
               {
                 $i++;
@@ -76,7 +80,6 @@ class WordDocumentController3 extends Controller
        // return $qualityChecher;
         //$qualityChecher = array ( array("A", "B", "C", "link"),  array("A", "B", "C", "link"),  array("A", "B", "C", "link"));
         return response()->json(['QC' => $qualityChecher, 'status' => 200]);
-        return json_encode($qualityChecher);
     }
     public static function getPourcentage ($source, $ttl_hosts)
     {
