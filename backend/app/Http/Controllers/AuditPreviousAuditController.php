@@ -94,7 +94,7 @@ class AuditPreviousAuditController extends Controller
     {
         $item=AuditPreviousAudit::find($id);
         if($item){
-                return response()->json(["audit prev "=>$item,'satus'=>200]);
+                return response()->json(['audit_prev'=>$item,'status'=>200]);
         }
         return response()->json(["message"=>'not found','status'=>404]);
     }
@@ -152,9 +152,9 @@ class AuditPreviousAuditController extends Controller
             $auditPreviousAudit->Evaluation = $request->input('Evaluation');
             $auditPreviousAudit->update(); // Save the changes to the database
     
-            return response()->json(['message' => 'Audit prev is updated', 'data' => $auditPreviousAudit]);
+            return response()->json(['message' => 'Audit prev is updated', 'data' => $auditPreviousAudit ,'success'=>true]);
         } else {
-            return response()->json(['message' => 'Record not found', 'status' => 404]);
+            return response()->json(['message' => 'Record not found', 'status' => 404,'success'=>false]);
         }
     }
     

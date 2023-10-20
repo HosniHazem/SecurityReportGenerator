@@ -56,6 +56,9 @@ const handleDelete=async (id)=>{
           toast.error("Something went wrong");
         }
       
+} 
+const handleNavigate=async (id)=>{
+  navigate(`modify-audit-previous-audit/${id}`)
 }
   return (
     <div>
@@ -107,7 +110,7 @@ const handleDelete=async (id)=>{
                 <TableCell>{audit.Evaluation}</TableCell>
                <TableCell>
                 <Button onClick={()=>handleDelete(audit.ID)}>Supprimer</Button>
-                <Button>Modifier</Button>
+                <Button onClick={()=>handleNavigate(audit.ID)}>Modifier</Button>
                 </TableCell> 
               </TableRow>
             ))}

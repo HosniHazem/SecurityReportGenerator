@@ -17,6 +17,8 @@ import ViewGlbPip from "./GlbPip/ViewGlbPip";
 import Quality from "./QualityTable/Quality";
 import ModifyGlbPip from "./GlbPip/ModfiyGlbPip";
 import AddAuditPreviousAudit from "./AuditPreviousAudit/AddAuditPreviousAudit";
+import ViewAuditPRevious from "./AuditPreviousAudit/ViewAuditPreviousAudit";
+import ModifyAuditPreviousAudit from "./AuditPreviousAudit/ModifyAuditPreviousAudit";
 
 function App() {
   return (
@@ -43,6 +45,9 @@ function App() {
         <Route path="/quality/:id" element={<Quality />} />
         <Route path="/modify-glb-pip/:id" element={<ModifyGlbPip />} />
         <Route path="/add-audit-previous-audit" element={<AddAuditPreviousAudit />} />
+        <Route path="/all-audit-previous-audit" element={<ViewAuditPRevious />} />
+        <Route path="/all-audit-previous-audit/modify-audit-previous-audit/:id" element={< ModifyAuditPreviousAudit/>} />
+
 
       </Routes>
     </BrowserRouter>
