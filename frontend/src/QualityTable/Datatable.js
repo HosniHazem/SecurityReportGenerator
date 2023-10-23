@@ -6,18 +6,45 @@ import Avatar from '@mui/material/Avatar';
 import Stack from '@mui/material/Stack';
 import FolderIcon from '@mui/icons-material/Folder';
 import { useParams , Link } from 'react-router-dom';
+import Box from '@mui/material/Box';
+import Fade from '@mui/material/Fade';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
+import Typography from '@mui/material/Typography';
 
 const DataTable = ({ data ,id}) => {
   if (!data || data.length === 0) {
     // Handle the case where data is undefined or an empty array
-    return <div>Data Not Ready</div>;
+    return      <div>
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '70vh', // Optional: Set the height of the container
+      }}
+    >
+      <CircularProgress />
+      <Box
+      component="div"
+      sx={{
+        marginLeft: '8px', // Adjust the left margin as needed
+        padding: '8px', // Optional: Add padding for better visual appearance
+        color: '#1976d2', // Optional: Set text color
+      }}
+    >
+     <strong>Loading</strong>
+    </Box>
+    </Box>
+   
+  </div>;
   }
  const project_name=sessionStorage.getItem('project_name');
   console.log(id)
   const Action = (cellData) => {
     let parsedData = {};
     parsedData.project_id = id;
-   axios.post(`http://webapp.smartskills.local/AppGenerator/backend/api/${cellData}`,parsedData)
+   axios.post(`http://webapp.smartskills.tn/AppGenerator/backend/api/${cellData}`,parsedData)
     .then((response) => {
       if(response.data.status===200){
         swal("Request","Done","Successfuly");
