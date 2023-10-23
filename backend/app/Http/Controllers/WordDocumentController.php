@@ -69,13 +69,13 @@ class WordDocumentController extends Controller
         $docxs = glob($docxDirectory . '/*.docx'); // Get a list of all PNG files in the directory
 
         foreach ($docxs as $docx) {
-            File::delete($docx); // Delete each docx file
+
         }
         $docxDirectory = storage_path('app/temp');
         $docxs = glob($docxDirectory . '/*.docx'); // Get a list of all PNG files in the directory
 
         foreach ($docxs as $docx) {
-            File::delete($docx); // Delete each docx file
+
         }
 
 

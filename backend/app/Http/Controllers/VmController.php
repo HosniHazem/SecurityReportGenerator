@@ -18,14 +18,14 @@ class VmController extends Controller
         $resp = [];
 
         $item = Vm::all();
-
+     //   print_r($item);
         foreach ($item as $it) {
             try {
-        
+
                 $response = Http::withOptions([
                     'verify' => false, // Disable SSL verification
                 ])->withHeaders([
-                    'X-ApiKeys' => "accessKey=a507ad2749850e9acc8543f56284896b8792e9cf9b0dd54f8c35802e47c3fed5; secretKey=663fd55660cbdd8ccf1d603d4adf3d4b8c2d6394122c77ddea66ad311e77decb",
+                    'X-ApiKeys' => "accessKey=".$it->accessKey."; secretKey=".$it->secretKey,
                 ])->timeout(1) // Set a longer timeout for the request (in seconds)
                     ->retry(2, 100) // Retry up to 2 times with a delay of 100 milliseconds between retries
                     ->get("https://" . $it->IP_Host.":".$it->Port . "/scans");
