@@ -27,8 +27,8 @@ use Stichoza\GoogleTranslate\GoogleTranslate;
 
 class AnnexesController extends Controller
 {
-    public static   $AnnexesTitles = array("","Serveurs","Solutions Réseaux et Infra", "Bases des données", "Postes de travail",  "Actifs externes", "Applications", "Solutions VOIP", "Solutions MAILS");
-    public static   $AnnexesLetters = array("","B","C", "D", "E",  "F", "G", "H", "I");
+    public static   $AnnexesTitles = array("","Serveurs","Solutions Réseaux et Infra", "Bases des données", "Postes de travail",  "Actifs externes", "Applications", "Solutions VOIP", "Solutions MAILS", "Autres Actifs Hors SoW");
+    public static   $AnnexesLetters = array("","B","C", "D", "E",  "F", "G", "H", "I", "J");
     public static $currentAnnex=0;
     public static function QualityCheck(Request $req)
     {
@@ -50,7 +50,12 @@ class AnnexesController extends Controller
             <<< HERE4
             SELECT Concat (sow.Type," non encore scannee") As "Type", GROUP_CONCAT(DISTINCT IP_Host SEPARATOR '  ;  ' )  ,'Danger !!!' FROM `sow` WHERE Type<>'PC' AND `Projet`= ?  AND IP_Host not in (SELECT DISTINCT Host FROM vuln WHERE ID_Projet=?)  order by sow.Type;
             HERE4,
-
+            <<< HERE5
+            SELECT "Nbr des actifs hors perimetres / Nbr Vulns", CONCAT(COUNT(DISTINCT Host),  '  /  ' , count(*))  ,'Information' FROM `vuln` WHERE Host NOT IN (SELECT DISTINCT IP_Host From sow WHERE  Projet = ? ) AND vuln.ID_Projet= ?
+            HERE5,
+            <<< HERE6
+            SELECT "Liste des actifs hors perimetres", GROUP_CONCAT(DISTINCT Host SEPARATOR '  ;  ' )  ,'Information' FROM `vuln` WHERE Host NOT IN (SELECT DISTINCT IP_Host From sow WHERE  Projet = ? ) AND vuln.ID_Projet= ?
+            HERE6,
     );
     /* */
         //$listOfCombinedItems()
@@ -58,10 +63,9 @@ class AnnexesController extends Controller
         $qualityChecher[0] = array("Item" , "Valeur", "link");
         $i=0;
         foreach ($sqls as $index => $sql) {
-            if ($index===4){
+
+            {
                 $returnedRows=DB::select($sql,array($req->project_id, $req->project_id )) ;
-            }else {
-                $returnedRows=DB::select($sql,array($req->project_id)) ;
             }
 
             foreach ($returnedRows as $singleRow)
@@ -167,57 +171,65 @@ class AnnexesController extends Controller
         return $string;
     }
 
-        public static function setGlobalStats ($prjID, $templateProcessor, $isitAnnexeA )
+        public static function setGlobalStats ($prjID, $templateProcessor, $isitAnnexeA , $allStats )
         {
             $sql =<<<HERE0
             SELECT
-             SUM(TLT_Hosts_MLW) AS TLT_Hosts_MLW,
-             SUM(TLT_Hosts_ExC) AS TLT_Hosts_ExC,
-             SUM(TLT_Hosts_ExH) AS TLT_Hosts_ExH,
-             SUM(TLT_Hosts_ExM) AS TLT_Hosts_ExM,
-             SUM(TLT_Hosts_ExL) AS TLT_Hosts_ExL,
-             SUM(TLT_Hosts_CR) AS TLT_Hosts_CR,
-             SUM(TLT_Hosts_HI) AS TLT_Hosts_HI,
-             SUM(TLT_Hosts_MD) AS TLT_Hosts_MD,
-             SUM(TLT_Hosts_LW) AS TLT_Hosts_LW,
-             SUM(TLT_Hosts_NC) AS TLT_Hosts_NC,
-             SUM(TLT_Hosts_CF) AS TLT_Hosts_CF
-            FROM
-            (
-            SELECT
-            COUNT(IF(Exp_Malware>0,1,NULL))as TLT_Hosts_MLW,
-            COUNT(IF(Critical_Ex>0,1,NULL))as TLT_Hosts_ExC,
-            COUNT(IF(High_Ex>0,1,NULL))as TLT_Hosts_ExH,
-            COUNT(IF(Medium_Ex>0,1,NULL))as TLT_Hosts_ExM,
-            COUNT(IF(Low_Ex>0,1,NULL))as TLT_Hosts_ExL,
-            COUNT(IF(Critical>0,1,NULL))as TLT_Hosts_CR,
-            COUNT(IF(High>0,1,NULL))as TLT_Hosts_HI,
-            COUNT(IF(Mediu>0,1,NULL))as TLT_Hosts_MD,
-            COUNT(IF(Low>0,1,NULL))as TLT_Hosts_LW,
-            max(FAILED2)as TLT_Hosts_NC, max(PASSED2)as TLT_Hosts_CF
+            SUM(Hosts_MLW) AS TLT_Hosts_MLW,
+            SUM(Hosts_ExC) AS TLT_Hosts_ExC,
+            SUM(Hosts_ExH) AS TLT_Hosts_ExH,
+            SUM(Hosts_ExM) AS TLT_Hosts_ExM,
+            SUM(Hosts_ExL) AS TLT_Hosts_ExL,
+            SUM(Hosts_CR) AS TLT_Hosts_CR,
+            SUM(Hosts_HI) AS TLT_Hosts_HI,
+            SUM(Hosts_MD) AS TLT_Hosts_MD,
+            SUM(Hosts_LW) AS TLT_Hosts_LW,
+            SUM(Hosts_NC) AS TLT_Hosts_NC,
+            SUM(Hosts_CF) AS TLT_Hosts_CF
+           FROM
+           (
+                SELECT Hostip Hosts_IP,
+                Nom as Hosts_Name,
+                field4 as Hosts_OS,
+                COUNT(IF(Exp_Malware>0,1,NULL)) as Hosts_MLW,
+                COUNT(IF(Critical_Ex>0,1,NULL)) as Hosts_ExC,
+                COUNT(IF(High_Ex>0,1,NULL)) as Hosts_ExH,
+                COUNT(IF(Medium_Ex>0,1,NULL)) as Hosts_ExM,
+                COUNT(IF(Low_Ex>0,1,NULL)) as Hosts_ExL,
+                COUNT(IF(Critical>0,1,NULL)) as Hosts_CR,
+                COUNT(IF(High>0,1,NULL)) as Hosts_HI,
+                COUNT(IF(Mediu>0,1,NULL)) as Hosts_MD,
+                COUNT(IF(Low>0,1,NULL)) as Hosts_LW,
+                max(FAILED2) as Hosts_NC, max(PASSED2) as Hosts_CF
 
-                    FROM (
-                    SELECT
-                    vuln.`Host` as Hostip,
-                        COUNT(IF( `exploited_by_malware` = 'true' , 1, NULL)) AS Exp_Malware,
-                        COUNT(IF(vuln.`Risk` = 'Critical' AND ( `exploit_available` = 'true' ), 1, NULL)) AS Critical_Ex,
-                        COUNT(IF(vuln.`Risk` = 'High' AND ( `exploit_available` = 'true' ), 1, NULL)) AS High_Ex,
-                        COUNT(IF(vuln.`Risk` = 'Medium' AND ( `exploit_available` = 'true' ), 1, NULL)) AS Medium_Ex,
-                        COUNT(IF(vuln.`Risk` = 'Low' AND ( `exploit_available` = 'true' ), 1, NULL)) AS Low_Ex,
-                        COUNT(IF(vuln.`Risk` = 'Critical', 1, NULL)) AS Critical,
-                        COUNT(IF(vuln.`Risk` = 'High', 1, NULL)) AS High,
-                        COUNT(IF(vuln.`Risk` = 'Medium', 1, NULL)) AS Mediu,
-                        COUNT(IF(vuln.`Risk` = 'Low', 1, NULL)) AS Low,
-                        COUNT(IF(vuln.`Risk` = 'FAILED', 1, NULL)) AS FAILED2,
-                        COUNT(IF(vuln.`Risk` = 'PASSED', 1, NULL)) AS PASSED2
-                    FROM vuln
-                        WHERE  `ID_Projet`=?
-                    GROUP BY
-                        `Host` ,  vuln.Name
-                    ) t
+                                FROM (
+                                SELECT
+                                vuln.`Host` as Hostip,
+                                    sow.Nom as Nom,
+                                    sow.field4,
+                                    COUNT(IF( `exploited_by_malware` = 'true' , 1, NULL)) AS Exp_Malware,
+                                    COUNT(IF(vuln.`Risk` = 'Critical' AND ( `exploit_available` = 'true' ), 1, NULL)) AS Critical_Ex,
+                                    COUNT(IF(vuln.`Risk` = 'High' AND ( `exploit_available` = 'true' ), 1, NULL)) AS High_Ex,
+                                    COUNT(IF(vuln.`Risk` = 'Medium' AND ( `exploit_available` = 'true' ), 1, NULL)) AS Medium_Ex,
+                                    COUNT(IF(vuln.`Risk` = 'Low' AND ( `exploit_available` = 'true' ), 1, NULL)) AS Low_Ex,
+                                    COUNT(IF(vuln.`Risk` = 'Critical', 1, NULL)) AS Critical,
+                                    COUNT(IF(vuln.`Risk` = 'High', 1, NULL)) AS High,
+                                    COUNT(IF(vuln.`Risk` = 'Medium', 1, NULL)) AS Mediu,
+                                    COUNT(IF(vuln.`Risk` = 'Low', 1, NULL)) AS Low,
+                                    COUNT(IF(vuln.`Risk` = 'FAILED', 1, NULL)) AS FAILED2,
+                                    COUNT(IF(vuln.`Risk` = 'PASSED', 1, NULL)) AS PASSED2
+                                FROM vuln
+                                LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
+                                LEFT JOIN sow ON vuln.`Host` = sow.IP_Host
+                                    WHERE `ID_Projet`=? and sow.Projet=?
 
-            GROUP BY hostip
-            )tt
+                                GROUP BY
+                                `Host` ,  vuln.Name
+                                ) t
+
+                GROUP BY hostip
+                ORDER BY  Critical_Ex DESC, High_Ex DESC, Exp_Malware DESC,Medium_Ex DESC,Critical  DESC,High  DESC
+                )tt
     HERE0;
 /*
     $sql =<<<HERE2
@@ -240,6 +252,7 @@ class AnnexesController extends Controller
     foreach ($AllRows[0] as $k => $v)
     {
         $templateProcessor->setValue($k, $v);
+        if(isset($allStats[$k])) $allStats[$k]+=$v;
 
     }
     $nbrHost=  DB::select("SELECT count(*) as Nbr FROM sow WHERE  sow.Projet=? ", [$prjID, $prjID])[0];
@@ -249,8 +262,9 @@ class AnnexesController extends Controller
 
 
         }
-        public static function setVulnPatchValues($prjID, $templateProcessor, $isitAnnexeA )
+        public static function setVulnPatchValues($prjID, $templateProcessor, $isitAnnexeA  , &$listOfAgesOfVulns )
     {
+        $listOfAgesOfVulnsxxxx = [""=>0, "0 - 7 days"=>0,        "7 - 30 days"=>0,        "30 - 60 days"=>0,        "60 - 180 days"=>0,        "180 - 365 days"=>0,        "365 - 730 days"=>0,        "730 days +"=>0];
         include("sqlRequests.php");
 
         $query = <<<HERE
@@ -259,14 +273,14 @@ class AnnexesController extends Controller
                     SELECT `vuln`.`Risk`,`plugins`.`age_of_vuln`,`vuln`.`Name`,count(*)  FROM vuln
                          LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
                         RIGHT JOIN sow ON vuln.`Host` = sow.IP_Host
-                        WHERE vuln.ID_Projet=? CLAUSENUMBER1   and sow.IP_Host = vuln.Host and sow.Projet=?
+                        WHERE sow.IP_Host = vuln.Host and sow.Projet=? AND  vuln.ID_Projet=? CLAUSENUMBER1
                         CLAUSENUMBER2
                          AND     `vuln`.`Risk` in ('Critical','High','Medium','Low')
                         group by `vuln`.`Risk`,`plugins`.`age_of_vuln`,`vuln`.`Name`,`vuln`.`Host`
                 ) `t`
               group by `t`.`Risk`,`t`.`age_of_vuln`;
         HERE;
-        $listOfAgesOfVulns = ["", "0 - 7 days",        "7 - 30 days",        "30 - 60 days",        "60 - 180 days",        "180 - 365 days",        "365 - 730 days",        "730 days +"];
+
                     if($isitAnnexeA==1)
                     {
                         $query=str_replace($SqlQueriesMarks[0], " ", $query);
@@ -274,7 +288,7 @@ class AnnexesController extends Controller
                     else
                     {
                         //var_dump($SqlQueriesMarks[0], " and sow.Type=\"".self::$currentAnnex."\"", $query);
-                        $query=str_replace($SqlQueriesMarks[0], " and sow.Type=\"".$SqlQueriesMarks[self::$currentAnnex][0]."\"", $query);
+                        $query=str_replace($SqlQueriesMarks[0], $SqlQueriesMarks[self::$currentAnnex][0], $query);
                     }
 
         $AllRows=  DB::select($query,[$prjID,$prjID]);
@@ -282,15 +296,20 @@ class AnnexesController extends Controller
         foreach ($AllRows as $row)
         {
             $templateProcessor->setValue($row->Risk."_".$row->age_of_vuln,  $row->nombre);
+            if(isset($listOfAgesOfVulns[$row->age_of_vuln])) $listOfAgesOfVulns[$row->age_of_vuln]+= $row->nombre;
           //  var_dump($row->Risk."_".$row->age_of_vuln,  $row->nombre);
         }
-        foreach($listOfAgesOfVulns as $age_of_vuln)
+
+        foreach($listOfAgesOfVulns as $age_of_vuln => $age_of_vulnValue)
         {
             foreach ($arrayRisks as $risk)
             {
                 $templateProcessor->setValue($risk."_".$age_of_vuln,  "-");
+
             }
         }
+
+       // return ( $listOfAgesOfVulns);
     }
 
     private static function setTotalValues($prefix, $arraykeys,$templateProcessor,$AllRows )
@@ -333,7 +352,7 @@ class AnnexesController extends Controller
 
            {
             $singleRow=$AllRows[0];
-            echo $KeyToDuplicateRows;
+           // echo $KeyToDuplicateRows;
             $templateProcessor->cloneRow($KeyToDuplicateRows,  count($TwoLevelsTablesAllRows));
             $hostNumber=0;
             foreach ($TwoLevelsTablesAllRows as $HostSection)
@@ -390,7 +409,7 @@ class AnnexesController extends Controller
 
 
 
-    private static function generateGlobalTableOfRows( $templateProcessor,$query, $prjID, $KeyToDuplicateRows, $ColoredRowsArrays,$ColoredField, $prefixStats)
+    private static function generateGlobalTableOfRows( $templateProcessor,$query, $prjID, $KeyToDuplicateRows, $ColoredRowsArrays,$ColoredField, $prefixStats ,&$listOfAgesOfVulns)
     {
 
 //var_dump($query); return 0;
@@ -444,7 +463,7 @@ class AnnexesController extends Controller
          if(isset($prefixStats))
          {
             $templateProcessor->SetValue($prefixStats,  count($AllRows));
-            self::setVulnPatchValues($prjID, $templateProcessor,0);
+            self::setVulnPatchValues($prjID, $templateProcessor,0 , $listOfAgesOfVulns);
           //  var_dump($prefixStats,$singleRow,$templateProcessor,$AllRows );exit;
             if(isset($singleRow)) self::setTotalValues($prefixStats,$singleRow,$templateProcessor,$AllRows );
        }
@@ -456,6 +475,8 @@ class AnnexesController extends Controller
     {
         set_time_limit(50000);
         //self::mergeFiles([public_path('storage/annexes/'."00.docx"),public_path('storage/annexes/'."01.docx"),public_path('storage/annexes/'. "02.docx")], "eeee");exit;
+        self::sendMessage("Starting Generating Report for ".$request->project_id[0] . "\n Time now:". date("Y-m-d H:i:s"));
+        $now= date("Y-m-d H:i:s");
 
         $listOfFile=[];
         if(isset($request->A))
@@ -465,9 +486,14 @@ class AnnexesController extends Controller
          }
          $listOfFile =array_merge ($listOfFile, self::generateAnnexes ($request, ""));
 
+       //  $nowInSec=date_diff( date("Y-m-d H:i:s"), $now);
+         self::sendMessage("Finishing Generating Report for ".$request->project_id[0] . "\n Time now:". date("Y-m-d H:i:s"));//."\n Total Duration:".$nowInSec);
         if(isset($request->ZipIt))
         return self::ZipAndDownload($request->project_id[0], "techAnnexes_", $listOfFile);
          else  print_r($listOfFile);
+
+
+
 
 }
 public function mergeFiles($filesName, $newName)
@@ -518,9 +544,24 @@ public function mergeFiles($filesName, $newName)
 
 public function generateAnnexes (Request $request, $AnnexA)
 {
+    $listOfAgesOfVulns = [""=>0, "0 - 7 days"=>0,        "7 - 30 days"=>0,        "30 - 60 days"=>0,        "60 - 180 days"=>0,        "180 - 365 days"=>0,        "365 - 730 days"=>0,        "730 days +"=>0];
+    $allStats = array(
+        "TLT_Hosts_MLW"=> 0,
+        "TLT_Hosts_ExC"=> 0,
+        "TLT_Hosts_ExH"=> 0,
+        "TLT_Hosts_ExM"=> 0,
+        "TLT_Hosts_ExL"=> 0,
+        "TLT_Hosts_CR"=> 0,
+        "TLT_Hosts_HI"=> 0,
+        "TLT_Hosts_MD"=> 0,
+        "TLT_Hosts_LW"=> 0,
+        "TLT_Hosts_NC"=> 0,
+        "TLT_Hosts_CF"=> 0,
+    );
 
 
-    //   print_r($request->project_id);exit;
+
+
     $annex_id =  $request->annex_id;
     //  var_dump(get_object_vars($request)); exit;
       include ("sqlRequests.php");
@@ -562,7 +603,7 @@ public function generateAnnexes (Request $request, $AnnexA)
                           $isitComplex=null;
                           $SqlREQUEST= str_replace("CLAUSENUMBER99",$AnnexA, str_replace($SqlQueriesMarks[0], $SqlQueriesMarks[$Annex], $DefaultQuery[$i]));
                           if ($i==2)  $nbrOfRowsAddedToFile+= self::generateGlobalTableOfRowsWithTwoLevels($templateProcessor,$SqlREQUEST, $prj_id,$keyToDuplicateRows[$i], $ColoredRowsArrays[$i],$RowOfColoring[$i], $prefixTLT[$i]);
-                         else $nbrOfRowsAddedToFile+= self::generateGlobalTableOfRows($templateProcessor,$SqlREQUEST, $prj_id,$keyToDuplicateRows[$i], $ColoredRowsArrays[$i],$RowOfColoring[$i], $prefixTLT[$i]);
+                         else $nbrOfRowsAddedToFile+= self::generateGlobalTableOfRows($templateProcessor,$SqlREQUEST, $prj_id,$keyToDuplicateRows[$i], $ColoredRowsArrays[$i],$RowOfColoring[$i], $prefixTLT[$i],$listOfAgesOfVulns);
                       }
               $outputFileName = $AnnexA.$prj_id .'_tchRpt_Annx_' . self::$AnnexesLetters[$Annex] .$iteration."_".self::$AnnexesTitles[$Annex]."_".$customer->SN. '.docx';
               $outputPath = public_path('storage/annexes/' . $outputFileName);
@@ -577,16 +618,28 @@ public function generateAnnexes (Request $request, $AnnexA)
           }
 
       }
+
       if( $AnnexA!="")
       {
         //$listOfFile=[];
         $templateProcessor = new TemplateProcessor(public_path("98.docx"));
-        self::setVulnPatchValues($prj_id, $templateProcessor, 1);
-        self::setGlobalStats($prj_id, $templateProcessor, 1);
+
+        $templateProcessor->setValues($listOfAgesOfVulns);
+        foreach($listOfAgesOfVulns as $age_of_vuln =>  $age_of_vulnValue)
+        {
+            $arrayRisks = array("Critical", "High", "Medium", "Low");
+            foreach ($arrayRisks as $risk)
+            {
+                $templateProcessor->setValue($risk."_".$age_of_vuln,  "-");
+              //  echo $risk."_".$age_of_vuln."\n";
+            }
+        }
+        $templateProcessor->setValues($allStats);
+
         self::preparePagesDeGarde($templateProcessor,0,$customer, $project );
         $annexeA_filename = public_path('storage/annexes/AnnexeA_'.$customer->SN. '.docx' );
         $templateProcessor->saveAs($annexeA_filename);
-        self::sendMessage("[App2_TechReport] ". $annexeA_filename." was created with sucess");
+        self::sendMessage("[>>App2_TechReport] ". $annexeA_filename." was created with sucess");
         $listOfFile[]=$annexeA_filename;
 
       }
@@ -609,7 +662,7 @@ static function preparePagesDeGarde($templateProcessor, $annex_id,$customer, $pr
  }
 
  public static function sendMessageTelegram($chatID, $messaggio, $token) {
-    echo "sending message to " . $chatID . "\n";
+  //  echo "sending message to " . $chatID . "\n";
 
     $url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chatID;
     $url = $url . "&text=" . urlencode($messaggio);
@@ -715,7 +768,7 @@ public static function translateAllVulnsCompliance()
    $i=0;
    foreach($allVuns as $vuln)
    {
-    echo $allVuns[$i]->id."\n";
+   // echo $allVuns[$i]->id."\n";
     $re = DB::table('vuln')
     ->where('id', $allVuns[$i]->id)
     ->update(['BID'  => 'noway']);
