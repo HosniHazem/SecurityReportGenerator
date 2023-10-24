@@ -6,7 +6,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\WordDocumentController;
 use App\Http\Controllers\WordDocumentController2;
-use App\Http\Controllers\WordDocumentController3;
+use App\Http\Controllers\AnnexesController;
 use App\Http\Controllers\WordDocumentController4;
 use App\Http\Controllers\ExcelDocumentController;
 use App\Http\Controllers\concatenateDocxFiles;
@@ -33,18 +33,18 @@ use App\Http\Controllers\AuditPreviousAuditController;
 |
 */
 Route::get('/getPluginsFromAllServers', [NassusController::class,'getPluginsFromAllServers']);
-Route::post('/QualityCheck', [WordDocumentController3::class,'QualityCheck']);
-Route::post('/generateExcelDocument', [WordDocumentController3::class,'generateExcelDocument']);
-Route::get('/translatePlugins', [WordDocumentController3::class,'translateAllPlugins']);
-Route::get('/translateVulns', [WordDocumentController3::class,'translateAllVulnsCompliance']);
+Route::post('/QualityCheck', [AnnexesController::class,'QualityCheck']);
+Route::post('/generateExcelDocument', [AnnexesController::class,'generateExcelDocument']);
+Route::get('/translatePlugins', [AnnexesController::class,'translateAllPlugins']);
+Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompliance']);
     Route::get('/test2', [TestController::class,'get']);
 
     Route::get('/get_vm', [VmController::class,'index']);
     Route::post('/generate-word-document', [WordDocumentController::class,'generateWordDocument']);
     Route::post('/generate-annexe', [WordDocumentController2::class,'generateWordDocument']);
     Route::post('/generate-ansi', [WordDocumentController4::class,'generateWordDocument']);
-    Route::post('/generate-annexe3', [WordDocumentController3::class,'generateWordDocument']);
-    Route::get('/generate-annexe3', [WordDocumentController3::class,'generateWordDocument']);
+    Route::post('/getAnnexes', [AnnexesController::class,'getAnnexes']);
+    Route::get('/getAnnexes', [AnnexesController::class,'getAnnexes']);
     Route::get('/generate-concat', [concatenateDocxFiles::class,'mergeDocxFiles']);
     Route::post('/getScan', [NassusController::class,'GetAll']);
     Route::Post('/ExportAll', [NassusController::class,'ExportAll']);

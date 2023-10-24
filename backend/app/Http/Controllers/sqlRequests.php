@@ -43,11 +43,12 @@ $DefaultQuery = array (
     ) t
     CLAUSENUMBER3
     GROUP BY hostip
-    ORDER BY  Critical_Ex DESC, High_Ex DESC, Exp_Malware DESC,Medium_Ex DESC,Critical  DESC,High  DESC ;
+    ORDER BY  Critical_Ex DESC, High_Ex DESC, Exp_Malware DESC,Medium_Ex DESC,Critical  DESC,High  DESC
     HERE0,
     1 => <<<HERE1
     SELECT  Risk AS VulnSummary_Risk,
     plugins.Synopsis AS VulnSummary_Synopsis_ToBeClean,
+    plugins.id AS VulnSummary_Plugin,
     plugins.name AS VulnSummary_Name_ToBeClean,
     count(DISTINCT Risk,plugins.Synopsis,vuln.Host) AS VulnSummary_Count,
     IF( plugins.exploited_by_malware='true' , 'exploitable par malware', IF( plugins.exploit_available = 'true', "exploit disponible", NULL)) AS VulnSummary_Exploitability,
@@ -59,7 +60,7 @@ $DefaultQuery = array (
     CLAUSENUMBER2
     AND `Risk` in ('Critical', 'High', 'Medium', 'Low')
     group by `Risk`,vuln.`Synopsis`
-    ORDER BY  exploited_by_malware DESC, exploit_available DESC,`Risk` DESC ;
+    ORDER BY  exploited_by_malware DESC, exploit_available DESC,`Risk` DESC  CLAUSENUMBER99
     HERE1,
     2 =><<<HERE2
     SELECT
@@ -67,6 +68,7 @@ $DefaultQuery = array (
     vuln.Host AS VulnPerHost_host,
     Risk AS VulnPerHost_Risk,
     plugins.synopsis AS VulnPerHost_Synopsis_ToBeClean,
+    plugins.id AS VulnPerHost_Plugin,
     plugins.name AS VulnPerHost_Name_ToBeClean,
     IF( plugins.exploited_by_malware='true' , 'exploitable par malware', IF( plugins.exploit_available = 'true', "exploit disponible", NULL)) AS VulnPerHost_exploi,
      GROUP_CONCAT(DISTINCT vuln.Port) as VulnPerHost_port,
@@ -129,7 +131,7 @@ $DefaultQuery = array (
     CLAUSENUMBER2
     AND `Risk` in ('FAILED', 'PASSED')
     group by `Risk`,vuln.description
-    ORDER BY  `Risk` ASC
+    ORDER BY  `Risk` ASC  CLAUSENUMBER99
     HERE4
 );
 
