@@ -16,6 +16,7 @@ import MuiAlert from '@mui/material/Alert';
 import Avatar from '@mui/material/Avatar';
 import FolderIcon from '@mui/icons-material/Folder';
 import PropTypes from 'prop-types';
+import { Spinner } from "reactstrap";
 
 
 
@@ -69,6 +70,7 @@ export default function SelectTextFields() {
   const [StatExport, setStatExport] = useState(0);
   const [Vm, setVm] = useState([]);
   const [Progress, setProgress] = useState(0);
+  const [Loading, setLoading] = useState(false);
   const [checkedItems, setCheckedItems] = useState(() => {
     // Initialize checkedItems with all items checked by default
 
@@ -176,6 +178,7 @@ const project_name = sessionStorage.getItem('project_name');
   
   const handleImport = (event) => {
     event.preventDefault(); // Prevent form submission and page refresh
+    setLoading(true)
     const selectedIds = Object.keys(checkedItems).filter((itemId) => checkedItems[itemId]);
     const initialProgress = selectedIds.reduce((acc, itemId) => {
       acc[itemId] = {
@@ -201,6 +204,7 @@ const promises = selectedIdsJSON.map((item) => {
   return axios.post('http://webapp.smartskills.tn/AppGenerator/backend/api/ExportOne', item)
     .then((response) => {
       if (response.data.status === 200) {
+       
         let parsedData = {};
         parsedData.project_id = project_id;
         parsedData.Label = name;
@@ -229,7 +233,7 @@ const promises = selectedIdsJSON.map((item) => {
       swal(error);
     });
 });
-
+let i=0;
 // Wait for all promises to resolve
 Promise.all(promises)
   .then((parsedDataArray) => {
@@ -242,7 +246,7 @@ Promise.all(promises)
           const inputObject = response.data.stats;
 console.log(inputObject);
          
-
+i++;
           setStatExport((prevStatExport) => ({
             ...prevStatExport,
             [inputObject.scan]: {
@@ -259,7 +263,9 @@ console.log(inputObject);
               ready : 100
             }
           }));
-         console.log(StatExport); 
+         
+ 
+          setLoading(false)
         }
       })
       .catch((error) => {
@@ -294,13 +300,7 @@ console.log(inputObject);
    
       </Stack>
       </div>
-    {exporting ? ( // Conditional rendering based on the exporting state
-    <div className="loading">
-    <Box sx={{ display: 'flex' }}>
-     <CircularProgress />
-   </Box>
-   </div>
-   ) : (
+   
     <Box
       component="form"
       sx={{
@@ -371,7 +371,9 @@ console.log(inputObject);
   })}
 </Box>
         </div>
-        <Button style={{ marginBottom: '16px'  }} variant="outlined" onClick={handleImport} >Import</Button>
+        <Button style={{ marginBottom: '16px'  }} variant="outlined" onClick={handleImport} > { Loading!=false ?   <Spinner type="grow" className="text-primary">
+        <span className=" sr-only">Loading...</span>
+      </Spinner> :'Import'}</Button>
   
 
 
@@ -388,7 +390,7 @@ console.log(inputObject);
 } */}
       </div>
     </Box>
-    )}
+   
    
     </div>
   );

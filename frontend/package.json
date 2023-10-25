@@ -36,12 +36,13 @@
     "react-router-dom": "^6.15.0",
     "react-scripts": "5.0.0",
     "react-table": "^7.8.0",
+    "reactstrap": "^9.2.0",
     "sass": "^1.49.0",
     "sweetalert": "^2.1.2",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "cross-env HOST=webapp.smartskills.local PORT=3002 react-scripts start",
+    "start": "cross-env HOST=webapp.smartskills.tn PORT=3002 react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

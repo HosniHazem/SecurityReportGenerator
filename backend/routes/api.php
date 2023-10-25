@@ -54,8 +54,8 @@ Route::get('/translateVulns', [WordDocumentController3::class,'translateAllVulns
     Route::Post('/ImportAll', [NassusController::class,'ImportAll']);
 ///nessus2
     Route::post('/getScan2', [NassusController2::class,'GetAll']);
-    Route::Post('/ExportOne', [NassusController2::class,'ExportAll']);
-    Route::Post('/ImportOne', [NassusController2::class,'ImportAll']);
+    Route::Post('/ExportOne', [NassusController2::class,'ExportOne']);
+    Route::Post('/ImportOne', [NassusController2::class,'ImportOne']);
 
     Route::Post('/uploadanomalie', [UploadanomaliesController::class,'store']);
     Route::Get('/getUpload', [UploadanomaliesController::class,'index']);

@@ -98,7 +98,7 @@ class NassusController2 extends Controller
 
 
 
-    public function ExportAll(Request $request)
+    public function ExportOne(Request $request)
     {
         set_time_limit(5000);
         $csvDirectory ='C:\\xampp\\mysql\\data\\tactio2z_officekiller';
@@ -231,7 +231,7 @@ $filesJson = $data;
         return response()->json(['message'=>'done','status' => 200]);
     }
 
-    public function ImportAll(Request $request)
+    public function ImportOne(Request $request)
     {
         set_time_limit(5000);
 
