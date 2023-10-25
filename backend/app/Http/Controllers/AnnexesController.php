@@ -224,11 +224,12 @@ class AnnexesController extends Controller
         foreach ($AllRows as $row)
         {
             $templateProcessor->setValue($row->Risk."_".$row->age_of_vuln,  $row->nombre);
-            if(isset($listOfAgesOfVulns[$row->age_of_vuln])) $listOfAgesOfVulns[$row->age_of_vuln]+= $row->nombre;
+            if(isset($GLOBALS['listOfAgesOfVulnsMX'][$row->Risk."_".$row->age_of_vuln])) $GLOBALS['listOfAgesOfVulnsMX'][$row->Risk."_".$row->age_of_vuln]+= $row->nombre;
+            else $GLOBALS['listOfAgesOfVulnsMX'][$row->Risk."_".$row->age_of_vuln]= $row->nombre;
           //  var_dump($row->Risk."_".$row->age_of_vuln,  $row->nombre);
         }
 
-        foreach($listOfAgesOfVulns as $age_of_vuln => $age_of_vulnValue)
+        foreach($GLOBALS['listOfAgesOfVulns'] as $age_of_vuln => $age_of_vulnValue)
         {
             foreach ($arrayRisks as $risk)
             {
@@ -237,7 +238,7 @@ class AnnexesController extends Controller
             }
         }
 
-       // return ( $listOfAgesOfVulns);
+       // return ( $GLOBALS['listOfAgesOfVulns']);
     }
 
     private static function setTotalValues($prefix, $arraykeys,$templateProcessor,$AllRows )
@@ -249,7 +250,11 @@ class AnnexesController extends Controller
         foreach ($arraykeys as $key=>$value)
         {
             //print_r($key);exit(0);
-            $templateProcessor->setValue($prefix.$key,  array_sum(array_column($AllRows, $key)));
+            $keyStat=$prefix.$key;
+            $StatValue=array_sum(array_column($AllRows, $key));
+            $templateProcessor->setValue($keyStat, $StatValue);
+            if(isset($GLOBALS['allStats'][$keyStat])) $GLOBALS['allStats'][$keyStat]+=$StatValue;
+            else $GLOBALS['allStats'][$keyStat]=$StatValue;
         }
         for($i=0;$i<4;$i++)
         {
@@ -337,7 +342,7 @@ class AnnexesController extends Controller
 
 
 
-    private static function generateGlobalTableOfRows( $templateProcessor,$query, $prjID, $KeyToDuplicateRows, $ColoredRowsArrays,$ColoredField, $prefixStats ,&$listOfAgesOfVulns)
+    private static function generateGlobalTableOfRows( $templateProcessor,$query, $prjID, $KeyToDuplicateRows, $ColoredRowsArrays,$ColoredField, $prefixStats)
     {
 
 //var_dump($query); return 0;
@@ -391,7 +396,7 @@ class AnnexesController extends Controller
          if(isset($prefixStats))
          {
             $templateProcessor->SetValue($prefixStats,  count($AllRows));
-            self::setVulnPatchValues($prjID, $templateProcessor,0 , $listOfAgesOfVulns);
+            self::setVulnPatchValues($prjID, $templateProcessor,0 );
           //  var_dump($prefixStats,$singleRow,$templateProcessor,$AllRows );exit;
             if(isset($singleRow)) self::setTotalValues($prefixStats,$singleRow,$templateProcessor,$AllRows );
        }
@@ -409,7 +414,7 @@ class AnnexesController extends Controller
         $listOfFile=[];
         if(isset($request->A))
          {
-            $listOfFile=self::generateAnnexes ($request, " LIMIT 5");
+          //  $listOfFile=self::generateAnnexes ($request, " LIMIT 5");
           //  self::mergeFiles($listOfFile, "aaaaa");
          }
          $listOfFile =array_merge ($listOfFile, self::generateAnnexes ($request, ""));
@@ -472,20 +477,8 @@ public function mergeFiles($filesName, $newName)
 
 public function generateAnnexes (Request $request, $AnnexA)
 {
-    $listOfAgesOfVulns = [""=>0, "0 - 7 days"=>0,        "7 - 30 days"=>0,        "30 - 60 days"=>0,        "60 - 180 days"=>0,        "180 - 365 days"=>0,        "365 - 730 days"=>0,        "730 days +"=>0];
-    $allStats = array(
-        "TLT_Hosts_MLW"=> 0,
-        "TLT_Hosts_ExC"=> 0,
-        "TLT_Hosts_ExH"=> 0,
-        "TLT_Hosts_ExM"=> 0,
-        "TLT_Hosts_ExL"=> 0,
-        "TLT_Hosts_CR"=> 0,
-        "TLT_Hosts_HI"=> 0,
-        "TLT_Hosts_MD"=> 0,
-        "TLT_Hosts_LW"=> 0,
-        "TLT_Hosts_NC"=> 0,
-        "TLT_Hosts_CF"=> 0,
-    );
+
+
 
 
 
@@ -499,11 +492,16 @@ public function generateAnnexes (Request $request, $AnnexA)
       $arrayConfig=array(
         "99.docx" => array(0,1),
     );
-      if( $AnnexA=="") $arrayConfig=array(
+    $AnnexAPrefixFileName= "Annexe A - ";
+      if( $AnnexA=="")
+      {
+            $arrayConfig=array(
           "3.docx" => array(0,1,2),
           "4.docx" => array(3),
           "5.docx" => array(4),
       );
+      $AnnexAPrefixFileName= "";
+    }
      // echo "AAAAA";exit;
 
       foreach($request->project_id as $prj_id)
@@ -531,9 +529,10 @@ public function generateAnnexes (Request $request, $AnnexA)
                           $isitComplex=null;
                           $SqlREQUEST= str_replace("CLAUSENUMBER99",$AnnexA, str_replace($SqlQueriesMarks[0], $SqlQueriesMarks[$Annex], $DefaultQuery[$i]));
                           if ($i==2)  $nbrOfRowsAddedToFile+= self::generateGlobalTableOfRowsWithTwoLevels($templateProcessor,$SqlREQUEST, $prj_id,$keyToDuplicateRows[$i], $ColoredRowsArrays[$i],$RowOfColoring[$i], $prefixTLT[$i]);
-                         else $nbrOfRowsAddedToFile+= self::generateGlobalTableOfRows($templateProcessor,$SqlREQUEST, $prj_id,$keyToDuplicateRows[$i], $ColoredRowsArrays[$i],$RowOfColoring[$i], $prefixTLT[$i],$listOfAgesOfVulns);
+                         else $nbrOfRowsAddedToFile+= self::generateGlobalTableOfRows($templateProcessor,$SqlREQUEST, $prj_id,$keyToDuplicateRows[$i], $ColoredRowsArrays[$i],$RowOfColoring[$i], $prefixTLT[$i]);
+                         if ($i==4) $nbrOfRowsAddedToFile+= self::generateGlobalTableOfRows($templateProcessor, str_replace("VulnDetails_", "VulnSummary_", $SqlREQUEST), $prj_id,"VulnSummary_RISK", array("PASSED", "FAILED"),"VulnSummary_RISK", $prefixTLT[$i]);
                       }
-              $outputFileName = $AnnexA.$prj_id .'_tchRpt_Annx_' . self::$AnnexesLetters[$Annex] .$iteration."_".self::$AnnexesTitles[$Annex]."_".$customer->SN. '.docx';
+              $outputFileName = $AnnexAPrefixFileName.$prj_id .'_tchRpt_Annx_' . self::$AnnexesLetters[$Annex] .$iteration."_".self::$AnnexesTitles[$Annex]."_".$customer->SN. '.docx';
               $outputPath = public_path('storage/annexes/' . $outputFileName);
               $returnedArray[$prj_id][self::$AnnexesLetters[$Annex]][] = $nbrOfRowsAddedToFile;
               if($nbrOfRowsAddedToFile>0)
@@ -541,7 +540,7 @@ public function generateAnnexes (Request $request, $AnnexA)
                       $templateProcessor->saveAs($outputPath);
                       $listOfFile[]=$outputPath;
                   self::sendMessage("[App2_TechReport] ". $outputFileName ." was created with sucess");
-                  } else print_r($outputFileName);
+                  }
               }
           }
 
