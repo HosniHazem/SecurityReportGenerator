@@ -25,6 +25,21 @@ use App\Models\Project; // Replace with your actual model
 use Illuminate\Support\Facades\Http;
 use Stichoza\GoogleTranslate\GoogleTranslate;
 
+$GLOBALS['listOfAgesOfVulns'] = [""=>0, "0 - 7 days"=>0,        "7 - 30 days"=>0,        "30 - 60 days"=>0,        "60 - 180 days"=>0,        "180 - 365 days"=>0,        "365 - 730 days"=>0,        "730 days +"=>0];
+$GLOBALS['listOfAgesOfVulnsMX']= [];
+ $GLOBALS['allStats']= array(
+    "TLT_Hosts_MLW"=> 0,
+    "TLT_Hosts_ExC"=> 0,
+    "TLT_Hosts_ExH"=> 0,
+    "TLT_Hosts_ExM"=> 0,
+    "TLT_Hosts_ExL"=> 0,
+    "TLT_Hosts_CR"=> 0,
+    "TLT_Hosts_HI"=> 0,
+    "TLT_Hosts_MD"=> 0,
+    "TLT_Hosts_LW"=> 0,
+    "TLT_Hosts_NC"=> 0,
+    "TLT_Hosts_CF"=> 0,
+);
 class AnnexesController extends Controller
 {
     public static   $AnnexesTitles = array("","Serveurs","Solutions Réseaux et Infra", "Bases des données", "Postes de travail",  "Actifs externes", "Applications", "Solutions VOIP", "Solutions MAILS", "Autres Actifs Hors SoW");
@@ -55,6 +70,9 @@ class AnnexesController extends Controller
             HERE5,
             <<< HERE6
             SELECT "Liste des actifs hors perimetres", GROUP_CONCAT(DISTINCT Host SEPARATOR '  ;  ' )  ,'Information' FROM `vuln` WHERE Host NOT IN (SELECT DISTINCT IP_Host From sow WHERE  Projet = ? ) AND vuln.ID_Projet= ?
+            HERE6,
+            <<< HERE6
+            SELECT "Are these Addresses Externals or internals?", IP_Host ,'/SetAsExternal' FROM `sow` WHERE IP_Host NOT REGEXP '^ *172\.|^ *10\.|^ *192\.' AND Type<>'Ext' AND `Projet` = ?;
             HERE6,
     );
     /* */
@@ -171,98 +189,8 @@ class AnnexesController extends Controller
         return $string;
     }
 
-        public static function setGlobalStats ($prjID, $templateProcessor, $isitAnnexeA , $allStats )
-        {
-            $sql =<<<HERE0
-            SELECT
-            SUM(Hosts_MLW) AS TLT_Hosts_MLW,
-            SUM(Hosts_ExC) AS TLT_Hosts_ExC,
-            SUM(Hosts_ExH) AS TLT_Hosts_ExH,
-            SUM(Hosts_ExM) AS TLT_Hosts_ExM,
-            SUM(Hosts_ExL) AS TLT_Hosts_ExL,
-            SUM(Hosts_CR) AS TLT_Hosts_CR,
-            SUM(Hosts_HI) AS TLT_Hosts_HI,
-            SUM(Hosts_MD) AS TLT_Hosts_MD,
-            SUM(Hosts_LW) AS TLT_Hosts_LW,
-            SUM(Hosts_NC) AS TLT_Hosts_NC,
-            SUM(Hosts_CF) AS TLT_Hosts_CF
-           FROM
-           (
-                SELECT Hostip Hosts_IP,
-                Nom as Hosts_Name,
-                field4 as Hosts_OS,
-                COUNT(IF(Exp_Malware>0,1,NULL)) as Hosts_MLW,
-                COUNT(IF(Critical_Ex>0,1,NULL)) as Hosts_ExC,
-                COUNT(IF(High_Ex>0,1,NULL)) as Hosts_ExH,
-                COUNT(IF(Medium_Ex>0,1,NULL)) as Hosts_ExM,
-                COUNT(IF(Low_Ex>0,1,NULL)) as Hosts_ExL,
-                COUNT(IF(Critical>0,1,NULL)) as Hosts_CR,
-                COUNT(IF(High>0,1,NULL)) as Hosts_HI,
-                COUNT(IF(Mediu>0,1,NULL)) as Hosts_MD,
-                COUNT(IF(Low>0,1,NULL)) as Hosts_LW,
-                max(FAILED2) as Hosts_NC, max(PASSED2) as Hosts_CF
 
-                                FROM (
-                                SELECT
-                                vuln.`Host` as Hostip,
-                                    sow.Nom as Nom,
-                                    sow.field4,
-                                    COUNT(IF( `exploited_by_malware` = 'true' , 1, NULL)) AS Exp_Malware,
-                                    COUNT(IF(vuln.`Risk` = 'Critical' AND ( `exploit_available` = 'true' ), 1, NULL)) AS Critical_Ex,
-                                    COUNT(IF(vuln.`Risk` = 'High' AND ( `exploit_available` = 'true' ), 1, NULL)) AS High_Ex,
-                                    COUNT(IF(vuln.`Risk` = 'Medium' AND ( `exploit_available` = 'true' ), 1, NULL)) AS Medium_Ex,
-                                    COUNT(IF(vuln.`Risk` = 'Low' AND ( `exploit_available` = 'true' ), 1, NULL)) AS Low_Ex,
-                                    COUNT(IF(vuln.`Risk` = 'Critical', 1, NULL)) AS Critical,
-                                    COUNT(IF(vuln.`Risk` = 'High', 1, NULL)) AS High,
-                                    COUNT(IF(vuln.`Risk` = 'Medium', 1, NULL)) AS Mediu,
-                                    COUNT(IF(vuln.`Risk` = 'Low', 1, NULL)) AS Low,
-                                    COUNT(IF(vuln.`Risk` = 'FAILED', 1, NULL)) AS FAILED2,
-                                    COUNT(IF(vuln.`Risk` = 'PASSED', 1, NULL)) AS PASSED2
-                                FROM vuln
-                                LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
-                                LEFT JOIN sow ON vuln.`Host` = sow.IP_Host
-                                    WHERE `ID_Projet`=? and sow.Projet=?
-
-                                GROUP BY
-                                `Host` ,  vuln.Name
-                                ) t
-
-                GROUP BY hostip
-                ORDER BY  Critical_Ex DESC, High_Ex DESC, Exp_Malware DESC,Medium_Ex DESC,Critical  DESC,High  DESC
-                )tt
-    HERE0;
-/*
-    $sql =<<<HERE2
-     SELECT
-             '1' AS TLT_Hosts_MLW,
-             '1' AS TLT_Hosts_ExC,
-             '1' AS TLT_Hosts_ExH,
-             '1' AS TLT_Hosts_ExM,
-             '1' AS TLT_Hosts_ExL,
-             '1' AS TLT_Hosts_CR,
-             '1' AS TLT_Hosts_HI,
-             '1' AS TLT_Hosts_MD,
-             '1' AS TLT_Hosts_LW,
-             '1' AS TLT_Hosts_NC,
-             '1' AS TLT_Hosts_CF
-
-    HERE2;*/
-   // var_dump($prjID);
-    $AllRows=  DB::select($sql, [$prjID, $prjID]);
-    foreach ($AllRows[0] as $k => $v)
-    {
-        $templateProcessor->setValue($k, $v);
-        if(isset($allStats[$k])) $allStats[$k]+=$v;
-
-    }
-    $nbrHost=  DB::select("SELECT count(*) as Nbr FROM sow WHERE  sow.Projet=? ", [$prjID, $prjID])[0];
-    $totalStats = array($AllRows[0]->TLT_Hosts_CR,$AllRows[0]->TLT_Hosts_HI,$AllRows[0]->TLT_Hosts_MD,$AllRows[0]->TLT_Hosts_LW );
-
-    $templateProcessor->setImageValue('V_Global', public_path('images/'. self::getPourcentage($totalStats,$nbrHost->Nbr).".png"));
-
-
-        }
-        public static function setVulnPatchValues($prjID, $templateProcessor, $isitAnnexeA  , &$listOfAgesOfVulns )
+        public static function setVulnPatchValues($prjID, $templateProcessor, $isitAnnexeA  )
     {
         $listOfAgesOfVulnsxxxx = [""=>0, "0 - 7 days"=>0,        "7 - 30 days"=>0,        "30 - 60 days"=>0,        "60 - 180 days"=>0,        "180 - 365 days"=>0,        "365 - 730 days"=>0,        "730 days +"=>0];
         include("sqlRequests.php");
@@ -624,17 +552,22 @@ public function generateAnnexes (Request $request, $AnnexA)
         //$listOfFile=[];
         $templateProcessor = new TemplateProcessor(public_path("98.docx"));
 
-        $templateProcessor->setValues($listOfAgesOfVulns);
-        foreach($listOfAgesOfVulns as $age_of_vuln =>  $age_of_vulnValue)
+        $templateProcessor->setValues($GLOBALS['listOfAgesOfVulnsMX']);
+
+        foreach($GLOBALS['listOfAgesOfVulns'] as $age_of_vuln =>  $age_of_vulnValue)
         {
             $arrayRisks = array("Critical", "High", "Medium", "Low");
             foreach ($arrayRisks as $risk)
             {
-                $templateProcessor->setValue($risk."_".$age_of_vuln,  "-");
+                $templateProcessor->setValue($risk."_".$age_of_vuln,  "NA");
               //  echo $risk."_".$age_of_vuln."\n";
             }
         }
-        $templateProcessor->setValues($allStats);
+        $templateProcessor->setValues($GLOBALS['allStats']);
+        $nbrHost=  DB::select("SELECT count(*) as Nbr FROM sow WHERE  sow.Projet=? ", [$prj_id, $prj_id])[0];
+        $totalStats = array($GLOBALS['allStats']['TLT_Hosts_CR'],$GLOBALS['allStats']['TLT_Hosts_HI'],$GLOBALS['allStats']['TLT_Hosts_MD'],$GLOBALS['allStats']['TLT_Hosts_LW'] );
+
+        $templateProcessor->setImageValue('V_Global', public_path('images/'. self::getPourcentage($totalStats,$nbrHost->Nbr).".png"));
 
         self::preparePagesDeGarde($templateProcessor,0,$customer, $project );
         $annexeA_filename = public_path('storage/annexes/AnnexeA_'.$customer->SN. '.docx' );
@@ -801,6 +734,36 @@ public static function translateAllPlugins()
 return response()->json(['message'=>'done','status' => 200]);
 
 }
+
+public static function ipCheck($ip_address)
+{
+    return filter_var($ip_address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE |  FILTER_FLAG_NO_RES_RANGE);
+}
+public static function ipCheckForProject(Request $req)
+{
+    $prj_id=17;
+    $PublicIPs= [];
+    $AllIPHosts=  DB::select("SELECT `IP_Host` FROM sow WHERE  sow.Projet=? ", [$prj_id, $prj_id]);
+    foreach ($AllIPHosts as $Host)
+        {
+
+            if(self::ipCheck($Host->IP_Host) == true)  $PublicIPs[]=$Host->IP_Host;
+        }
+    print_r($PublicIPs);
+}
+public static function setExtIPs(Request $req)
+{
+    $prj_id=17;
+    $PublicIPs= [];
+    $AllIPHosts=  DB::select("SELECT `IP_Host` FROM sow WHERE  sow.Projet=? ", [$prj_id, $prj_id]);
+    foreach ($AllIPHosts as $Host)
+        {
+
+            if(self::ipCheck($Host->IP_Host) == true)  $PublicIPs[]=$Host->IP_Host;
+        }
+    print_r($PublicIPs);
+}
+
 
 
 
