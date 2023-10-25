@@ -60,7 +60,7 @@ class AnnexesController extends Controller
             SELECT 'Nombre de Plugins manquants', count(DISTINCT `Plugin ID`) , 'getPluginsFromAllServers' FROM vuln where vuln.upload_id in  (select id from uploadanomalies where uploadanomalies.ID_Projet=?) and `Plugin ID` not in (SELECT id FROM `plugins` )
             HERE2,
             <<< HERE3
-            SELECT sow.Type As "Type", count(*) ,'no Link' FROM `vuln` LEFT Join sow on sow.IP_Host=Host WHERE `upload_id` in (select id from uploadanomalies where uploadanomalies.ID_Projet = ?) GROUP BY sow.Type;
+            SELECT Concat (sow.Type," ( ",count(DISTINCT Host) ," hosts ) ") As "Type", CONCAT( count(*), " vulns (Moy par hote: ", ROUND( count(*)/ count(DISTINCT Host)," vulns ) ")) ,'no Link' FROM `vuln` LEFT Join sow on sow.IP_Host=Host WHERE ID_Projet = ? GROUP BY sow.Type;
             HERE3,
             <<< HERE4
             SELECT Concat (sow.Type," non encore scannee") As "Type", GROUP_CONCAT(DISTINCT IP_Host SEPARATOR '  ;  ' )  ,'Danger !!!' FROM `sow` WHERE Type<>'PC' AND `Projet`= ?  AND IP_Host not in (SELECT DISTINCT Host FROM vuln WHERE ID_Projet=?)  order by sow.Type;
@@ -71,9 +71,12 @@ class AnnexesController extends Controller
             <<< HERE6
             SELECT "Liste des actifs hors perimetres", GROUP_CONCAT(DISTINCT Host SEPARATOR '  ;  ' )  ,'Information' FROM `vuln` WHERE Host NOT IN (SELECT DISTINCT IP_Host From sow WHERE  Projet = ? ) AND vuln.ID_Projet= ?
             HERE6,
-            <<< HERE6
+            <<< HERE7
             SELECT "Are these Addresses Externals or internals?", IP_Host ,'/SetAsExternal' FROM `sow` WHERE IP_Host NOT REGEXP '^ *172\.|^ *10\.|^ *192\.' AND Type<>'Ext' AND `Projet` = ?;
-            HERE6,
+            HERE7,
+            <<< HERE8
+            SELECT Type, IP_Host ,'SoW to be rechecked' FROM `sow` WHERE  `Projet` = ? ORDER BY Type;
+            HERE8
     );
     /* */
         //$listOfCombinedItems()
@@ -412,9 +415,9 @@ class AnnexesController extends Controller
         $now= date("Y-m-d H:i:s");
 
         $listOfFile=[];
-        if(isset($request->A))
+      //  if(isset($request->A))
          {
-          //  $listOfFile=self::generateAnnexes ($request, " LIMIT 5");
+            $listOfFile=self::generateAnnexes ($request, " LIMIT 5");
           //  self::mergeFiles($listOfFile, "aaaaa");
          }
          $listOfFile =array_merge ($listOfFile, self::generateAnnexes ($request, ""));

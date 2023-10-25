@@ -10,7 +10,7 @@ class SowController extends Controller
 {
 
 
-   
+
 
     public function show($id)
     {
@@ -37,13 +37,13 @@ class SowController extends Controller
     {
         // Get the latest Sow record
         $latestSow = Sow::latest()->first();
-    
+
         if ($latestSow) {
             $lastSowId = $latestSow;
         } else {
             $lastSowId = null; // Handle the case where no Sows exist
         }
-    
+
         return response()->json(['lastSowId' => $lastSowId, 'status' => 200]);
     }
 
@@ -54,7 +54,7 @@ class SowController extends Controller
             'LN' => 'required',
             'Logo' => 'required'
         ]);
-      
+
         if ($validator->fails()) {
             return response()->json([
                 'status' => 422,
@@ -78,29 +78,29 @@ class SowController extends Controller
         $pc = $req->pc;
         $project_id = $req->project_id;
      $all = [$srv,$apps,$rs,$pc];
-     $fields = ["IP_Host","Nom","field3","field4","field5","URL","dev_by","Number_users"];
-    
+     $fields = ["IP_Host","Type","Nom","field3","field4","field5","URL","dev_by","Number_users"];
+
      foreach ($all as $it) {
         foreach ($it as $i){
             $item =new Sow();
         foreach ($fields as $field) {
-            
+
             if (isset($i[$field]))
             {
-          
+
         $item[$field]=$i[$field];
     }
 }
         $item->Projet=$project_id;
         $item->save();
-   
+
     }
 }
         return response()->json(['message'=>'done','status' => 200]);
-   
+
     }
-    
-   
+
+
     public function update(Request $req,$id)
     {
         $validator = Validator::make($req->all(), [
@@ -108,7 +108,7 @@ class SowController extends Controller
             'LN' => 'required',
             'Logo' => 'required'
         ]);
-      
+
 
         if ($validator->fails()) {
             return response()->json([
