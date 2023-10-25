@@ -14,6 +14,7 @@ use App\Http\Controllers\Sanctum\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\JWTController;
 use App\Http\Controllers\NassusController;
+use App\Http\Controllers\NassusController2;
 
 use App\Http\Controllers\MyController;
 use App\Http\Controllers\VmController;
@@ -46,9 +47,15 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::post('/getAnnexes', [AnnexesController::class,'getAnnexes']);
     Route::get('/getAnnexes', [AnnexesController::class,'getAnnexes']);
     Route::get('/generate-concat', [concatenateDocxFiles::class,'mergeDocxFiles']);
+
+///nessus1
     Route::post('/getScan', [NassusController::class,'GetAll']);
     Route::Post('/ExportAll', [NassusController::class,'ExportAll']);
     Route::Post('/ImportAll', [NassusController::class,'ImportAll']);
+///nessus2
+    Route::post('/getScan2', [NassusController2::class,'GetAll']);
+    Route::Post('/ExportOne', [NassusController2::class,'ExportOne']);
+    Route::Post('/ImportOne', [NassusController2::class,'ImportOne']);
 
     Route::Post('/uploadanomalie', [UploadanomaliesController::class,'store']);
     Route::Get('/getUpload', [UploadanomaliesController::class,'index']);

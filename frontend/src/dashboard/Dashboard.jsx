@@ -18,6 +18,7 @@ import { useTheme } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import Nessus from '../Nessus';
+import Nessus2 from '../Nessus2';
 import "./datatable.scss";
 import { green } from '@mui/material/colors';
 
@@ -38,14 +39,14 @@ const Dashboard = () => {
     const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
     
     useEffect(() => {
-      axios.get(`http://webapp.smartskills.local/AppGenerator/backend/api/Project`,).then((res) => {
+      axios.get(`http://webapp.smartskills.tn/AppGenerator/backend/api/Project`,).then((res) => {
         if(res.status === 200){
         setProject(res.data.Project);
    }
       });
     }, []);
     useEffect(() => {
-      axios.get(`http://webapp.smartskills.local/AppGenerator/backend/api/get_vm`,).then((res) => {
+      axios.get(`http://webapp.smartskills.tn/AppGenerator/backend/api/get_vm`,).then((res) => {
         if(res.status === 200){
           const inputObject = res.data.Vm;
           const outputArray = Object.keys(inputObject).map(key => ({
@@ -106,8 +107,8 @@ const Dashboard = () => {
 <Link to={`/quality/${id}`} style={{ textDecoration: "none" }}>
           <div className="Pick3" onClick={()=>{sessionStorage.setItem('project_name',name);}} >QualityCheck</div>
           </Link>
-        <div className={`deleteButton ${params.row.quality === 1 ? 'disabled' : ''}`}  onClick={(e) => {
-    if (params.row.quality !== 1) { Export(id,e)}}}>Export</div>
+        <div className={`deleteButton ${params.row.quality === 0 ? 'disabled' : ''}`}  onClick={(e) => {
+    if (params.row.quality !== 0) { Export(id,e)}}}>Export</div>
 
         <div className={`deButton ${params.row.quality === 0 ? 'disabled' : ''}`}   onClick={(e) => {if (params.row.quality !== 0) { Export2(name,id,e)}}}>Export Annexe</div>
 
@@ -126,7 +127,7 @@ const Dashboard = () => {
     const handleDelete = async (e,id) => {
 
       e.preventDefault();
-       await axios.delete(`http://webapp.smartskills.local/AppGenerator/backend/api/Project/${id}/delete`).then(res=>{
+       await axios.delete(`http://webapp.smartskills.tn/AppGenerator/backend/api/Project/${id}/delete`).then(res=>{
         if(res.status === 200)
           {
             
@@ -184,7 +185,7 @@ const Dashboard = () => {
       };
       setExporting(true);
       
-      axios.post(`http://webapp.smartskills.local/AppGenerator/backend/api/generate-word-document/`, dataToSend, {
+      axios.post(`http://webapp.smartskills.tn/AppGenerator/backend/api/generate-word-document/`, dataToSend, {
         responseType: 'blob', // Set responseType to 'blob' to indicate binary data
       })
         .then((response) => {
@@ -233,7 +234,7 @@ const Dashboard = () => {
       
       setExporting(true);
       
-      axios.post(`http://webapp.smartskills.local/AppGenerator/backend/api/generate-annexe3/`, dataToSend, {
+      axios.post(`http://webapp.smartskills.tn/AppGenerator/backend/api/generate-annexe3/`, dataToSend, {
         responseType: 'blob', // Set responseType to 'blob' to indicate binary data
       })
         .then((response) => {
@@ -281,7 +282,7 @@ const Dashboard = () => {
       
       setExporting(true);
       
-      axios.post(`http://webapp.smartskills.local/AppGenerator/backend/api/generateExcelDocument/`, dataToSend, {
+      axios.post(`http://webapp.smartskills.tn/AppGenerator/backend/api/generateExcelDocument/`, dataToSend, {
         responseType: 'blob', // Set responseType to 'blob' to indicate binary data
       })
         .then((response) => {
@@ -345,7 +346,7 @@ const Dashboard = () => {
 
         <DialogContent >
        
-       < Nessus />
+       < Nessus2 />
 
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
