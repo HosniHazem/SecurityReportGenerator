@@ -60,7 +60,7 @@ class AnnexesController extends Controller
             SELECT 'Nombre de Plugins manquants', count(DISTINCT `Plugin ID`) , 'getPluginsFromAllServers' FROM vuln where vuln.upload_id in  (select id from uploadanomalies where uploadanomalies.ID_Projet=?) and `Plugin ID` not in (SELECT id FROM `plugins` )
             HERE2,
             <<< HERE3
-            SELECT Concat (sow.Type," ( ",count(DISTINCT Host) ," hosts ) ") As "Type", CONCAT( count(*), " vulns (Moy par hote: ", ROUND( count(*)/ count(DISTINCT Host)," vulns ) ")) ,'no Link' FROM `vuln` LEFT Join sow on sow.IP_Host=Host WHERE ID_Projet = ? GROUP BY sow.Type;
+            SELECT Concat (sow.Type," ( ",count(DISTINCT Host) ," hosts ) ") As "Type", CONCAT( count(*), " vulns (Moy par hote: ", ROUND( count(*)/ count(DISTINCT Host))," vulns ) ") ,'no Link' FROM `vuln` LEFT Join sow on sow.IP_Host=Host WHERE ID_Projet = ? GROUP BY sow.Type;
             HERE3,
             <<< HERE4
             SELECT Concat (sow.Type," non encore scannee") As "Type", GROUP_CONCAT(DISTINCT IP_Host SEPARATOR '  ;  ' )  ,'Danger !!!' FROM `sow` WHERE Type<>'PC' AND `Projet`= ?  AND IP_Host not in (SELECT DISTINCT Host FROM vuln WHERE ID_Projet=?)  order by sow.Type;
@@ -75,8 +75,11 @@ class AnnexesController extends Controller
             SELECT "Are these Addresses Externals or internals?", IP_Host ,'/SetAsExternal' FROM `sow` WHERE IP_Host NOT REGEXP '^ *172\.|^ *10\.|^ *192\.' AND Type<>'Ext' AND `Projet` = ?;
             HERE7,
             <<< HERE8
+            SELECT "Solution embeded in Description ", concat (count(*), "/", (SELECT count(*) FROM vuln WHERE Risk in ("FAILED" , "PASSED") AND  `ID_Projet` = ?)), "Compliance report should be better" FROM vuln WHERE POSITION(Solution IN Description)>0  AND   Risk in ("FAILED" , "PASSED") AND  `ID_Projet` = ? ;
+            HERE8,
+            <<< HERE9
             SELECT Type, IP_Host ,'SoW to be rechecked' FROM `sow` WHERE  `Projet` = ? ORDER BY Type;
-            HERE8
+            HERE9,
     );
     /* */
         //$listOfCombinedItems()
@@ -535,7 +538,7 @@ public function generateAnnexes (Request $request, $AnnexA)
                          else $nbrOfRowsAddedToFile+= self::generateGlobalTableOfRows($templateProcessor,$SqlREQUEST, $prj_id,$keyToDuplicateRows[$i], $ColoredRowsArrays[$i],$RowOfColoring[$i], $prefixTLT[$i]);
                          if ($i==4) $nbrOfRowsAddedToFile+= self::generateGlobalTableOfRows($templateProcessor, str_replace("VulnDetails_", "VulnSummary_", $SqlREQUEST), $prj_id,"VulnSummary_RISK", array("PASSED", "FAILED"),"VulnSummary_RISK", $prefixTLT[$i]);
                       }
-              $outputFileName = $AnnexAPrefixFileName.$prj_id .'_tchRpt_Annx_' . self::$AnnexesLetters[$Annex] .$iteration."_".self::$AnnexesTitles[$Annex]."_".$customer->SN. '.docx';
+              $outputFileName = $AnnexAPrefixFileName .'_tchRpt_Annx_' . self::$AnnexesLetters[$Annex] .$iteration."_".self::$AnnexesTitles[$Annex]."_".$customer->SN. '.docx';
               $outputPath = public_path('storage/annexes/' . $outputFileName);
               $returnedArray[$prj_id][self::$AnnexesLetters[$Annex]][] = $nbrOfRowsAddedToFile;
               if($nbrOfRowsAddedToFile>0)
