@@ -86,19 +86,9 @@ class ProjectController extends Controller
     }
     public function update(Request $req,$id)
     {
-        $validator = Validator::make($req->all(), [
-            'Nom' => 'required',
-            'URL' => 'required',
-            'Description' => 'required'
-        ]);
 
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 422,
-                'validate_err' => $validator->getMessageBag(),
-            ]);
-        } else {
+
 
         $item =Project::find($id);
 
@@ -106,16 +96,18 @@ class ProjectController extends Controller
             $item->Nom=$req->Nom;
             $item->URL=$req->URL;
             $item->Description=$req->Description;
+            $item->QualityChecked=$req->QualityChecked;
+            $item->QualityCheckedDateTime=$req->QualityCheckedDateTime;
+            $item->QualityCheckedMessage=$req->QualityCheckedMessage;
+            $item->Preuve=$req->Preuve;
         $item->update();
         return response()->json(['message'=>'done','status' => 200]);
                 }
-
-
                 else
                 {
                 return response()->json(['message'=>'not done','status' => 404]);
                 }
-            }
+
     }
     public function destroy($id)
     {

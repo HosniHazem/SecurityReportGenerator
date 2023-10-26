@@ -23,6 +23,7 @@ use App\Http\Controllers\TestController;
 use App\Http\Controllers\GlbPipController;
 use App\Http\Controllers\SowController;
 use App\Http\Controllers\AuditPreviousAuditController;
+use App\Http\Controllers\ImageController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -107,4 +108,6 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::get('/get-audit-previous-audits/{id}', [AuditPreviousAuditController::class, 'show']);
     Route::put('/update-audit-previous-audits/{id}', [AuditPreviousAuditController::class, 'update']);
     Route::delete('/delete-audit-previous-audits/{id}', [AuditPreviousAuditController::class, 'destroy']);
+
+    Route::Post('/Uploadfile', [ImageController::class, 'uploadimage']);
 

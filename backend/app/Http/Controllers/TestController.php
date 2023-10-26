@@ -18,6 +18,9 @@ use PhpOffice\PhpWord\TemplateProcessor;
 use PhpOffice\PhpWord\Element\Chart;
 use Illuminate\Support\Facades\DB;
 use App\Models\Vm;
+use PhpOffice\PhpWord\PhpWord;
+use PhpOffice\PhpWord\IOFactory;
+use App\CustomPhpWord\CustomPhpWord;
 
 class TestController extends Controller
 {
@@ -77,9 +80,19 @@ public static function translateAllPlugins()
     public function get()
     {
 
+ // HTML content to be inserted (replace this with your HTML)
+ $htmlContent = '<p>Hello <strong>World</strong>!</p> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII" width="714" height="293" />';
 
+ $templatePath1 = public_path('1.docx');
+ $templateProcessor1 = new TemplateProcessor($templatePath1);
 
-        sleep(100);
+ // Get XML content from HTML
+ $xmlContent = CustomPhpWord::getXmlFromHtml($htmlContent);
+
+ // Optionally, you can do something with $xmlContent
+
+ return response()->json(['xml_content' => $xmlContent]);
 
 }
+
 }

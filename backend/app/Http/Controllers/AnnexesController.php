@@ -90,9 +90,10 @@ class AnnexesController extends Controller
         $qualityChecher[0] = array("Item" , "Valeur", "link");
         $i=0;
         foreach ($sqls as $index => $sql) {
-
-            {
+            if (in_array($index, [4,5,6,8])){
                 $returnedRows=DB::select($sql,array($req->project_id, $req->project_id )) ;
+            }else {
+                $returnedRows=DB::select($sql,array($req->project_id)) ;
             }
 
             foreach ($returnedRows as $singleRow)
