@@ -51,13 +51,13 @@ class AnnexesController extends Controller
         $actionlink = array("translatePlugins", "translateVulns", "getPluginsFromAllServers"," ", "", "", "", "", "", "");
         $sqls = array(
             <<< HERE0
-            SELECT  'Nombre de Plugins non traduit', count(DISTINCT `Plugin ID`), 'translatePlugins'  FROM vuln where vuln.upload_id in  (select id from uploadanomalies where uploadanomalies.ID_Projet=?) and `Plugin ID` in (SELECT id FROM `plugins` WHERE `translated`<>'yes' )
+            SELECT  'Nombre de Plugins non traduit', count(DISTINCT `Plugin ID`), '/translatePlugins'  FROM vuln where vuln.upload_id in  (select id from uploadanomalies where uploadanomalies.ID_Projet=?) and `Plugin ID` in (SELECT id FROM `plugins` WHERE `translated`<>'yes' )
             HERE0,
             <<< HERE1
-            SELECT 'Nombre de Vulns non traduit', count(DISTINCT `id`),'translateVulns'  FROM vuln where vuln.upload_id in  (select id from uploadanomalies where uploadanomalies.ID_Projet=?) and Risk in ('PASSED', 'FAILED') AND  `BID`<>'yes'
+            SELECT 'Nombre de Vulns non traduit', count(DISTINCT `id`),'/translateVulns'  FROM vuln where vuln.upload_id in  (select id from uploadanomalies where uploadanomalies.ID_Projet=?) and Risk in ('PASSED', 'FAILED') AND  `BID`<>'yes'
             HERE1,
             <<< HERE2
-            SELECT 'Nombre de Plugins manquants', count(DISTINCT `Plugin ID`) , 'getPluginsFromAllServers' FROM vuln where vuln.upload_id in  (select id from uploadanomalies where uploadanomalies.ID_Projet=?) and `Plugin ID` not in (SELECT id FROM `plugins` )
+            SELECT 'Nombre de Plugins manquants', count(DISTINCT `Plugin ID`) , '/getPluginsFromAllServers' FROM vuln where vuln.upload_id in  (select id from uploadanomalies where uploadanomalies.ID_Projet=?) and `Plugin ID` not in (SELECT id FROM `plugins` )
             HERE2,
             <<< HERE3
             SELECT Concat (sow.Type," ( ",count(DISTINCT Host) ," hosts ) ") As "Type", CONCAT( count(*), " vulns (Moy par hote: ", ROUND( count(*)/ count(DISTINCT Host))," vulns ) ") ,'no Link' FROM `vuln` LEFT Join sow on sow.IP_Host=Host WHERE ID_Projet = ? GROUP BY sow.Type;
@@ -69,17 +69,20 @@ class AnnexesController extends Controller
             SELECT "Nbr des actifs hors perimetres / Nbr Vulns", CONCAT(COUNT(DISTINCT Host),  '  /  ' , count(*))  ,'Information' FROM `vuln` WHERE Host NOT IN (SELECT DISTINCT IP_Host From sow WHERE  Projet = ? ) AND vuln.ID_Projet= ?
             HERE5,
             <<< HERE6
-            SELECT "Liste des actifs hors perimetres", GROUP_CONCAT(DISTINCT Host SEPARATOR '  ;  ' )  ,'Information' FROM `vuln` WHERE Host NOT IN (SELECT DISTINCT IP_Host From sow WHERE  Projet = ? ) AND vuln.ID_Projet= ?
+            SELECT "Liste des actifs hors perimetres", GROUP_CONCAT(DISTINCT Host SEPARATOR '  ;  ' )  ,'/markAsOutOfScope' FROM `vuln` WHERE Host NOT IN (SELECT DISTINCT IP_Host From sow WHERE  Projet = ? ) AND vuln.ID_Projet= ?
             HERE6,
             <<< HERE7
-            SELECT "Are these Addresses Externals or internals?", IP_Host ,'/SetAsExternal' FROM `sow` WHERE IP_Host NOT REGEXP '^ *172\.|^ *10\.|^ *192\.' AND Type<>'Ext' AND `Projet` = ?;
+            SELECT "Are these Addresses Externals or internals?", IP_Host ,'/setAsExternal' FROM `sow` WHERE IP_Host NOT REGEXP '^ *172\.|^ *10\.|^ *192\.' AND Type<>'Ext' AND `Projet` = ?;
             HERE7,
             <<< HERE8
-            SELECT "Solution embeded in Description ", concat (count(*), "/", (SELECT count(*) FROM vuln WHERE Risk in ("FAILED" , "PASSED") AND  `ID_Projet` = ?)), "Compliance report should be better" FROM vuln WHERE POSITION(Solution IN Description)>0  AND   Risk in ("FAILED" , "PASSED") AND  `ID_Projet` = ? ;
+            SELECT "Solution embeded in Description ", concat (count(*), "/", (SELECT count(*) FROM vuln WHERE Risk in ("FAILED" , "PASSED") AND  `ID_Projet` = ?)), "/cleanDescCompliance" FROM vuln WHERE POSITION(Solution IN Description)>0  AND   Risk in ("FAILED" , "PASSED") AND  `ID_Projet` = ? ;
             HERE8,
             <<< HERE9
-            SELECT Type, IP_Host ,'SoW to be rechecked' FROM `sow` WHERE  `Projet` = ? ORDER BY Type;
+            SELECT 'IP_Host should not contain spaces', IP_Host ,'/removeSpaceHOST_IP' FROM `sow` WHERE  IP_Host LIKE '% %' AND `Projet` = ? ORDER BY Type;
             HERE9,
+            <<< HERE10
+            SELECT Type, IP_Host ,'SoW (sauf PC) to be rechecked' FROM `sow` WHERE  Type<>'PC' AND `Projet` = ? ORDER BY Type;
+            HERE10,
     );
     /* */
         //$listOfCombinedItems()
@@ -756,20 +759,41 @@ public static function ipCheckForProject(Request $req)
         }
     print_r($PublicIPs);
 }
-public static function setExtIPs(Request $req)
+public static function setAsExternal(Request $req)
 {
-    $prj_id=17;
-    $PublicIPs= [];
-    $AllIPHosts=  DB::select("SELECT `IP_Host` FROM sow WHERE  sow.Projet=? ", [$prj_id, $prj_id]);
-    foreach ($AllIPHosts as $Host)
-        {
-
-            if(self::ipCheck($Host->IP_Host) == true)  $PublicIPs[]=$Host->IP_Host;
-        }
-    print_r($PublicIPs);
+    $prj_id=$req->prj_id;
+    //$re = DB::update("UPDATE sow SET ?='?' WHERE  ?=?;", [$req->attrName, $req->attrValue,$req->idFiledName, $req->idFieldValue]);
+    $re = DB::update("UPDATE sow SET Type='Ext' WHERE  ID='".$req->fieldsValue."';");
+    return true;
 }
 
+public static function cleanDescCompliance(Request $req)
+{
+
+    //$re = DB::update("UPDATE sow SET ?='?' WHERE  ?=?;", [$req->attrName, $req->attrValue,$req->idFiledName, $req->idFieldValue]);
+    $re = DB::update("UPDATE `vuln` SET `Description`=REPLACE (REPLACE (Description, Solution, ''), 'Solution:', '') WHERE Risk in ('FAILED' , 'PASSED') and `ID_Projet`=".$req->prj_id);
+    return true;
+}
+public static function removeSpaceHOST_IP(Request $req)
+{
+
+    //$re = DB::update("UPDATE sow SET ?='?' WHERE  ?=?;", [$req->attrName, $req->attrValue,$req->idFiledName, $req->idFieldValue]);
+    $re = DB::update("UPDATE `sow` SET `IP_Host`=TRIM(`IP_Host`)");
+    return true;
+}
+public static function markAsOutOfScope(Request $req)
+{
+
+    //$re = DB::update("UPDATE sow SET ?='?' WHERE  ?=?;", [$req->attrName, $req->attrValue,$req->idFiledName, $req->idFieldValue]);
+    $re = DB::update("UPDATE `sow` SET `Type`='OutOfScope' WHERE ID IN (".$req->fieldsValue.") Projet=".$req->prj_id);
+    return true;
+}
+/*
 
 
+Route::get('/cleanDescCompliance', [AnnexesController::class,'cleanDescCompliance']);
+Route::get('/removeSpaceHOST_IP', [AnnexesController::class,'removeSpaceHOST_IP']);
+Route::get('/markAsOutOfScope', [AnnexesController::class,'markAsOutOfScope']);
+*/
 
 }
