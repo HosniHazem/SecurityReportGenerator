@@ -113,7 +113,7 @@ $DefaultQuery = array (
     if(SUBSTRING(`Name`, 1, 28)="Vérifications de conformité", Substring(`Description`, 1, LEAST (300,LOCATE("[",`Description`)+8)), `Name`) AS VulnDetails_Name_ToBeClean,
     `CVSS v3.0 Base Score`  AS VulnDetails_CVSS,
     GROUP_CONCAT(DISTINCT vuln.Host) AS VulnDetails_Hosts,
-    COUNT(DISTINCT vuln.Host SEPARATOR '\n') AS VulnDetails_Count,
+    COUNT(DISTINCT vuln.Host) AS VulnDetails_Count,
     GROUP_CONCAT(DISTINCT vuln.Port) AS VulnDetails_Hosts_ports,
     vuln.description AS VulnDetails_Desc_ToBeClean,
     vuln.`Plugin ID` AS VulnDetails_pluginID,
@@ -148,7 +148,7 @@ $SqlQueriesMarks = array(
     "6" => array(0=>" and (sow.Type='Serveur' OR sow.Type='Apps') AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='Apps')", 1=>""),
     "7" => array(0=>" and sow.Type='Serveur' AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='Mail')", 1=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
     "8" => array(0=>" and sow.Type='Serveur'  AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='Voip')", 1=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
-    //"99" => array(0=>"", 1=>"", 2=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
+    "9" => array(0=>" and sow.Type='OutOfScope'", 1=>"", 2=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
 
 
 );

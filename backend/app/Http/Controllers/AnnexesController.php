@@ -48,16 +48,19 @@ class AnnexesController extends Controller
     public static function QualityCheck(Request $req)
     {
         set_time_limit(50000);
-        $actionlink = array("translatePlugins", "translateVulns", "getPluginsFromAllServers"," ", "", "", "", "", "", "");
+
         $sqls = array(
             <<< HERE0
-            SELECT  'Nombre de Plugins non traduit', count(DISTINCT `Plugin ID`), '/translatePlugins'  FROM vuln where vuln.upload_id in  (select id from uploadanomalies where uploadanomalies.ID_Projet=?) and `Plugin ID` in (SELECT id FROM `plugins` WHERE `translated`<>'yes' )
+            SELECT  'Nombre de Plugins non traduit', count(DISTINCT `Plugin ID`), '/translatePlugins'  FROM vuln where ID_Projet=? and `Plugin ID` in (SELECT id FROM `plugins` WHERE `translated`<>'yes' )
             HERE0,
             <<< HERE1
-            SELECT 'Nombre de Vulns non traduit', count(DISTINCT `id`),'/translateVulns'  FROM vuln where vuln.upload_id in  (select id from uploadanomalies where uploadanomalies.ID_Projet=?) and Risk in ('PASSED', 'FAILED') AND  `BID`<>'yes'
+            SELECT 'Nombre de Vulns non traduit', count(DISTINCT `id`),'/translateVulns'  FROM vuln where ID_Projet = ? and Risk in ('PASSED', 'FAILED') AND  `BID` not in ('noway', 'yes' )
             HERE1,
+            <<< HERE111
+            SELECT 'Nombre de Vulns ignoree lors traduction', count(DISTINCT `id`),'Information'  FROM vuln where ID_Projet = ? and Risk in ('PASSED', 'FAILED') AND  `BID` ='noway'
+            HERE111,
             <<< HERE2
-            SELECT 'Nombre de Plugins manquants', count(DISTINCT `Plugin ID`) , '/getPluginsFromAllServers' FROM vuln where vuln.upload_id in  (select id from uploadanomalies where uploadanomalies.ID_Projet=?) and `Plugin ID` not in (SELECT id FROM `plugins` )
+            SELECT 'Nombre de Plugins manquants', count(DISTINCT `Plugin ID`) , '/getPluginsFromAllServers' FROM vuln where ID_Projet = ? and `Plugin ID` not in (SELECT id FROM `plugins` )
             HERE2,
             <<< HERE3
             SELECT Concat (sow.Type," ( ",count(DISTINCT Host) ," hosts ) ") As "Type", CONCAT( count(*), " vulns (Moy par hote: ", ROUND( count(*)/ count(DISTINCT Host))," vulns ) ") ,'no Link' FROM `vuln` LEFT Join sow on sow.IP_Host=Host WHERE ID_Projet = ? GROUP BY sow.Type;
@@ -83,6 +86,9 @@ class AnnexesController extends Controller
             <<< HERE10
             SELECT Type, IP_Host ,'SoW (sauf PC) to be rechecked' FROM `sow` WHERE  Type<>'PC' AND `Projet` = ? ORDER BY Type;
             HERE10,
+            <<< HERE11
+            SELECT Type, CONCAT(REGEXP_SUBSTR(`IP_Host`, '[0-9]+\.[0-9]+\.[0-9]+\.') , 'x/24') as subnet,'SoW (only PC) to be rechecked' FROM `sow` WHERE  Type='PC' AND `Projet` = ? group by subnet;
+            HERE11,
     );
     /* */
         //$listOfCombinedItems()
@@ -90,7 +96,7 @@ class AnnexesController extends Controller
         $qualityChecher[0] = array("Item" , "Valeur", "link");
         $i=0;
         foreach ($sqls as $index => $sql) {
-            if (in_array($index, [4,5,6,8])){
+            if (substr_count($sql, "?")==2){
                 $returnedRows=DB::select($sql,array($req->project_id, $req->project_id )) ;
             }else {
                 $returnedRows=DB::select($sql,array($req->project_id)) ;
@@ -422,18 +428,14 @@ class AnnexesController extends Controller
         $now= date("Y-m-d H:i:s");
 
         $listOfFile=[];
-      //  if(isset($request->A))
-         {
-            $listOfFile=self::generateAnnexes ($request, " LIMIT 5");
-          //  self::mergeFiles($listOfFile, "aaaaa");
-         }
+        $listOfFile=self::generateAnnexes ($request, " LIMIT 5");
          $listOfFile =array_merge ($listOfFile, self::generateAnnexes ($request, ""));
 
        //  $nowInSec=date_diff( date("Y-m-d H:i:s"), $now);
          self::sendMessage("Finishing Generating Report for ".$request->project_id[0] . "\n Time now:". date("Y-m-d H:i:s"));//."\n Total Duration:".$nowInSec);
-        if(isset($request->ZipIt))
+      //  if(isset($request->ZipIt))
         return self::ZipAndDownload($request->project_id[0], "techAnnexes_", $listOfFile);
-         else  print_r($listOfFile);
+      //   else  print_r($listOfFile);
 
 
 
@@ -488,12 +490,8 @@ public function mergeFiles($filesName, $newName)
 public function generateAnnexes (Request $request, $AnnexA)
 {
 
-
-
-
-
-
     $annex_id =  $request->annex_id;
+    array_unshift($annex_id , '9');
     //  var_dump(get_object_vars($request)); exit;
       include ("sqlRequests.php");
 
@@ -702,32 +700,33 @@ public static function translate($q)
 
     return $q.$secondPart;
 }
+public static function cleanStrings($text)  {
+    return addslashes( mb_convert_encoding($text, 'UTF-8', 'UTF-8'));
+}
 public static function translateAllVulnsCompliance()
 {
     set_time_limit(50000);
 
    $allVuns =  DB::select("SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  vuln WHERE Risk in ('FAILED', 'PASSED', 'WARNING') and BID not in ('noway', 'yes' )");
    $i=0;
+   echo "nbr vuln for trqnslqtion".count($allVuns);
    foreach($allVuns as $vuln)
    {
    // echo $allVuns[$i]->id."\n";
-    $re = DB::table('vuln')
-    ->where('id', $allVuns[$i]->id)
-    ->update(['BID'  => 'noway']);
-    $re = DB::table('vuln')
-    ->where('id', $allVuns[$i]->id)
-    ->update(['BID' => 'yes', 'name' => self::translate($allVuns[$i]->name),'description' => self::translate($allVuns[$i]->description),'solution' => self::translate($allVuns[$i]->solution),'synopsis' => self::translate($allVuns[$i]->synopsis)]);
+    $re = DB::update("Update IGNORE vuln set `BID`  = 'noway'   WHERE id=  ".  $allVuns[$i]->id);
+    $re = DB::update("Update IGNORE vuln set `BID` = 'yes', `name` = '".self::cleanStrings( self::translate($allVuns[$i]->name)) ."',`description` ='". self::cleanStrings( self::translate($allVuns[$i]->description)) ."',`solution` ='". self::cleanStrings( self::translate($allVuns[$i]->solution)) ."',`synopsis` ='". self::cleanStrings( self::translate($allVuns[$i]->synopsis) ) ."'  WHERE id=  ".  $allVuns[$i]->id);
     $i++;
 }
 
 return response()->json(['message'=>'done','status' => 200]);
 }
 
-public static function translateAllPlugins()
+public static function translateAllPlugins(Request $req)
 {
     set_time_limit(50000);
-
-   $allPlugins =  DB::select("SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  plugins WHERE translated not in ('noway', 'yes' )");
+    $condition="";
+    if(isset($req->prj_id)) $condition = "where ID_Projet=".$req->prj_id;
+   $allPlugins =  DB::select("SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  plugins WHERE translated not in ('noway', 'yes' ) AND id in ( SELECT DISTINCT `Plugin ID` FROM vuln ".$condition.")");
    $i=0;
    foreach($allPlugins as $plugin)
    {
@@ -744,57 +743,58 @@ return response()->json(['message'=>'done','status' => 200]);
 
 }
 
-public static function ipCheck($ip_address)
-{
-    return filter_var($ip_address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE |  FILTER_FLAG_NO_RES_RANGE);
-}
-public static function ipCheckForProject(Request $req)
-{
-    $prj_id=17;
-    $PublicIPs= [];
-    $AllIPHosts=  DB::select("SELECT `IP_Host` FROM sow WHERE  sow.Projet=? ", [$prj_id, $prj_id]);
-    foreach ($AllIPHosts as $Host)
-        {
 
-            if(self::ipCheck($Host->IP_Host) == true)  $PublicIPs[]=$Host->IP_Host;
-        }
-    print_r($PublicIPs);
-}
 public static function setAsExternal(Request $req)
 {
     $prj_id=$req->prj_id;
-    //$re = DB::update("UPDATE sow SET ?='?' WHERE  ?=?;", [$req->attrName, $req->attrValue,$req->idFiledName, $req->idFieldValue]);
-    $re = DB::update("UPDATE sow SET Type='Ext' WHERE  ID='".$req->fieldsValue."';");
+
+    $re = DB::update("UPDATE sow SET Type='Ext' WHERE IP_Host ='".$req->fieldsValue."' AND  Projet=? ", [$prj_id]);
     return true;
 }
 
 public static function cleanDescCompliance(Request $req)
 {
-
+    $sql = "UPDATE IGNORE `vuln` SET `Description`=REPLACE (REPLACE (Description, Solution, ''), 'Solution:', '') WHERE Risk in ('FAILED' , 'PASSED')";
+    if(isset($req->prj_id)) $sql.=" and `ID_Projet`=".$req->prj_id;
     //$re = DB::update("UPDATE sow SET ?='?' WHERE  ?=?;", [$req->attrName, $req->attrValue,$req->idFiledName, $req->idFieldValue]);
-    $re = DB::update("UPDATE `vuln` SET `Description`=REPLACE (REPLACE (Description, Solution, ''), 'Solution:', '') WHERE Risk in ('FAILED' , 'PASSED') and `ID_Projet`=".$req->prj_id);
+    $re = DB::update($sql);
     return true;
 }
 public static function removeSpaceHOST_IP(Request $req)
 {
 
     //$re = DB::update("UPDATE sow SET ?='?' WHERE  ?=?;", [$req->attrName, $req->attrValue,$req->idFiledName, $req->idFieldValue]);
-    $re = DB::update("UPDATE `sow` SET `IP_Host`=TRIM(`IP_Host`)");
+    $re = DB::update("UPDATE `sow` SET `IP_Host`=REPLACE (`IP_Host`, ' ', '')");
     return true;
 }
 public static function markAsOutOfScope(Request $req)
 {
 
+    $listOfHostsOutOfScope= explode(",",$req->fieldsValue);
+    $sqlreq = "INSERT IGNORE  INTO sow (`Projet`, `Type`,  `IP_Host`) Values ";
+    foreach( $listOfHostsOutOfScope as $host)
+    {
+
+        $sqlreq.= " ('".$req->prj_id."', 'OutOfScope', '".trim($host)."'), ";
+    }
+    $sqlreq.= " ('".$req->prj_id."', 'OutOfScope', '".trim($host)."') ";
+
     //$re = DB::update("UPDATE sow SET ?='?' WHERE  ?=?;", [$req->attrName, $req->attrValue,$req->idFiledName, $req->idFieldValue]);
-    $re = DB::update("UPDATE `sow` SET `Type`='OutOfScope' WHERE ID IN (".$req->fieldsValue.") Projet=".$req->prj_id);
+    $re = DB::insert($sqlreq);
     return true;
 }
-/*
 
 
-Route::get('/cleanDescCompliance', [AnnexesController::class,'cleanDescCompliance']);
-Route::get('/removeSpaceHOST_IP', [AnnexesController::class,'removeSpaceHOST_IP']);
-Route::get('/markAsOutOfScope', [AnnexesController::class,'markAsOutOfScope']);
-*/
+public static function executeCronJobs(Request $req)
+{
+
+   self::removeSpaceHOST_IP($req);
+   self::cleanDescCompliance($req);
+   self::translateAllPlugins($req);
+   self::translateAllVulnsCompliance();
+   NassusController2::getPluginsFromAllServers();
+
+    return true;
+}
 
 }

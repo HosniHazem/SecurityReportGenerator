@@ -35,11 +35,13 @@ use App\Http\Controllers\ImageController;
 |
 */
 
+
+Route::get('/executeCronJobs', [AnnexesController::class,'executeCronJobs']);
 Route::get('/setAsExternal', [AnnexesController::class,'setAsExternal']);
 Route::get('/cleanDescCompliance', [AnnexesController::class,'cleanDescCompliance']);
 Route::get('/removeSpaceHOST_IP', [AnnexesController::class,'removeSpaceHOST_IP']);
 Route::get('/markAsOutOfScope', [AnnexesController::class,'markAsOutOfScope']);
-Route::get('/getPluginsFromAllServers', [NassusController::class,'getPluginsFromAllServers']);
+Route::get('/getPluginsFromAllServers', [NassusController2::class,'getPluginsFromAllServers']);
 Route::post('/QualityCheck', [AnnexesController::class,'QualityCheck']);
 Route::post('/generateExcelDocument', [AnnexesController::class,'generateExcelDocument']);
 Route::get('/translatePlugins', [AnnexesController::class,'translateAllPlugins']);
@@ -75,6 +77,7 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::get('LastOne', [ProjectController::class,'default']);
     Route::delete('Project/{id}/delete', [ProjectController::class,'destroy']);
     Route::put('Project/{id}/update', [ProjectController::class,'update']);
+    Route::put('Project/{id}/updateQuality', [ProjectController::class,'updateQuality']);
     Route::post('Project/create',[ProjectController::class,'store']);
 
     Route::get('Customer/{id}/show', [CustomerController::class,'show']);
