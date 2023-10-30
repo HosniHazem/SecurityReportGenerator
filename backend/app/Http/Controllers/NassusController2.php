@@ -30,7 +30,8 @@ class NassusController2 extends Controller
 
     public static function getApiKeysForIP ($ip)
     {
-        $vm = Vm::where('IP_Port', $ip)->first();
+        $part = explode(":", $ip);
+        $vm = Vm::where('IP_Host', $part[0])->first();
       //  print_r($vm);exit;
         if(isset($vm->accessKey)) return "accessKey={$vm->accessKey}; secretKey={$vm->secretKey}";
         else return  0;
@@ -215,14 +216,6 @@ $filesJson = $data;
 
 
 
-    public function getPluginsFromAllServers(Request $request)
-    {
-       $allvm=Vm::all();
-       $prj = $request->project_id;
-        foreach($allvm as $vm){ self::getPlugins($vm, $prj);}
-
-        return response()->json(['message'=>'done','status' => 200]);
-    }
 
     public function ImportOne(Request $request)
     {
@@ -372,15 +365,40 @@ $filesJson = $data;
         return self::getPlugins($request->ip);
     }
 
+    public function getPluginsFromAllServers(Request $request)
+    {
+        $allvm = VmController::index();
+        $onlineVMs = [];
+        $data = $allvm->getData();
+        foreach ($data->Vm as $vm) {
+            if ($vm->answer === 'Online') {
+                $onlineVMs[] = $vm;
+            }
+        }
+
+        $prj = $request->prj_id;
+
+        foreach ($onlineVMs as $vm) {
+            $needed = Vm::where('IP_Host', explode(":", $vm->ip))->first();
+            self::getPlugins($needed, $prj);
+        }
+
+        return response()->json(['message' => 'done', 'status' => 200]);
+    }
 
 public static function getPlugins ($ip,$prj_id)
 {
     AnnexesController::sendMessage("[Nessus_Plugins] Used Server: ". $ip);
-    try {
-                $ApiKeys = self::getApiKeysForIP($ip);
+
+                $ApiKeys = self::getApiKeysForIP($ip->IP_Host.":".$ip->IP_Port);
                 // Get plugin IDs not present in the local database
-                $pluginIds =  DB::select("SELECT DISTINCT `Plugin ID`  as PluginID FROM vuln  WHERE `Plugin ID` NOT IN (SELECT DISTINCT id FROM  plugins)");
-                if(isset($prj_id)) $pluginIds.=" and `ID_Projet`=".$prj_id;
+                $statment = "SELECT DISTINCT `Plugin ID` AS PluginID FROM vuln WHERE `Plugin ID` NOT IN (SELECT DISTINCT id FROM plugins)";
+
+                if (isset($prj_id)) {
+                    $statment .= " AND `ID_Projet` = " . $prj_id;
+                }
+                $pluginIds =  DB::select($statment);
+
 
 
                 foreach ($pluginIds as $plugin) {
@@ -391,10 +409,10 @@ public static function getPlugins ($ip,$prj_id)
                     'verify' => false,
                 ])->withHeaders([
                     'X-ApiKeys' => $ApiKeys,
-                ])->get("https://{$ip}/plugins/plugin/{$pid}");
+                ])->get("https://{$ip->IP_Host}:{$ip->Port}/plugins/plugin/{$pid}");
 
                 $responseData = json_decode($response->body(), true);
-                if(isset($responseData))
+                if(isset($responseData['attributes']))
                 {
                     $attributes = $responseData['attributes'];
 
@@ -456,14 +474,11 @@ public static function getPlugins ($ip,$prj_id)
             else
             {
 
-                AnnexesController::sendMessage($ip."[Nessus_Plugins_Problem] ". $pid ." Plugin was not found in nessus in the project with id ".$prj_id);
+                AnnexesController::sendMessage($ip->Name."[Nessus_Plugins_Problem] ". $pid ." Plugin was not found in nessus in the project with id ".$prj_id);
             }
                 // Save the model
 
 
-}
-} catch (\Exception $e) {
-    return response()->json(['error' => $e->getMessage()]);
 }
 }
 }
