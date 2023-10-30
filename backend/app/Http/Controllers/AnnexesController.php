@@ -62,6 +62,9 @@ class AnnexesController extends Controller
             <<< HERE2
             SELECT 'Nombre de Plugins manquants', count(DISTINCT `Plugin ID`) , '/getPluginsFromAllServers' FROM vuln where ID_Projet = ? and `Plugin ID` not in (SELECT id FROM `plugins` )
             HERE2,
+            <<< HERE21
+            SELECT "Solution embeded in Description ", concat (count(*), "/", (SELECT count(*) FROM vuln WHERE Risk in ("FAILED" , "PASSED") AND  `ID_Projet` = ?)), "/cleanDescCompliance" FROM vuln WHERE POSITION(Solution IN Description)>0  AND   Risk in ("FAILED" , "PASSED") AND  `ID_Projet` = ? ;
+            HERE21,
             <<< HERE3
             SELECT Concat (sow.Type," ( ",count(DISTINCT Host) ," hosts ) ") As "Type", CONCAT( count(*), " vulns (Moy par hote: ", ROUND( count(*)/ count(DISTINCT Host))," vulns ) ") ,'no Link' FROM `vuln` LEFT Join sow on sow.IP_Host=Host WHERE ID_Projet = ? GROUP BY sow.Type;
             HERE3,
@@ -75,11 +78,9 @@ class AnnexesController extends Controller
             SELECT "Liste des actifs hors perimetres", GROUP_CONCAT(DISTINCT Host SEPARATOR '  ,  ' )  ,'/markAsOutOfScope' FROM `vuln` WHERE Host NOT IN (SELECT DISTINCT IP_Host From sow WHERE  Projet = ? ) AND vuln.ID_Projet= ?
             HERE6,
             <<< HERE7
-            SELECT "Are these Addresses Externals or internals?", IP_Host ,'/setAsExternal' FROM `sow` WHERE IP_Host NOT REGEXP '^ *172\.|^ *10\.|^ *192\.' AND Type<>'Ext' AND `Projet` = ?;
+            SELECT "Are these Addresses Externals or internals", IP_Host ,'/setAsExternal' FROM `sow` WHERE IP_Host NOT REGEXP '^ *172\.|^ *10\.|^ *192\.' AND Type<>'Ext' AND `Projet` = ?;
             HERE7,
-            <<< HERE8
-            SELECT "Solution embeded in Description ", concat (count(*), "/", (SELECT count(*) FROM vuln WHERE Risk in ("FAILED" , "PASSED") AND  `ID_Projet` = ?)), "/cleanDescCompliance" FROM vuln WHERE POSITION(Solution IN Description)>0  AND   Risk in ("FAILED" , "PASSED") AND  `ID_Projet` = ? ;
-            HERE8,
+
             <<< HERE9
             SELECT 'IP_Host should not contain spaces', IP_Host ,'/removeSpaceHOST_IP' FROM `sow` WHERE  IP_Host LIKE '% %' AND `Projet` = ? ORDER BY Type;
             HERE9,
@@ -107,7 +108,6 @@ class AnnexesController extends Controller
                 $i++;
                 foreach ($singleRow as $key => $value)
                 {
-
                     //$qualityChecher[$i] [] = $key;
                     $qualityChecher[$i] [] = $value;
 
@@ -666,27 +666,14 @@ return response()->json(['error' => 'Failed to create zip archive'], 500);
 public static function translate($q)
 {
     if(strlen($q) <10)  return $q;
-    //$q= preg_replace('/[\x00-\x1F\x7F]/u', '', $q);
-   // $q=htmlspecialchars($q);
-    //echo $q;
- //   $positionHttp = strpos($q, "http");
- $q=urlencode($q);
+/*
     $q= str_replace("http://", " ",$q);
     $q= str_replace("https://", " ",$q);
+*/
+    $q=urlencode(addslashes($q));
 
-    $secondPart="";
-   // echo $positionHttp."\n";
- /*   if($positionHttp >0)
-    {
-        $secondPart = substr($q,$positionHttp , strlen($q)-$positionHttp);
-      //  echo $secondPart."@@@@@@@@@@@@\n";
-        $q = substr($q,0,$positionHttp);
-      //  echo $q."@@@@@@@@@@@@€€€€€€\n";
-    }*/
-   // echo $q;
-
-    $res= @file_get_contents("https://translate.googleapis.com/translate_a/single?client=gtx&ie=UTF-8&oe=UTF-8&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&dt=t&dt=at&sl=en&tl=fr&hl=hl&q=".urlencode($q), $_SERVER['DOCUMENT_ROOT']."/transes.html");
-   // var_dump($res);
+    $res= @file_get_contents("https://translate.googleapis.com/translate_a/single?client=gtx&ie=UTF-8&oe=UTF-8&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&dt=t&dt=at&sl=en&tl=fr&hl=hl&q=".$q, $_SERVER['DOCUMENT_ROOT']."/transes.html");
+    // var_dump($res);
 
     if(isset(json_decode($res)[0][0][0]))
     {
@@ -697,24 +684,44 @@ public static function translate($q)
         }
 
     }
+    return stripslashes($q);
+}
 
-    return $q.$secondPart;
-}
+
 public static function cleanStrings($text)  {
-    return addslashes( mb_convert_encoding($text, 'UTF-8', 'UTF-8'));
+    //return addslashes( mb_convert_encoding($text, 'UTF-8', 'UTF-8'));
+
+    return (  preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/u', ' ', $text));
 }
-public static function translateAllVulnsCompliance()
+public static function translateAllVulnsCompliance(Request $req)
 {
     set_time_limit(50000);
 
-   $allVuns =  DB::select("SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  vuln WHERE Risk in ('FAILED', 'PASSED', 'WARNING') and BID not in ('noway', 'yes' )");
+    $condition="";
+    if(isset($req->prj_id)) $condition = "and ID_Projet=".$req->prj_id;
+    $sql = "SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  vuln WHERE Risk in ('FAILED', 'PASSED') and BID not in ('noway', 'yes' )".$condition;
+   $allVuns =  DB::select($sql);
+   //$allVuns =  DB::select("SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  vuln WHERE id=138473");
    $i=0;
-   echo "nbr vuln for trqnslqtion".count($allVuns);
+   echo "nbr vuln for trqnslqtion".count($allVuns). $sql;
    foreach($allVuns as $vuln)
    {
    // echo $allVuns[$i]->id."\n";
-    $re = DB::update("Update IGNORE vuln set `BID`  = 'noway'   WHERE id=  ".  $allVuns[$i]->id);
-    $re = DB::update("Update IGNORE vuln set `BID` = 'yes', `name` = '".self::cleanStrings( self::translate($allVuns[$i]->name)) ."',`description` ='". self::cleanStrings( self::translate($allVuns[$i]->description)) ."',`solution` ='". self::cleanStrings( self::translate($allVuns[$i]->solution)) ."',`synopsis` ='". self::cleanStrings( self::translate($allVuns[$i]->synopsis) ) ."'  WHERE id=  ".  $allVuns[$i]->id);
+   $inputQuery1=[
+   self::translate( self::cleanStrings($allVuns[$i]->name)),
+   self::translate( self::cleanStrings($allVuns[$i]->solution)) ,
+   self::translate( self::cleanStrings($allVuns[$i]->synopsis) ) ,
+   $allVuns[$i]->id
+   ];
+   $inputQuery2=[
+    self::translate( self::cleanStrings($allVuns[$i]->description)),
+    $allVuns[$i]->id
+    ];
+    $re = DB::update("Update IGNORE vuln set `BID` = 'noway', `name` = ? ,`solution` =?, `synopsis` =?  WHERE id=?",$inputQuery1);
+    //$re = DB::update("Update IGNORE vuln set `BID` = 'yes', `name` = '".self::translate( self::cleanStrings($allVuns[$i]->name)) ."',`description` =\"". self::translate( self::cleanStrings($allVuns[$i]->description)) ."\",`solution` ='". self::translate( self::cleanStrings($allVuns[$i]->solution)) ."',`synopsis` ='". self::translate( self::cleanStrings($allVuns[$i]->synopsis) ) ."'  WHERE id=  ".  $allVuns[$i]->id);
+    $re = DB::update("Update IGNORE vuln set `BID` = 'yes',`description` =?  WHERE id=?",$inputQuery2);
+
+
     $i++;
 }
 
@@ -764,7 +771,8 @@ public static function removeSpaceHOST_IP(Request $req)
 {
 
     //$re = DB::update("UPDATE sow SET ?='?' WHERE  ?=?;", [$req->attrName, $req->attrValue,$req->idFiledName, $req->idFieldValue]);
-    $re = DB::update("UPDATE `sow` SET `IP_Host`=REPLACE (`IP_Host`, ' ', '')");
+    $re = DB::update("UPDATE sow SET `IP_Host`=REGEXP_REPLACE(`IP_Host`, '[^0-9a-zA-Z\.]', '') ");
+
     return true;
 }
 public static function markAsOutOfScope(Request $req)

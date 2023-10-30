@@ -107,6 +107,27 @@ class ProjectController extends Controller
                 {
                 return response()->json(['message'=>'not done','status' => 404]);
                 }
+            }
+    public function updateQuality(Request $req,$id)
+    {
+
+
+
+
+        $item =Project::find($id);
+
+        if($item){
+            $item->QualityChecked=$req->QualityChecked;
+            $item->QualityCheckedDateTime=$req->QualityCheckedDateTime;
+            $item->QualityCheckedMessage=$req->QualityCheckedMessage;
+            $item->Preuve=$req->Preuve;
+        $item->update();
+        return response()->json(['message'=>'done','status' => 200]);
+                }
+                else
+                {
+                return response()->json(['message'=>'not done','status' => 404]);
+                }
 
     }
     public function destroy($id)

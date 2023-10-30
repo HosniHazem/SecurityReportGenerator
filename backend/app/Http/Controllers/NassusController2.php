@@ -27,21 +27,7 @@ class NassusController2 extends Controller
         'synopsis',
         'see_also'
     );
-    public static function send_whatsapp($message="Test"){
-        $url='https://api.callmebot.com/whatsapp.php?phone=21629961666&apikey=2415178&text='.urlencode($message);
-        if($ch = curl_init($url))
-        {
-            curl_setopt ($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 0);
-            $html = curl_exec($ch);
-            $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            // echo "Output:".$html;  // you can print the output for troubleshooting
-            curl_close($ch);
-            return (int) $status;
-        }
-        else return ;
 
-    }
     public static function getApiKeysForIP ($ip)
     {
         $vm = Vm::where('IP_Port', $ip)->first();
@@ -100,6 +86,7 @@ class NassusController2 extends Controller
 
     public function ExportOne(Request $request)
     {
+        try {
         set_time_limit(5000);
         $csvDirectory ='C:\\xampp\\mysql\\data\\tactio2z_officekiller';
         $csvs = glob($csvDirectory . '/*.csv'); // Get a list of all PNG files in the directory
@@ -218,6 +205,9 @@ $filesJson = $data;
     }
 
  return response()->json(['links'=>$filesJson,'stats'=>$stats,'status' => 200]);
+} catch (\Exception $e) {
+    return response()->json(['error' => $e->getMessage()]);
+}
     }
 
 
@@ -227,114 +217,153 @@ $filesJson = $data;
 
     public function getPluginsFromAllServers(Request $request)
     {
+       $allvm=Vm::all();
+       $prj = $request->project_id;
+        foreach($allvm as $vm){ self::getPlugins($vm, $prj);}
 
         return response()->json(['message'=>'done','status' => 200]);
     }
 
     public function ImportOne(Request $request)
     {
-        set_time_limit(5000);
+       // try {
+            set_time_limit(50000);
 
-        $json = $request->all();
-        $jsonData = $json['links'];
-        $prj_id = $json['project_id'];
-        $lab = $json['Label'];
-        $des = $json['description'];
-        $ip = $json['selectedIp'];
-        $ApiKeys = self::getApiKeysForIP($ip);
-        $verif = 'true';
-/////Upload Anomalie Creation
-$createdId=null;
-while ($createdId === null) {
-        $upload =new Uploadanomalies();
-        $upload->Upload_Date=date('Y-m-d');
-        $upload->Source='Nessus';
-        $upload->Label=$lab;
-        $upload->Description=$des;
-        $upload->ID_Projet= $prj_id;
-        $upload->save();
-        $createdId = $upload->id;
-}
+            $json = $request->all();
+            $jsonData = $json['links'];
+            $prj_id = $json['project_id'];
+            $lab = $json['Label'];
+            $des = $json['description'];
+            $ip = $json['selectedIp'];
+            $ApiKeys = self::getApiKeysForIP($ip);
+
+            $verif = 'true';
+            /////Upload Anomalie Creation
+            $createdId=null;
+            while ($createdId === null) {
+                $upload =new Uploadanomalies();
+                $upload->Upload_Date=date('Y-m-d');
+                $upload->Source='Nessus';
+                $upload->Label=$lab;
+                $upload->Description=$des;
+                $upload->ID_Projet= $prj_id;
+                $upload->save();
+                $createdId = $upload->id;
+                }
 
             $i = $jsonData["file"];
             $e = $jsonData["scan"];
+            $scanName = $jsonData["name"];
+            $verif = 'false';
+            $iteration=1;
+            while($verif === 'false')
+                {
+                        // Check the status of the exported file
+                        $response = Http::withOptions([
+                            'verify' => false,
+                        ])->withHeaders([
+                            'X-ApiKeys' => $ApiKeys,
+                        ])->get("https://{$ip}/scans/{$e}/export/{$i}/status");
 
-            // Check the status of the exported file
+                        $responseData = json_decode($response->body(), true);
+
+                        if ($response->successful()) {
+                            $verif='true';
+                            AnnexesController::sendMessage("[Scan success response] for ".$scanName);
+                        }
+                        else
+                        {
+                            if($iteration > 60) return response()->json(['message' => 'not done','stats'=> "", 'status' => 404]);
+                            sleep($iteration++);
+                            AnnexesController::sendMessage("[Scan success response] for ".$scanName."  iteration ".$iteration);
+
+                        }
+                }
+
+
+
+            $csvPaths = [];
+            $i = $jsonData["file"];
+            $e = $jsonData["scan"];
+
+                    // Download the exported CSV file
             $response = Http::withOptions([
-                'verify' => false,
-            ])->withHeaders([
-                'X-ApiKeys' => $ApiKeys,
-            ])->get("https://{$ip}/scans/{$e}/export/{$i}/status");
-
-            $responseData = json_decode($response->body(), true);
+                        'verify' => false,
+                    ])->withHeaders([
+                        'X-ApiKeys' => $ApiKeys,
+                    ])->get("https://{$ip}/scans/{$e}/export/{$i}/download");
 
             if ($response->successful()) {
-
-            } else {
-
-                $verif = 'false';
-            }
-
-
-        if ($verif === 'false') {
-            return response()->json(['message' => 'not done','stats'=> "", 'status' => 404]);
-        } else {
-            $csvPaths = [];
-                $i = $jsonData["file"];
-                $e = $jsonData["scan"];
-
-                // Download the exported CSV file
-                $response = Http::withOptions([
-                    'verify' => false,
-                ])->withHeaders([
-                    'X-ApiKeys' => $ApiKeys,
-                ])->get("https://{$ip}/scans/{$e}/export/{$i}/download");
-
-                if ($response->successful()) {
-                    // Save the CSV content to a file
-                    $csvContent = $response->body();
-                    $customPath = 'C:\\xampp\\mysql\\data\\tactio2z_officekiller';
-                    $csvPath = "{$customPath}/{$e}.csv";
-                    file_put_contents($csvPath, preg_replace('/[\x00-\x09\x11\x12\x14-\x1F\x7F]/u', '', $csvContent));
-                    //file_put_contents($csvPath,  $csvContent);
-
-                    $csvPaths[] = [
-                        'name' => $e . '.csv',
-                        'scan' => $e,
-                        'file' => $i,
-                    ];
-                }
+                        // Save the CSV content to a file
+            $csvContent = $response->body();
+            $customPath = 'C:\\xampp\\mysql\\data\\tactio2z_officekiller';
+            $csvPath = "{$customPath}/{$e}.csv";
+            //file_put_contents($csvPath, preg_replace('/[\x00-\x09\x11\x12\x14-\x1F\x7F]/u', '', $csvContent));
+            file_put_contents($csvPath,  AnnexesController::cleanStrings($csvContent));
+                        //file_put_contents($csvPath,  $csvContent);
+            $csvPaths[] = [
+                            'name' => $e . '.csv',
+                            'scan' => $e,
+                            'file' => $i,
+                        ];
 
 
             $returnedArray=[];
 
-                $path = $csvPaths[0]['name'];
-                $sc = $csvPaths[0]['scan'];
-                $fi = $csvPaths[0]['file'];
+            $path = $csvPaths[0]['name'];
+            $sc = $csvPaths[0]['scan'];
+            $fi = $csvPaths[0]['file'];
 
-                // Load CSV data into the database
+                    // Load CSV data into the database
 
-                $loadDataSQL = "LOAD DATA INFILE '{$path}' IGNORE
-                    INTO TABLE vuln
-                    FIELDS TERMINATED BY ','
-                    ENCLOSED BY '\"'
-                    LINES TERMINATED BY '\r\n'
-                    IGNORE 1 LINES
-                    (`Plugin ID`,CVE,`CVSS v2.0 Base Score`,Risk,Host,Protocol,Port,Name,Synopsis,Description,Solution,`See Also`,`Plugin Output`)
-                    SET upload_id={$createdId}, scan={$sc} , file={$fi}, ID_Projet={$prj_id};";
+            $loadDataSQL = "LOAD DATA INFILE '{$path}' IGNORE
+                        INTO TABLE vuln
+                         FIELDS TERMINATED BY ','
+                        ENCLOSED BY '\"'
+                        LINES TERMINATED BY '\r\n'
+                        IGNORE 1 LINES
+                        (`Plugin ID`,CVE,`CVSS v2.0 Base Score`,Risk,Host,Protocol,Port,Name,Synopsis,Description,Solution,`See Also`,`Plugin Output`)
+                        SET upload_id={$createdId}, scan={$sc} , file={$fi}, ID_Projet={$prj_id};";
 
-                DB::statement($loadDataSQL);
-                $count = Vuln::where('scan', $sc)->count();
-                $stats=[
-                    "number" => $count,
-                    "scan" => $sc
-                ];
+            $sqlinjected=0;
+            $iteration = 1;
+            while($sqlinjected ==0 && $iteration<50)
+            {
+                AnnexesController::sendMessage("[working in SQL for scan:]  ".$scanName. " ID: ".$sc . "IterationSQL:".$iteration);
 
+                    try{
+                        DB::statement($loadDataSQL);
+                        $sqlinjected=1;
+                        AnnexesController::sendMessage("[done for SQL for scan:]  ".$scanName. " ID: ".$sc );
+                    }
+                catch (\Exception $e) {
+                    AnnexesController::sendMessage("[Fail for SQL for scan:]  ".$scanName. " ID: ".$sc . "IterationSQL:".$iteration);
+                    $iteration++;
+                    }
             }
 
-            self::getPlugins ($ip,$prj_id);
+
+            $count = 999999;
+            try{
+                $count = Vuln::where('scan', $sc)->count();
+            }
+            catch (\Exception $e) {
+                AnnexesController::sendMessage("[Fail for SQL tou count vuln for scan:]  ".$scanName. " ID: ".$sc);
+            }
+            $stats=[
+                        "number" => $count,
+                        "scan" => $sc
+                    ];
+
+            AnnexesController::sendMessage("[stats ]  ".$count. " For:".$scanName. " ID: ".$sc);
+                //self::getPlugins ($ip,$prj_id);
 
             return response()->json(['message' => 'done','stats'=>$stats, 'status' => 200]);
+                }
+                AnnexesController::sendMessage("[PB !!!! ]  ".$scanName. " ID: ".$sc);
+    //    } catch (\Exception $e) {
+        //    return response()->json(['error' => $e->getMessage()]);
+      //  }
 
     }
 
@@ -346,12 +375,17 @@ while ($createdId === null) {
 
 public static function getPlugins ($ip,$prj_id)
 {
+    AnnexesController::sendMessage("[Nessus_Plugins] Used Server: ". $ip);
+    try {
                 $ApiKeys = self::getApiKeysForIP($ip);
                 // Get plugin IDs not present in the local database
                 $pluginIds =  DB::select("SELECT DISTINCT `Plugin ID`  as PluginID FROM vuln  WHERE `Plugin ID` NOT IN (SELECT DISTINCT id FROM  plugins)");
+                if(isset($prj_id)) $pluginIds.=" and `ID_Projet`=".$prj_id;
+
+
                 foreach ($pluginIds as $plugin) {
                 $pid = $plugin->PluginID;
-
+                AnnexesController::sendMessage("[Nessus_Plugins]IPD: ". $pid);
                 // Get information about the plugin from Nessus
                 $response = Http::withOptions([
                     'verify' => false,
@@ -422,11 +456,14 @@ public static function getPlugins ($ip,$prj_id)
             else
             {
 
-              //  self::send_whatsapp("[Nessus_Plugins_Problem] ". $pid ." Plugin was not found in nessus in the project with id ".$prj_id);
+                AnnexesController::sendMessage($ip."[Nessus_Plugins_Problem] ". $pid ." Plugin was not found in nessus in the project with id ".$prj_id);
             }
                 // Save the model
 
 
+}
+} catch (\Exception $e) {
+    return response()->json(['error' => $e->getMessage()]);
 }
 }
 }
