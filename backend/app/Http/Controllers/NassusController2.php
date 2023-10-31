@@ -232,6 +232,7 @@ $filesJson = $data;
 
             $verif = 'true';
             /////Upload Anomalie Creation
+            if($jsonData){
             $createdId=null;
             while ($createdId === null) {
                 $upload =new Uploadanomalies();
@@ -357,7 +358,7 @@ $filesJson = $data;
     //    } catch (\Exception $e) {
         //    return response()->json(['error' => $e->getMessage()]);
       //  }
-
+    }
     }
 
     public static function getPluginsRequest ($request)
