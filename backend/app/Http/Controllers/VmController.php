@@ -13,7 +13,7 @@ use Illuminate\Http\Client\ConnectionException;
 
 class VmController extends Controller
 {
-    public function index()
+    public static function index()
     {
         $resp = [];
 
@@ -33,19 +33,22 @@ class VmController extends Controller
                 if ($response->successful()) {
                     $resp[$it->IP_Host] = [
                         "ip" => $it->IP_Host.":".$it->Port,
-                        "answer" => "Online"
+                        "answer" => "Online",
+                        "Auth" =>"accessKey=".$it->accessKey.";secretKey=".$it->secretKey
                     ];
                 } else {
                     $resp[$it->IP_Host] = [
                         "ip" => $it->IP_Host.":".$it->Port,
-                        "answer" => "Offline"
+                        "answer" => "Offline",
+                        "Auth" =>"accessKey=".$it->accessKey.";secretKey=".$it->secretKey
                     ];
                 }
             } catch (ConnectionException $e) {
                 // Handle connection timeout or other connection-related issues
                 $resp[$it->IP_Host] = [
                     "ip" => $it->IP_Host.":".$it->Port,
-                    "answer" => "Offline"
+                    "answer" => "Offline",
+                    "Auth" =>"accessKey=".$it->accessKey.";secretKey=".$it->secretKey
                 ];
             }
         }

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button, Grid } from "@mui/material";
 import { styled } from "@mui/system";
 import { ValidatorForm } from "react-material-ui-form-validator";
+import Swal from 'sweetalert2'
 import axios from "axios";
 import swal from "sweetalert";
 import { Span } from "../projects/Typography";
@@ -56,7 +57,16 @@ function UpdateCustom() {
     e.preventDefault();
     setPicture({ attach: e.target.files[0] });
 
-    setFich(e.target.files[0].name);
+    const fileExtension = e.target.files[0].name.split('.').pop();
+    if(CustomerInput.SN){
+      setFich(CustomerInput.SN+"."+fileExtension);
+    }else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'You need to fill the SN before!'
+      })
+    }
   };
   console.log(Fich);
 

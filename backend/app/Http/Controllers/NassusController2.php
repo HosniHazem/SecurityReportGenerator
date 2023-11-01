@@ -28,14 +28,14 @@ class NassusController2 extends Controller
         'see_also'
     );
 
-    public static function getApiKeysForIP ($ip)
+ /*    public static function getApiKeysForIP ($ip)
     {
         $part = explode(":", $ip);
         $vm = Vm::where('IP_Host', $part[0])->first();
       //  print_r($vm);exit;
         if(isset($vm->accessKey)) return "accessKey={$vm->accessKey}; secretKey={$vm->secretKey}";
         else return  0;
-    }
+    } */
     public static function PrepareForUploadToDB ($fieldName, $string)
     {
 
@@ -67,7 +67,7 @@ class NassusController2 extends Controller
     public function GetAll(Request $request)
     {
         $jsonData = $request->all();
-        $ApiKeys = self::getApiKeysForIP($request->selectedIp);
+        $ApiKeys = $request->Auth;
         if($ApiKeys===0) return 0;
         $response = Http::withOptions([
             'verify' => false, // Disable SSL verification
@@ -98,7 +98,7 @@ class NassusController2 extends Controller
 
 $jsonData = $request->all();
 $ipp = $jsonData['ip'];
-$ApiKeys = self::getApiKeysForIP($ipp);
+$ApiKeys = $jsonData['Auth'];;
     $e=$jsonData["value"];
     $n=$jsonData["name"];
     $response = Http::withOptions([
@@ -228,7 +228,7 @@ $filesJson = $data;
             $lab = $json['Label'];
             $des = $json['description'];
             $ip = $json['selectedIp'];
-            $ApiKeys = self::getApiKeysForIP($ip);
+            $ApiKeys = $json['Auth'];;
 
             $verif = 'true';
             /////Upload Anomalie Creation
@@ -263,13 +263,13 @@ $filesJson = $data;
 
                         if ($response->successful()) {
                             $verif='true';
-                            AnnexesController::sendMessage("[Scan success response] for ".$scanName);
+                            AnnexesController::sendMessage($prj_id ." [Scan success response] for ".$scanName."  iteration ".$iteration);
                         }
                         else
                         {
                             if($iteration > 60) return response()->json(['message' => 'not done','stats'=> "", 'status' => 404]);
                             sleep($iteration++);
-                            AnnexesController::sendMessage("[Scan success response] for ".$scanName."  iteration ".$iteration);
+                            AnnexesController::sendMessage($prj_id ." [Scan FAIL !!!!] for ".$scanName."  iteration ".$iteration);
 
                         }
                 }
@@ -323,18 +323,20 @@ $filesJson = $data;
             $iteration = 1;
             while($sqlinjected ==0 && $iteration<50)
             {
-                AnnexesController::sendMessage("[working in SQL for scan:]  ".$scanName. " ID: ".$sc . "IterationSQL:".$iteration);
+                AnnexesController::sendMessage($prj_id ." [working in SQL for scan:]  ".$scanName. " ID: ".$sc . "IterationSQL:".$iteration);
 
                     try{
                         DB::statement($loadDataSQL);
                         $sqlinjected=1;
-                        AnnexesController::sendMessage("[done for SQL for scan:]  ".$scanName. " ID: ".$sc );
+                        AnnexesController::sendMessage($prj_id ." [done for SQL for scan:]  ".$scanName. " ID: ".$sc );
                     }
                 catch (\Exception $e) {
-                    AnnexesController::sendMessage("[Fail for SQL for scan:]  ".$scanName. " ID: ".$sc . "IterationSQL:".$iteration);
+                    AnnexesController::sendMessage($prj_id ." [Fail for SQL for scan:]  ".$scanName. " ID: ".$sc . "IterationSQL:".$iteration);
                     $iteration++;
+                    sleep($iteration);
                     }
             }
+            if($iteration >= 50)   AnnexesController::sendMessage($prj_id ." [Fail FAIL FAIL TIMEOUT :]  ".$scanName. " ID: ".$sc . "IterationSQL:".$iteration);
 
 
             $count = 999999;
@@ -342,19 +344,19 @@ $filesJson = $data;
                 $count = Vuln::where('scan', $sc)->count();
             }
             catch (\Exception $e) {
-                AnnexesController::sendMessage("[Fail for SQL tou count vuln for scan:]  ".$scanName. " ID: ".$sc);
+                AnnexesController::sendMessage($prj_id ." [Fail for SQL tou count vuln for scan:]  ".$scanName. " ID: ".$sc);
             }
             $stats=[
                         "number" => $count,
                         "scan" => $sc
                     ];
 
-            AnnexesController::sendMessage("[stats ]  ".$count. " For:".$scanName. " ID: ".$sc);
+            AnnexesController::sendMessage($prj_id . " [stats ]  ".$count. " For:".$scanName. " ID: ".$sc);
                 //self::getPlugins ($ip,$prj_id);
 
             return response()->json(['message' => 'done','stats'=>$stats, 'status' => 200]);
                 }
-                AnnexesController::sendMessage("[PB !!!! ]  ".$scanName. " ID: ".$sc);
+                AnnexesController::sendMessage($prj_id ." [PB !!!! ]  ".$scanName. " ID: ".$sc);
     //    } catch (\Exception $e) {
         //    return response()->json(['error' => $e->getMessage()]);
       //  }
@@ -391,7 +393,7 @@ public static function getPlugins ($ip,$prj_id)
 {
     AnnexesController::sendMessage("[Nessus_Plugins] Used Server: ". $ip);
 
-                $ApiKeys = self::getApiKeysForIP($ip->IP_Host.":".$ip->IP_Port);
+                $ApiKeys = $ip->Auth;
                 // Get plugin IDs not present in the local database
                 $statment = "SELECT DISTINCT `Plugin ID` AS PluginID FROM vuln WHERE `Plugin ID` NOT IN (SELECT DISTINCT id FROM plugins)";
 

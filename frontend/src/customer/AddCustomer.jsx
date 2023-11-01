@@ -8,6 +8,8 @@ import { styled } from '@mui/system'
 import { ValidatorForm} from 'react-material-ui-form-validator'
 import axios from 'axios';
 import swal from 'sweetalert';
+import Swal from 'sweetalert2'
+
 import { Span } from '../projects/Typography'
 import TextField from '@mui/material/TextField';
 import "./Add.css";
@@ -53,7 +55,19 @@ function AddCustom() {
         e.preventDefault();
         setPicture({attach : e.target.files[0]});
         const fileType = e.target.files[0]["type"];
-        setFich(e.target.files[0].name);
+        
+        const fileExtension = e.target.files[0].name.split('.').pop();
+        if(CustomerInput.SN){
+          setFich(CustomerInput.SN+"."+fileExtension);
+        }else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'You need to fill the SN before!'
+          })
+        }
+        
+  console.log(Fich);
        
       }
 

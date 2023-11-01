@@ -165,9 +165,10 @@ const Dashboard = () => {
     
     }
 
-    const handleSelect = (ip) => {
+    const handleSelect = (ip,auth) => {
       // Store the selected IP in session storage
       sessionStorage.setItem('selectedIp', ip);
+      sessionStorage.setItem('Auth', auth);
       setSelectedIp(ip);
     };
   
@@ -393,7 +394,7 @@ const Dashboard = () => {
                 name="selectedIp"
                 value={url.ip}
                 checked={url.ip === selectedIp}
-                onChange={() => handleSelect(url.ip)}
+                onChange={() => handleSelect(url.ip,url.Auth)}
               />
             </td>
           </tr>
