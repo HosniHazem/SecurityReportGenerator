@@ -3,6 +3,7 @@ import './SOW.css'; // Import your CSS file for styling
 import swal from 'sweetalert';
 import axios from 'axios';
 import { useParams , Link } from 'react-router-dom';
+import IPCalculator  from 'ip-subnet-calculator';
 
 
 function SOW() {
@@ -55,7 +56,7 @@ function SOW() {
     const pcArray = generateObjects(pc); 
     let pcsubnetArray = [];
   pcArray.map((item) => {
-const subnet = getIpRange(item.IP_Host);
+const subnet = getSubnetIpRange(item.IP_Host);
 subnet.map((ip)=>{
     const jsonObject = {
         Nom : item.Nom,
@@ -95,20 +96,6 @@ function removeFromPcsubnetArray(pcsubnetArray, ipHostToRemove) {
   setAppsInput(appsArray);
   setPCInput(pcsubnetArray);
 
-    function getIpRange(subnet) {
-        // Get base IP and range 
-        const [baseIp, ...range] = subnet.split('/');
-      
-        // Generate array from range 
-        const ipRange = range.map(num => {
-          const ipParts = baseIp.split('.');
-          ipParts[3] = num;
-          return ipParts.join('.');
-        });
-      
-        ipRange.unshift(baseIp); // Add the base IP to the beginning of the array
-        return ipRange;
-      }
     
       setButton("yes");
 
@@ -131,7 +118,7 @@ const imported = () => {
     parsedData.rs = r_sInput;
     parsedData.project_id = id;
 console.log(parsedData);
-  axios.post('http://webapp.smartskills.local/AppGenerator/backend/api/Sow/import',parsedData)
+   axios.post('http://webapp.smartskills.tn/AppGenerator/backend/api/Sow/import',parsedData)
   .then((response) => {
     if(response.data.status===200){
       swal("Imported","Successfully");
@@ -144,7 +131,38 @@ console.log(parsedData);
     // Handle error
     console.error('Error sending data:', error);
     swal("Error","Problem while importing");
-  }) 
+  })  
+}
+const getSubnetIpRange = (cidr) => {
+
+  // Split CIDR into IP and subnet mask
+
+  const [ip, subnet] = cidr.split('/');
+  if(cidr.includes("/")) {
+  // Calculate host bits from mask 
+  const mask = parseInt("24");
+  const hostBits = 32 - mask;
+
+  // Calculate number of IP addresses in range
+  const numHosts = Math.pow(2, hostBits) - 2;  
+
+
+  // Generate IP addresses
+  const ipParts = ip.split('.').map(d => parseInt(d));
+  const subnets = [];
+ 
+  for (let i = 1; i <= numHosts; i++) {
+    const octets = ipParts.slice(); 
+    octets[3] = i;
+
+    subnets.push(octets.join('.'));
+  }
+  return subnets;
+}else {
+  return [ip]
+}
+  
+
 }
 
 /*   const adjustTextareaHeight = (id) => {
@@ -219,6 +237,11 @@ console.log(parsedData);
         ></textarea></td>
             </tr>
         </table>
+
+
+
+
+
 
 
 
