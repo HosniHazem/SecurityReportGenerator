@@ -516,6 +516,7 @@ public function generateAnnexes (Request $request, $AnnexA)
       {
         $project =Project::find($prj_id);
         $customer =Customer::find($project->customer_id);
+
           $returnedArray [] = $prj_id;
           foreach($annex_id as $Annex)
           {
@@ -795,13 +796,14 @@ public static function markAsOutOfScope(Request $req)
 
 public static function executeCronJobs(Request $req)
 {
-
+    self::sendMessage("[Starting Cron Job\n Time now:". date("Y-m-d H:i:s"));
    self::removeSpaceHOST_IP($req);
    self::cleanDescCompliance($req);
    self::translateAllPlugins($req);
-   self::translateAllVulnsCompliance();
-   NassusController2::getPluginsFromAllServers();
+   NassusController2::getPluginsFromAllServers($req);
+   self::translateAllVulnsCompliance($req);
 
+   self::sendMessage("[Finishing Cron Job\n Time now:". date("Y-m-d H:i:s"));
     return true;
 }
 

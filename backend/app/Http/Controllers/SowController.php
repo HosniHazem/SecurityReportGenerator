@@ -92,8 +92,12 @@ class SowController extends Controller
     }
 }
         $item->Projet=$project_id;
-        $item->save();
+        $existingItem = Sow::where('IP_Host', $item->IP_Host)->first();
+            if ($existingItem) {
+                continue; // Skip the save operation and continue to the next iteration
+            }
 
+            $item->save();
     }
 }
         return response()->json(['message'=>'done','status' => 200]);
