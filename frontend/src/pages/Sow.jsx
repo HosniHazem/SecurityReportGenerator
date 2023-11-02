@@ -3,7 +3,7 @@ import './SOW.css'; // Import your CSS file for styling
 import swal from 'sweetalert';
 import axios from 'axios';
 import { useParams , Link } from 'react-router-dom';
-import IPCalculator  from 'ip-subnet-calculator';
+
 
 
 function SOW() {
@@ -24,7 +24,7 @@ function SOW() {
   const { id } = useParams();
 
   const generateJSON = () => {
-    const generateObjects = (content) => {
+    const generateObjects = (content,type) => {
         const fields = Object.keys(content);
       
         let maxLines = Math.max(...fields.map((field) => {
@@ -42,6 +42,7 @@ function SOW() {
             const lines = typeof content[field] === 'string' ? content[field].split('\n') : [];
       
             newObj[field] = lines[i] || '';
+            newObj["Type"] = type;
           }
       
           resultArray.push(newObj);
@@ -49,11 +50,11 @@ function SOW() {
       
         return resultArray;
       };
-    const appsArray = generateObjects(apps); 
+    const appsArray = generateObjects(apps,"Apps"); 
     console.log(appsArray)
-    const srvArray = generateObjects(serveur); 
-    const rsArray = generateObjects(r_s); 
-    const pcArray = generateObjects(pc); 
+    const srvArray = generateObjects(serveur,"Serveur"); 
+    const rsArray = generateObjects(r_s,"R_S"); 
+    const pcArray = generateObjects(pc,"PC"); 
     let pcsubnetArray = [];
   pcArray.map((item) => {
 const subnet = getSubnetIpRange(item.IP_Host);
@@ -61,6 +62,7 @@ subnet.map((ip)=>{
     const jsonObject = {
         Nom : item.Nom,
         IP_Host: ip,
+        Type : "PC"
       };
 pcsubnetArray.push(jsonObject);
 
@@ -118,7 +120,7 @@ const imported = () => {
     parsedData.rs = r_sInput;
     parsedData.project_id = id;
 console.log(parsedData);
-   axios.post('http://webapp.smartskills.tn/AppGenerator/backend/api/Sow/import',parsedData)
+/*    axios.post('http://webapp.ssk.lc/AppGenerator/backend/api/Sow/import',parsedData)
   .then((response) => {
     if(response.data.status===200){
       swal("Imported","Successfully");
@@ -131,7 +133,7 @@ console.log(parsedData);
     // Handle error
     console.error('Error sending data:', error);
     swal("Error","Problem while importing");
-  })  
+  })   */
 }
 const getSubnetIpRange = (cidr) => {
 
