@@ -27,15 +27,6 @@ class NassusController2 extends Controller
         'synopsis',
         'see_also'
     );
-
- /*    public static function getApiKeysForIP ($ip)
-    {
-        $part = explode(":", $ip);
-        $vm = Vm::where('IP_Host', $part[0])->first();
-      //  print_r($vm);exit;
-        if(isset($vm->accessKey)) return "accessKey={$vm->accessKey}; secretKey={$vm->secretKey}";
-        else return  0;
-    } */
     public static function PrepareForUploadToDB ($fieldName, $string)
     {
 
@@ -56,361 +47,16 @@ class NassusController2 extends Controller
         return $string;
     }
 
-
-
-
-
-
-
-
-
-    public function GetAll(Request $request)
+    private function cleanCSVFiles($csvDirectory)
     {
-        $jsonData = $request->all();
-        $ApiKeys = $request->Auth;
-        if($ApiKeys===0) return 0;
-        $response = Http::withOptions([
-            'verify' => false, // Disable SSL verification
-        ])->withHeaders([
-            'X-ApiKeys' => $ApiKeys,
-        ])->get("https://{$request->selectedIp}/scans");
-        // Decode the JSON response data
-        $responseData = json_decode($response->body(), true); // true to convert it to an associative array
-
-
-
-        return response()->json(['Folders'=>$responseData,'status' => 200]);
-
-    }
-
-
-
-    public function ExportOne(Request $request)
-    {
-        try {
-        set_time_limit(5000);
-        $csvDirectory ='C:\\xampp\\mysql\\data\\tactio2z_officekiller';
-        $csvs = glob($csvDirectory . '/*.csv'); // Get a list of all PNG files in the directory
+        $csvs = glob($csvDirectory . '/*.csv'); // Get a list of all CSV files in the directory
 
         foreach ($csvs as $csv) {
-            File::delete($csv); // Delete each docx file
+            if (is_file($csv)) {
+                unlink($csv); // Delete each CSV file
+            }
         }
-
-$jsonData = $request->all();
-if (
-    !isset($jsonData['ip']) ||
-    !isset($jsonData['Auth']) ||
-    !isset($jsonData['value']) ||
-    !isset($jsonData['name'])
-) {
-    return response()->json(['error' => 'Required fields are missing', 'status' => 404],404);
-    AnnexesController::sendMessage(" Required fields are missing");
-
-}
-$ipp = $jsonData['ip'];
-$ApiKeys = $jsonData['Auth'];;
-    $e=$jsonData["value"];
-    $n=$jsonData["name"];
-    $response = Http::withOptions([
-        'verify' => false, // Disable SSL verification
-    ])->withHeaders([
-        'X-ApiKeys' => $ApiKeys,
-    ])->post("https://{$ipp}/scans/{$e}/export", [
-        'format' => 'csv',
-        'template_id' => 'false',
-        'reportContents.hostSections.scan_information'=> 'true',
-        'reportContents.hostSections.host_information'=> 'true',
-        'reportContents.hostSections.scan_information'=> 'true',
-        'reportContents.vulnerabilitySections.synopsis'=> 'true',
-        'reportContents.vulnerabilitySections.description'=> 'true',
-        'reportContents.vulnerabilitySections.see_also'=> 'true',
-        'reportContents.vulnerabilitySections.solution'=> 'true',
-        'reportContents.vulnerabilitySections.risk_factor'=> 'true',
-        'reportContents.vulnerabilitySections.cvss3_base_score'=> 'true',
-        'reportContents.vulnerabilitySections.stig_severity'=> 'true',
-        'reportContents.vulnerabilitySections.references'=> 'true',
-        'reportContents.vulnerabilitySections.exploitable_with'=> 'true',
-        'reportContents.vulnerabilitySections.plugin_information'=> 'true',
-        'reportContents.vulnerabilitySections.plugin_output'=> 'true',
-
-    ]);
-    $responseData = json_decode($response->body(), true);
-    if($responseData['file']){
-    $data = array(
-        'scan' => $e,
-        'file' => $responseData['file'],
-        'name' =>  $n
-    );
-    $response = Http::withOptions([
-        'verify' => false, // Disable SSL verification
-    ])->withHeaders([
-        'X-ApiKeys' => $ApiKeys,
-    ])->get("https://{$ipp}/scans/{$e}");
-
-    // Decode the JSON response data
-    $responseData = json_decode($response->body(), true); // true to convert it to an associative array
-    foreach ($responseData['hosts'] as $host) {
- $one = $host['host_id'];
- $response = Http::withOptions([
-    'verify' => false, // Disable SSL verification
-])->withHeaders([
-    'X-ApiKeys' => $ApiKeys,
-])->get("https://{$ipp}/scans/{$e}/hosts/{$one}");
-
-$responseData2 = json_decode($response->body(), true); // true to convert it to an associative array
-$host_ip = $responseData2['info']['host-ip'];
-$ip = Sow::where('IP_Host', $host_ip)
-->where('Type', 'Serveur')
-->get();
-if (!$ip->isEmpty()) {
-$ip_n=$ip[0];
-
-
-    // Check if 'host-fqdn' key exists in $responseData2
-    if (isset($responseData2['info']['host-fqdn']) && !empty($responseData2['info']['host-fqdn'])) {
-        $ip_n->Nom = $responseData2['info']['host-fqdn'];
-    } elseif (isset($responseData2['info']['netbios-name']) && !empty($responseData2['info']['netbios-name']) && $ip_n->Nom === null) {
-        $ip_n->Nom = $responseData2['info']['netbios-name'];
     }
-
-    // Check if 'operating-system' key exists in $responseData2
-    if (isset($responseData2['info']['operating-system'])) {
-        $ip_n->field4 = $responseData2['info']['operating-system'];
-    }
-
-    $ip_n->update();
-}
-    }
-
-
-
-
-$filesJson = $data;
-
-
-    $i = $filesJson["file"];
-    $e = $filesJson["scan"];
-    $n = $filesJson["name"];
-
-    // Check the status of the exported file
-    $response = Http::withOptions([
-        'verify' => false,
-    ])->withHeaders([
-        'X-ApiKeys' => $ApiKeys,
-    ])->get("https://{$ipp}/scans/{$e}/export/{$i}/status");
-
-    $responseData = json_decode($response->body(), true);
-
-
-    if ($response->successful()) {
-        $stats[$e]=[
-            "ver" => "done",
-            "scan" => $e ,
-            "name" =>$n
-        ];
-    } else {
-        $stats[$e]=[
-            "ver" => "not done",
-            "scan" => $e,
-            "name" =>$n
-        ];
-    }
-
- return response()->json(['links'=>$filesJson,'stats'=>$stats,'status' => 200]);
-}
-else {
-    return response()->json(['error' => "Error no file generated by nessus",'status' => 404]);
-}
-} catch (\Exception $e) {
-    return response()->json(['error2' => $e->getMessage()]);
-}
-    }
-
-
-
-
-
-
-
-    public function ImportOne(Request $request)
-    {
-       // try {
-            set_time_limit(50000);
-
-            $json = $request->all();
-            if (
-                !isset($json['links']) ||
-                !isset($json['project_id']) ||
-                !isset($json['Label']) ||
-                !isset($json['description']) ||
-                !isset($json['selectedIp']) ||
-                !isset($json['Auth']) ||
-                !isset($json['links']['file']) ||
-                !isset($json['links']['scan'])
-            ) {
-                return response()->json(['error' => 'Required fields are missing', 'status' => 404],404);
-                AnnexesController::sendMessage(" Required fields are missing");
-
-            }
-            $jsonData = $json['links'];
-            $prj_id = $json['project_id'];
-            $lab = $json['Label'];
-            $des = $json['description'];
-            $ip = $json['selectedIp'];
-            $ApiKeys = $json['Auth'];;
-            $csvPaths = [];
-            $i = $jsonData["file"];
-            $e = $jsonData["scan"];
-
-
-            /////Upload Anomalie Creation
-            if($jsonData["file"]){
-            $createdId=null;
-            while ($createdId === null) {
-                $upload =new Uploadanomalies();
-                $upload->Upload_Date=date('Y-m-d');
-                $upload->Source='Nessus';
-                $upload->Label=$lab;
-                $upload->Description=$des;
-                $upload->ID_Projet= $prj_id;
-                $upload->save();
-                $createdId = $upload->id;
-                }
-
-
-            $scanName = $jsonData["name"];
-            $verif = 'false';
-            $iteration = 1;
-            $maxIterations = 100;
-
-            do {
-                // Check the status of the exported file
-                $response = Http::withOptions([
-                    'verify' => false,
-                ])->withHeaders([
-                    'X-ApiKeys' => $ApiKeys,
-                ])->get("https://{$ip}/scans/{$e}/export/{$i}/status");
-
-                $responseData = json_decode($response->body(), true);
-
-                if ($response->successful()) {
-                    $verif = 'true';
-                    AnnexesController::sendMessage($prj_id . " [Scan Ready to start response] for " . $scanName);
-                } else {
-                    if ($iteration > $maxIterations) {
-                        AnnexesController::sendMessage($prj_id . " [Scan Timeout in check status] " . $scanName);
-                        $verif = '';
-                        break;
-                    }
-
-                    $iteration++;
-                    AnnexesController::sendMessage($prj_id . " [Scan still not ready to start] for " . $scanName);
-                }
-            } while ($verif === 'false');
-
-
-if ($verif==='true'){
-
-                    // Download the exported CSV file
-            $response = Http::withOptions([
-                        'verify' => false,
-                    ])->withHeaders([
-                        'X-ApiKeys' => $ApiKeys,
-                    ])->get("https://{$ip}/scans/{$e}/export/{$i}/download");
-
-            if ($response->successful()) {
-                        // Save the CSV content to a file
-            $csvContent = $response->body();
-            if($csvContent){
-            $customPath = 'C:\\xampp\\mysql\\data\\tactio2z_officekiller';
-            $csvPath = "{$customPath}/{$e}.csv";
-            //file_put_contents($csvPath, preg_replace('/[\x00-\x09\x11\x12\x14-\x1F\x7F]/u', '', $csvContent));
-              file_put_contents($csvPath,  AnnexesController::cleanStrings($csvContent));
-                        //file_put_contents($csvPath,  $csvContent);
-            $csvPaths[] = [
-                            'name' => $e . '.csv',
-                            'scan' => $e,
-                            'file' => $i,
-                        ];
-
-
-            $returnedArray=[];
-
-            $path = $csvPaths[0]['name'];
-            $sc = $csvPaths[0]['scan'];
-            $fi = $csvPaths[0]['file'];
-
-                    // Load CSV data into the database
-                    $loadDataSQL = "LOAD DATA INFILE '{$path}' IGNORE
-                    INTO TABLE vuln
-                    FIELDS TERMINATED BY ','
-                    ENCLOSED BY '\"'
-                    LINES TERMINATED BY '\r\n'
-                    IGNORE 1 LINES
-                    (`Plugin ID`, CVE, `CVSS v2.0 Base Score`, Risk, Host, Protocol, Port, Name, Synopsis, Description, Solution, `See Also`, `Plugin Output`)
-                    SET upload_id = {$createdId}, scan = {$sc}, file = {$fi}, ID_Projet = {$prj_id};";
-
-            $sqlinjected = false;
-            $iteration = 1;
-            while (!$sqlinjected && $iteration<50 ) {
-                AnnexesController::sendMessage($prj_id . " [working in SQL for scan:] " . $scanName . " ID: " . $sc ."   Iteration: ".$iteration  ."\n  ". $loadDataSQL );
-
-                try {
-                    DB::statement($loadDataSQL);
-                    $sqlinjected = true;
-                    AnnexesController::sendMessage($prj_id . " [done for SQL for scan:] " . $scanName . " ID: " . $sc."   Iteration: ".$iteration );
-                } catch (Exception $e) {
-                    AnnexesController::sendMessage($prj_id . " [Fail for SQL for scan:] " .$e."In Scan =". $scanName . " ID: " . $sc ."   Iteration: ".$iteration );
-                    $iteration++;
-                }
-            }
-
-
-            try {
-                $count = Vuln::where('scan', $sc)->count();
-            } catch (\Exception $e) {
-                AnnexesController::sendMessage($prj_id . " [Fail to count vuln for scan:] " . $scanName . " ID: " . $sc);
-                $count = 999999; // Assign a default value in case of failure
-            }
-
-            $stats = [
-                "number" => $count,
-                "scan" => $sc
-            ];
-
-            AnnexesController::sendMessage($prj_id . " [stats ]  ".$count. " For:".$scanName. " ID: ".$sc);
-                //self::getPlugins ($ip,$prj_id);
-
-            return response()->json(['message' => 'done','stats'=>$stats, 'status' => 200]);
-        }else {
-            return response()->json(['error' => 'No csv file body', 'status' => 404]);
-            AnnexesController::sendMessage($prj_id ." [No csv file body !!!! ]  ".$scanName. " ID: ".$sc);
-        }
-
-    //    } catch (\Exception $e) {
-        //    return response()->json(['error' => $e->getMessage()]);
-      //  }
-
-
-}else {
-    return response()->json(['error' => 'Response having problem file is expired', 'status' => 404]);
-    AnnexesController::sendMessage($prj_id ." [Response having problem file is expired] ".$scanName. " ID: ".$sc);
-}
-}
-else {
-    return response()->json(['error' => 'Status didnt reach true', 'status' => 404]);
-    AnnexesController::sendMessage($prj_id ." [PB Status didnt reach true !!!! ]  ".$scanName. " ID: ".$sc);
-}
-}else {
-    return response()->json(['error' => 'Not file given for the importation','stats'=>$stats, 'status' => 404]);
-    AnnexesController::sendMessage($prj_id ." [Not file given for the importation !!!! ]  ".$scanName. " ID: ".$sc);
-}
-    }
-/*
-    public static function getPluginsRequest ($request)
-    {
-        return self::getPlugins($request->ip);
-    } */
 
     public function getPluginsFromAllServers(Request $request)
     {
@@ -528,4 +174,376 @@ public static function getPlugins ($ip,$prj_id)
 
 }
 }
+    private function verifyRequiredFields($jsonData,$fields)
+    {
+        $verif=true;
+        foreach($fields as $field){
+            if(!isset($jsonData[$field]))$verif=false;
+        }
+        return $verif;
+    }
+
+    private function exportScan($jsonData)
+    {
+        $ipp = $jsonData['ip'];
+        $ApiKeys = $jsonData['Auth'];
+        $e = $jsonData["value"];
+        $n = $jsonData["name"];
+
+        $response = Http::withOptions([
+            'verify' => false, // Disable SSL verification
+        ])->withHeaders([
+            'X-ApiKeys' => $ApiKeys,
+        ])->post("https://{$ipp}/scans/{$e}/export", [
+            'format' => 'csv',
+            'template_id' => 'false',
+            'reportContents.hostSections.scan_information' => 'true',
+            'reportContents.hostSections.host_information' => 'true',
+            'reportContents.vulnerabilitySections.synopsis' => 'true',
+            'reportContents.vulnerabilitySections.description' => 'true',
+            'reportContents.vulnerabilitySections.see_also' => 'true',
+            'reportContents.vulnerabilitySections.solution' => 'true',
+            'reportContents.vulnerabilitySections.risk_factor' => 'true',
+            'reportContents.vulnerabilitySections.cvss3_base_score' => 'true',
+            'reportContents.vulnerabilitySections.stig_severity' => 'true',
+            'reportContents.vulnerabilitySections.references' => 'true',
+            'reportContents.vulnerabilitySections.exploitable_with' => 'true',
+            'reportContents.vulnerabilitySections.plugin_information' => 'true',
+            'reportContents.vulnerabilitySections.plugin_output' => 'true',
+        ]);
+
+        return json_decode($response->body(), true);
+    }
+
+    private function updateIPHostInformation($jsonData, $responseData)
+    {
+        $ipp = $jsonData['ip'];
+        $ApiKeys = $jsonData['Auth'];
+        $e = $jsonData['value'];
+
+        $response = Http::withOptions([
+            'verify' => false, // Disable SSL verification
+        ])->withHeaders([
+            'X-ApiKeys' => $ApiKeys,
+        ])->get("https://{$ipp}/scans/{$e}");
+
+        $responseData = json_decode($response->body(), true);
+
+        foreach ($responseData['hosts'] as $host) {
+            $one = $host['host_id'];
+
+            $response = Http::withOptions([
+                'verify' => false, // Disable SSL verification
+            ])->withHeaders([
+                'X-ApiKeys' => $ApiKeys,
+            ])->get("https://{$ipp}/scans/{$e}/hosts/{$one}");
+
+            $responseData2 = json_decode($response->body(), true);
+
+            $host_ip = $responseData2['info']['host-ip'];
+            $ip = Sow::where('IP_Host', $host_ip)
+                ->where('Type', 'Serveur')
+                ->get();
+
+            if (!$ip->isEmpty()) {
+                $ip_n = $ip[0];
+
+        // Check if 'host-fqdn' key exists in $responseData2
+        if (isset($responseData2['info']['host-fqdn']) && !empty($responseData2['info']['host-fqdn'])) {
+            $ip_n->Nom = $responseData2['info']['host-fqdn'];
+        } elseif (isset($responseData2['info']['netbios-name']) && !empty($responseData2['info']['netbios-name']) && $ip_n->Nom === null) {
+            $ip_n->Nom = $responseData2['info']['netbios-name'];
+        }
+
+        // Check if 'operating-system' key exists in $responseData2
+        if (isset($responseData2['info']['operating-system'])) {
+            $ip_n->field4 = $responseData2['info']['operating-system'];
+        }
+
+        $ip_n->update();
+    }
+
+    }
+    }
+
+    private function checkExportedFileStatus($jsonData, $responseData)
+    {
+    $ipp = $jsonData['ip'];
+    $ApiKeys = $jsonData['Auth'];
+    $e = $jsonData['value'];
+    $i = $responseData["file"];
+    $n = $jsonData["name"];
+
+    // Check the status of the exported file
+    $response = Http::withOptions([
+        'verify' => false,
+    ])->withHeaders([
+        'X-ApiKeys' => $ApiKeys,
+    ])->get("https://{$ipp}/scans/{$e}/export/{$i}/status");
+
+    $responseData = json_decode($response->body(), true);
+
+    if ($response->successful()) {
+        $stats[$e] = [
+            "ver" => "done",
+            "scan" => $e,
+            "name" => $n
+        ];
+    } else {
+        $stats[$e] = [
+            "ver" => "not done",
+            "scan" => $e,
+            "name" => $n
+        ];
+    }
+
+    return $stats;
+    }
+
+    private function createUploadAnomalies($lab, $des, $prj_id)
+    {
+        $createdId = null;
+
+        while ($createdId === null) {
+            $upload = new Uploadanomalies();
+            $upload->Upload_Date = date('Y-m-d');
+            $upload->Source = 'Nessus';
+            $upload->Label = $lab;
+            $upload->Description = $des;
+            $upload->ID_Projet = $prj_id;
+            $upload->save();
+            $createdId = $upload->id;
+        }
+
+        return $createdId;
+    }
+    private function checkScanStatus($ip, $e, $i, $ApiKeys, $prj_id, $scanName, $maxIterations)
+    {
+        $iteration = 1;
+        $verif = '';
+
+        do {
+            // Check the status of the exported file
+            $response = Http::withOptions([
+                'verify' => false,
+            ])->withHeaders([
+                'X-ApiKeys' => $ApiKeys,
+            ])->get("https://{$ip}/scans/{$e}/export/{$i}/status");
+
+            $responseData = json_decode($response->body(), true);
+
+            if ($response->successful()) {
+                $verif = 'true';
+                AnnexesController::sendMessage($prj_id . " [Scan Ready to start response] for " . $scanName);
+            } else {
+                if ($iteration > $maxIterations) {
+                    AnnexesController::sendMessage($prj_id . " [Scan Timeout in check status] " . $scanName);
+                    $verif = '';
+                    break;
+                }
+
+                $iteration++;
+                AnnexesController::sendMessage($prj_id . " [Scan still not ready to start] for " . $scanName);
+            }
+        } while ($verif === 'false');
+
+        return $verif;
+    }
+    private function downloadAndSaveCSV($ip, $e, $i, $ApiKeys, $customPath)
+    {
+        $response = Http::withOptions([
+            'verify' => false,
+        ])->withHeaders([
+            'X-ApiKeys' => $ApiKeys,
+        ])->get("https://{$ip}/scans/{$e}/export/{$i}/download");
+
+        if ($response->successful()) {
+            $csvContent = $response->body();
+
+            if ($csvContent) {
+                $csvPath = "{$customPath}/{$e}.csv";
+                file_put_contents($csvPath, AnnexesController::cleanStrings($csvContent));
+
+                return [
+                    'name' => $e . '.csv',
+                    'scan' => $e,
+                    'file' => $i,
+                ];
+            }
+        }
+
+        return null;
+    }
+
+    private function loadDataToDatabase($csvPaths, $createdId, $prj_id, $scanName)
+    {
+        $path = $csvPaths[0]['name'];
+        $sc = $csvPaths[0]['scan'];
+        $fi = $csvPaths[0]['file'];
+
+        $loadDataSQL = "LOAD DATA INFILE '{$path}' IGNORE
+                        INTO TABLE vuln
+                        FIELDS TERMINATED BY ','
+                        ENCLOSED BY '\"'
+                        LINES TERMINATED BY '\r\n'
+                        IGNORE 1 LINES
+                        (`Plugin ID`, CVE, `CVSS v2.0 Base Score`, Risk, Host, Protocol, Port, Name, Synopsis, Description, Solution, `See Also`, `Plugin Output`)
+                        SET upload_id = {$createdId}, scan = {$sc}, file = {$fi}, ID_Projet = {$prj_id};";
+
+        $sqlinjected = false;
+        $iteration = 1;
+
+        while (!$sqlinjected && $iteration < 50) {
+            AnnexesController::sendMessage($prj_id . " [working in SQL for scan:] " . $scanName . " ID: " . $sc ."   Iteration: ".$iteration  ."\n  ". $loadDataSQL );
+
+            try {
+                DB::statement($loadDataSQL);
+                $sqlinjected = true;
+                AnnexesController::sendMessage($prj_id . " [done for SQL for scan:] " . $scanName . " ID: " . $sc."   Iteration: ".$iteration );
+            } catch (Exception $e) {
+                AnnexesController::sendMessage($prj_id . " [Fail for SQL for scan:] " .$e."In Scan =". $scanName . " ID: " . $sc ."   Iteration: ".$iteration );
+                $iteration++;
+            }
+        }
+    }
+
+/////////////////////////////////////////////////////// API'S
+    public function GetAll(Request $request)
+    {
+        $jsonData = $request->all();
+        $ApiKeys = $request->Auth;
+        if($ApiKeys===0) return 0;
+        $response = Http::withOptions([
+            'verify' => false, // Disable SSL verification
+        ])->withHeaders([
+            'X-ApiKeys' => $ApiKeys,
+        ])->get("https://{$request->selectedIp}/scans");
+        // Decode the JSON response data
+        $responseData = json_decode($response->body(), true); // true to convert it to an associative array
+        return response()->json(['Folders'=>$responseData,'status' => 200]);
+    }
+
+
+
+    public function ExportOne(Request $request)
+{
+    set_time_limit(5000);
+
+    try {
+        $csvDirectory = 'C:\\xampp\\mysql\\data\\tactio2z_officekiller';
+
+        // Clean CSV files
+        $this->cleanCSVFiles($csvDirectory);
+
+        // Verify required fields
+        $jsonData = $request->all();
+        $fields = ["value","name","ip","Auth"];
+        if ($this->verifyRequiredFields($jsonData,$fields)===false) {
+            return response()->json(['error' => 'Required fields are missing', 'status' => 404]);
+            AnnexesController::sendMessage("Required fields are missing");
+        }
+
+        // Export scan and get response data
+        $responseData = $this->exportScan($jsonData);
+return $responseData;
+        if ($responseData['file']) {
+            // Update IP host information
+            $this->updateIPHostInformation($jsonData, $responseData);
+
+            // Check the status of the exported file
+            $stats = $this->checkExportedFileStatus($jsonData, $responseData);
+
+            return response()->json(['links' => $responseData, 'stats' => $stats, 'scan'=>$jsonData["value"],'status' => 200]);
+        } else {
+            return response()->json(['error' => "Error no file generated by nessus", 'status' => 404]);
+        }
+    } catch (\Exception $e) {
+        return response()->json(['error2' => $e->getMessage()]);
+    }
+}
+
+
+
+
+
+
+
+    public function ImportOne(Request $request)
+    {
+       // try {
+            set_time_limit(50000);
+
+            $json = $request->all();
+            $fields = ["project_id","Label","Auth","description","selectedIp","scan"];
+            if ($this->verifyRequiredFields($json,$fields)===false ||
+            !isset($json['links']['file']))
+            {
+                return response()->json(['error' => 'Required fields are missing', 'status' => 404]);
+                AnnexesController::sendMessage("Required fields are missing");
+            }
+/// Initialisation
+            $jsonData = $json['links'];
+            $prj_id = $json['project_id'];
+            $lab = $json['Label'];
+            $des = $json['description'];
+            $ip = $json['selectedIp'];
+            $ApiKeys = $json['Auth'];;
+            $i = $jsonData["file"];
+            $e = $json["scan"];
+            $verif = 'false';
+            $maxIterations = 100;
+            $csvPaths = [];
+
+///////////////////
+            /////Upload Anomalie Creation
+            if($i){
+                ///// Create UploadAnomalie
+            $createdId = $this->createUploadAnomalies($lab, $des, $prj_id);
+                ////
+                ///// Check Export file Status
+            $verif = $this->checkScanStatus($ip, $e, $i, $ApiKeys, $prj_id, $lab, $maxIterations);
+                /////
+
+
+if ($verif==='true'){
+                    // Download the exported CSV file
+                    $customPath = 'C:\\xampp\\mysql\\data\\tactio2z_officekiller';
+                    $csvPathInfo = $this->downloadAndSaveCSV($ip, $e, $i, $ApiKeys, $customPath);
+
+                    if ($csvPathInfo) {
+                        $csvPaths[] = $csvPathInfo;
+                    }else{
+                        AnnexesController::sendMessage($prj_id . " [CSV File error in download] " . $lab . " ID: " . $e);
+                    }
+
+                    $this->loadDataToDatabase($csvPaths, $createdId, $prj_id, $lab);
+
+            try {
+                $count = Vuln::where('scan', $e)->count();
+            } catch (\Exception $e) {
+                AnnexesController::sendMessage($prj_id . " [Fail to count vuln for scan:] " . $lab . " ID: " . $e);
+                $count = 999999; // Assign a default value in case of failure
+            }
+
+            $stats = [
+                "number" => $count,
+                "scan" => $e
+            ];
+
+            AnnexesController::sendMessage($prj_id . " [stats ]  ".$count. " For:".$lab. " ID: ".$e);
+                //self::getPlugins ($ip,$prj_id);
+
+            return response()->json(['message' => 'done','stats'=>$stats, 'status' => 200],200);
+        }else {
+            return response()->json(['error' => 'No csv file body', 'status' => 404]);
+            AnnexesController::sendMessage($prj_id ." [No csv file body !!!! ]  ".$lab. " ID: ".$e);
+        }
+
+}else {
+    return response()->json(['error' => 'Response having problem file is expired', 'status' => 404]);
+    AnnexesController::sendMessage($prj_id ." [Response having problem file is expired] ".$lab. " ID: ".$e);
+}
+    }
+
+
 }

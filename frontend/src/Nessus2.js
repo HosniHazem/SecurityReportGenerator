@@ -81,6 +81,7 @@ export default function SelectTextFields() {
     return initialCheckedItems;
   });
 const project_name = sessionStorage.getItem('project_name');
+const Auth = sessionStorage.getItem('Auth');
   const [exporting, setExporting] = useState(false); 
   const [expanded, setExpanded] = React.useState(false);
   const selectedIp = sessionStorage.getItem('selectedIp');
@@ -91,13 +92,15 @@ const project_name = sessionStorage.getItem('project_name');
   useEffect(() => {
     const dataToSend = {
       selectedIp: selectedIp,
+      Auth : Auth
     }
   
     console.log(dataToSend)
     axios.post("http://webapp.smartskills.tn/AppGenerator/backend/api/getScan",dataToSend).then((res) => {
       if (res.status === 200) {
         
-        const filteredFolders = res.data.Folders.folders.filter(folder => folder.name.toLowerCase().includes(project_name.toLowerCase()));
+        //const filteredFolders = res.data.Folders.folders.filter(folder => folder.name.toLowerCase().includes(project_name.toLowerCase()));
+        const filteredFolders = res.data.Folders.folders;
         setFolders(filteredFolders);
         setScans(res.data.Folders.scans);
         setHost(res.data.info);
@@ -194,96 +197,90 @@ const project_name = sessionStorage.getItem('project_name');
       value: itemId,
       name: jsonData.find((item) => item.id === Number(itemId))?.name || "Unknown",
       ip : selectedIp,
-      ready : 20
+      Auth : Auth
     }));
     
 
 
- // Create an array of promises for each Axios request
-const promises = selectedIdsJSON.map((item) => {
-  return axios.post('http://webapp.smartskills.tn/AppGenerator/backend/api/ExportOne', item)
-    .then((response) => {
-      if (response.data.status === 200) {
-       
-        let parsedData = {};
-        parsedData.project_id = project_id;
-        parsedData.Label = name;
-        parsedData.description = description;
-        parsedData.selectedIp = selectedIp;
-        parsedData.links = response.data.links;
-        console.log(parsedData);
-
-        setProgress((prevProgress) => ({
-          ...prevProgress,
-          [item.value]: {
-            ...prevProgress[item.value],
-            request1: true,
-            ready : 50
+    const promises = selectedIdsJSON.map((item, index) => {
+      return new Promise((resolve) => setTimeout(resolve, index * 5000))
+        .then(() => {
+          return axios.post('http://webapp.smartskills.tn/AppGenerator/backend/api/ExportOne', item);
+        })
+        .then((response) => {
+          if (response.data.status === 200) {
+            let parsedData = {
+              project_id: project_id,
+              Label: name,
+              description: description,
+              selectedIp: selectedIp,
+              Auth: Auth,
+              scan: response.data.scan,
+              links: response.data.links
+            };
+            console.log(parsedData);
+    
+            setProgress((prevProgress) => ({
+              ...prevProgress,
+              [item.value]: {
+                ...prevProgress[item.value],
+                request1: true,
+                ready: 50
+              }
+            }));
+    
+            return parsedData;
           }
-        }));
-
-
-
-        return parsedData; // Return parsedData from the promise
-      }
-    })
-    .catch((error) => {
-      // Handle error
-      console.error('Error sending data:', error);
-      swal(error);
+        })
+        .catch((error) => {
+          console.error('Error sending data in export:', error.message);
+          swal(error);
+        });
     });
-});
-let i=0;
-// Wait for all promises to resolve
-Promise.all(promises)
-  .then((parsedDataArray) => {
-    // Access the parsedDataArray when all requests are completed
-    console.log('all parsed data here',parsedDataArray);
-    parsedDataArray.map((item)=>{
-      axios.post('http://webapp.smartskills.tn/AppGenerator/backend/api/ImportOne',item)
-      .then((response) => {
-        if(response.data.status===200){
-          const inputObject = response.data.stats;
-console.log(inputObject);
-         
-i++;
-          setStatExport((prevStatExport) => ({
-            ...prevStatExport,
-            [inputObject.scan]: {
-              scan: inputObject.scan,
-              number: inputObject.number
+    
+    Promise.all(promises)
+      .then(async (parsedDataArray) => {
+        console.log('all parsed data here', parsedDataArray);
+        for (let i = 0; i < parsedDataArray.length; i++) {
+          await new Promise((resolve) => setTimeout(resolve, i * 5000));
+          const item = parsedDataArray[i];
+    
+          try {
+            const response = await axios.post('http://webapp.smartskills.tn/AppGenerator/backend/api/ImportOne', item);
+    
+            if (response.data.status === 200) {
+              const inputObject = response.data.stats;
+              console.log(inputObject);
+    
+              setStatExport((prevStatExport) => ({
+                ...prevStatExport,
+                [inputObject.scan]: {
+                  scan: inputObject.scan,
+                  number: inputObject.number
+                }
+              }));
+    
+              setProgress((prevProgress) => ({
+                ...prevProgress,
+                [item.scan]: {
+                  ...prevProgress[item.scan],
+                  request1: true,
+                  ready: 100
+                }
+              }));
+    
+              setLoading(false);
             }
-          }));
- 
-          setProgress((prevProgress) => ({
-            ...prevProgress,
-            [item.links.scan]: {
-              ...prevProgress[item.links.scan],
-              request1: true,
-              ready : 100
-            }
-          }));
-         
- 
-          setLoading(false)
+          } catch (error) {
+            console.error('Error sending data in import:', error.message);
+            swal(error);
+          }
         }
+        // Perform any additional actions here
       })
       .catch((error) => {
-        // Handle error
-        console.error('Error sending data:', error);
-        swal(error);
-      }) 
- 
-      
-    })
-    // Perform any additional actions here
-  })
-  .catch((error) => {
-    // Handle error if any of the promises fail
-    console.error('Error in Promise.all:', error);
-  });
-
-
+        console.error('Error in Promise.all:', error.message);
+      });
 
   };
 
