@@ -9,6 +9,7 @@ import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import CircularProgress from '@mui/material/CircularProgress';
 import swal from 'sweetalert';
+import Swal from 'sweetalert2';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import Snackbar from '@mui/material/Snackbar';
@@ -96,23 +97,20 @@ const Auth = sessionStorage.getItem('Auth');
     }
   
     console.log(dataToSend)
-    axios.post("http://webapp.smartskills.tn/AppGenerator/backend/api/getScan",dataToSend).then((res) => {
+    axios.post("http://webapp.smartskills.tn/AppGenerator/backend/api/getScan2",dataToSend).then((res) => {
       if (res.status === 200) {
         
-        //const filteredFolders = res.data.Folders.folders.filter(folder => folder.name.toLowerCase().includes(project_name.toLowerCase()));
-        const filteredFolders = res.data.Folders.folders;
+        const filteredFolders = res.data.Folders.folders.filter(folder => folder.name.toLowerCase().includes(project_name.toLowerCase()));
+       // const filteredFolders = res.data.Folders.folders;
+
         setFolders(filteredFolders);
         setScans(res.data.Folders.scans);
-        setHost(res.data.info);
 
       }
     }).catch((error) => {
       console.error('Error sending data:', error);
     });
   }, []);
-
-
-
 
   useEffect(() => {
     axios.get("http://webapp.smartskills.tn/AppGenerator/backend/api/get_vm").then((res) => {
@@ -182,6 +180,8 @@ const Auth = sessionStorage.getItem('Auth');
   const handleImport = (event) => {
     event.preventDefault(); // Prevent form submission and page refresh
     setLoading(true)
+
+
     const selectedIds = Object.keys(checkedItems).filter((itemId) => checkedItems[itemId]);
     const initialProgress = selectedIds.reduce((acc, itemId) => {
       acc[itemId] = {
@@ -199,15 +199,17 @@ const Auth = sessionStorage.getItem('Auth');
       ip : selectedIp,
       Auth : Auth
     }));
-    
-
-
-    const promises = selectedIdsJSON.map((item, index) => {
-      return new Promise((resolve) => setTimeout(resolve, index * 5000))
-        .then(() => {
-          return axios.post('http://webapp.smartskills.tn/AppGenerator/backend/api/ExportOne', item);
-        })
+    console.log(selectedIdsJSON)
+    const promises = selectedIdsJSON.map((item) => {
+      return axios.post('http://webapp.smartskills.tn/AppGenerator/backend/api/ExportOne', item)
         .then((response) => {
+          if(response.data.error){
+            Swal.fire({
+              icon: 'error',
+              title: 'Oops...',
+              text: response.data.error
+            })
+          }
           if (response.data.status === 200) {
             let parsedData = {
               project_id: project_id,
@@ -215,7 +217,7 @@ const Auth = sessionStorage.getItem('Auth');
               description: description,
               selectedIp: selectedIp,
               Auth: Auth,
-              scan: response.data.scan,
+              scan: item.value,
               links: response.data.links
             };
             console.log(parsedData);
@@ -237,51 +239,66 @@ const Auth = sessionStorage.getItem('Auth');
           swal(error);
         });
     });
-    
-    Promise.all(promises)
-      .then(async (parsedDataArray) => {
-        console.log('all parsed data here', parsedDataArray);
-        for (let i = 0; i < parsedDataArray.length; i++) {
-          await new Promise((resolve) => setTimeout(resolve, i * 5000));
-          const item = parsedDataArray[i];
-    
-          try {
-            const response = await axios.post('http://webapp.smartskills.tn/AppGenerator/backend/api/ImportOne', item);
-    
-            if (response.data.status === 200) {
-              const inputObject = response.data.stats;
-              console.log(inputObject);
-    
-              setStatExport((prevStatExport) => ({
-                ...prevStatExport,
-                [inputObject.scan]: {
-                  scan: inputObject.scan,
-                  number: inputObject.number
-                }
-              }));
-    
-              setProgress((prevProgress) => ({
-                ...prevProgress,
-                [item.scan]: {
-                  ...prevProgress[item.scan],
-                  request1: true,
-                  ready: 100
-                }
-              }));
-    
-              setLoading(false);
-            }
-          } catch (error) {
-            console.error('Error sending data in import:', error.message);
-            swal(error);
-          }
+    let i=0;
+// Wait for all export promises to resolve
+Promise.all(promises)
+  .then((parsedDataArray) => {
+    // Access the parsedDataArray when all export requests are completed
+    console.log('all parsed data here', parsedDataArray);
+
+    // Process the import requests one by one
+    let importPromiseChain = Promise.resolve();
+    parsedDataArray.forEach((item) => {
+      importPromiseChain = importPromiseChain.then(() =>
+        axios.post('http://webapp.smartskills.tn/AppGenerator/backend/api/ImportOne', item)
+      ).then((response) => {
+        if(response.data.error){
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: response.data.error
+          })
         }
+        if (response.data.status === 200) {
+          const inputObject = response.data.stats;
+          setStatExport((prevStatExport) => ({
+            ...prevStatExport,
+            [inputObject.scan]: {
+              scan: inputObject.scan,
+              number: inputObject.number
+            }
+          }));
+
+          setProgress((prevProgress) => ({
+            ...prevProgress,
+            [item.scan]: {
+              ...prevProgress[item.scan],
+              request1: true,
+              ready: 100
+            }
+          }));
+
+          setLoading(false);
+        }
+      }).catch((error) => {
+        // Handle error
+        console.error('Error sending data in import:', error.message);
+        swal(error);
+      });
+    });
+
+    // Wait for all import promises to resolve
+    importPromiseChain.then(() => {
+      console.log('All import requests completed');
+    });
         // Perform any additional actions here
       })
       .catch((error) => {
+        // Handle error if any of the promises fail
         console.error('Error in Promise.all:', error.message);
       });
-
+    
+    
   };
 
   return (
