@@ -46,7 +46,8 @@ Route::post('/QualityCheck', [AnnexesController::class,'QualityCheck']);
 Route::post('/generateExcelDocument', [AnnexesController::class,'generateExcelDocument']);
 Route::get('/translatePlugins', [AnnexesController::class,'translateAllPlugins']);
 Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompliance']);
-    Route::get('/test2', [TestController::class,'get']);
+    Route::get('/test2', [TestController::class,'get'])->middleware('web');
+    Route::get('/test', [TestController::class,'get2'])->middleware('web');
 
     Route::get('/get_vm', [VmController::class,'index']);
     Route::post('/generate-word-document', [WordDocumentController::class,'generateWordDocument']);
