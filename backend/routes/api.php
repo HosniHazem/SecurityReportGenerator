@@ -6,7 +6,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\WordDocumentController;
 use App\Http\Controllers\WordDocumentController2;
-use App\Http\Controllers\WordDocumentController3;
+use App\Http\Controllers\AnnexesController;
 use App\Http\Controllers\WordDocumentController4;
 use App\Http\Controllers\ExcelDocumentController;
 use App\Http\Controllers\concatenateDocxFiles;
@@ -14,6 +14,7 @@ use App\Http\Controllers\Sanctum\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\JWTController;
 use App\Http\Controllers\NassusController;
+use App\Http\Controllers\NassusController2;
 
 use App\Http\Controllers\MyController;
 use App\Http\Controllers\VmController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\TestController;
 use App\Http\Controllers\GlbPipController;
 use App\Http\Controllers\SowController;
 use App\Http\Controllers\AuditPreviousAuditController;
+use App\Http\Controllers\ImageController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -32,23 +34,37 @@ use App\Http\Controllers\AuditPreviousAuditController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::get('/getPluginsFromAllServers', [NassusController::class,'getPluginsFromAllServers']);
-Route::post('/QualityCheck', [WordDocumentController3::class,'QualityCheck']);
-Route::post('/generateExcelDocument', [WordDocumentController3::class,'generateExcelDocument']);
-Route::get('/translatePlugins', [WordDocumentController3::class,'translateAllPlugins']);
-Route::get('/translateVulns', [WordDocumentController3::class,'translateAllVulnsCompliance']);
-    Route::get('/test2', [TestController::class,'get']);
+
+
+Route::get('/executeCronJobs', [AnnexesController::class,'executeCronJobs']);
+Route::get('/setAsExternal', [AnnexesController::class,'setAsExternal']);
+Route::get('/cleanDescCompliance', [AnnexesController::class,'cleanDescCompliance']);
+Route::get('/removeSpaceHOST_IP', [AnnexesController::class,'removeSpaceHOST_IP']);
+Route::get('/markAsOutOfScope', [AnnexesController::class,'markAsOutOfScope']);
+Route::get('/getPluginsFromAllServers', [NassusController2::class,'getPluginsFromAllServers']);
+Route::post('/QualityCheck', [AnnexesController::class,'QualityCheck']);
+Route::post('/generateExcelDocument', [AnnexesController::class,'generateExcelDocument']);
+Route::get('/translatePlugins', [AnnexesController::class,'translateAllPlugins']);
+Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompliance']);
+    Route::get('/test2', [TestController::class,'get'])->middleware('web');
+    Route::get('/test', [TestController::class,'get2'])->middleware('web');
 
     Route::get('/get_vm', [VmController::class,'index']);
     Route::post('/generate-word-document', [WordDocumentController::class,'generateWordDocument']);
     Route::post('/generate-annexe', [WordDocumentController2::class,'generateWordDocument']);
     Route::post('/generate-ansi', [WordDocumentController4::class,'generateWordDocument']);
-    Route::post('/generate-annexe3', [WordDocumentController3::class,'generateWordDocument']);
-    Route::get('/generate-annexe3', [WordDocumentController3::class,'generateWordDocument']);
+    Route::post('/getAnnexes', [AnnexesController::class,'getAnnexes']);
+    Route::get('/getAnnexes', [AnnexesController::class,'getAnnexes']);
     Route::get('/generate-concat', [concatenateDocxFiles::class,'mergeDocxFiles']);
+
+///nessus1
     Route::post('/getScan', [NassusController::class,'GetAll']);
     Route::Post('/ExportAll', [NassusController::class,'ExportAll']);
     Route::Post('/ImportAll', [NassusController::class,'ImportAll']);
+///nessus2
+    Route::post('/getScan2', [NassusController2::class,'GetAll']);
+    Route::Post('/ExportOne', [NassusController2::class,'ExportOne']);
+    Route::Post('/ImportOne', [NassusController2::class,'ImportOne']);
 
     Route::Post('/uploadanomalie', [UploadanomaliesController::class,'store']);
     Route::Get('/getUpload', [UploadanomaliesController::class,'index']);
@@ -62,6 +78,7 @@ Route::get('/translateVulns', [WordDocumentController3::class,'translateAllVulns
     Route::get('LastOne', [ProjectController::class,'default']);
     Route::delete('Project/{id}/delete', [ProjectController::class,'destroy']);
     Route::put('Project/{id}/update', [ProjectController::class,'update']);
+    Route::put('Project/{id}/updateQuality', [ProjectController::class,'updateQuality']);
     Route::post('Project/create',[ProjectController::class,'store']);
 
     Route::get('Customer/{id}/show', [CustomerController::class,'show']);
@@ -95,4 +112,6 @@ Route::get('/translateVulns', [WordDocumentController3::class,'translateAllVulns
     Route::get('/get-audit-previous-audits/{id}', [AuditPreviousAuditController::class, 'show']);
     Route::put('/update-audit-previous-audits/{id}', [AuditPreviousAuditController::class, 'update']);
     Route::delete('/delete-audit-previous-audits/{id}', [AuditPreviousAuditController::class, 'destroy']);
+
+    Route::Post('/Uploadfile', [ImageController::class, 'uploadimage']);
 

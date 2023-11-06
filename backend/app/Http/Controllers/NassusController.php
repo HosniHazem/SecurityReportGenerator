@@ -45,7 +45,9 @@ class NassusController extends Controller
     public static function getApiKeysForIP ($ip)
     {
         $vm = Vm::where('IP_Port', $ip)->first();
-return "accessKey={$vm->accessKey}; secretKey={$vm->secretKey}";
+      //  print_r($vm);exit;
+        if(isset($vm->accessKey)) return "accessKey={$vm->accessKey}; secretKey={$vm->secretKey}";
+        else return  0;
     }
     public static function PrepareForUploadToDB ($fieldName, $string)
     {
@@ -79,6 +81,7 @@ return "accessKey={$vm->accessKey}; secretKey={$vm->secretKey}";
     {
         $jsonData = $request->all();
         $ApiKeys = self::getApiKeysForIP($request->selectedIp);
+        if($ApiKeys===0) return 0;
         $response = Http::withOptions([
             'verify' => false, // Disable SSL verification
         ])->withHeaders([

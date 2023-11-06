@@ -11,6 +11,7 @@ import UpdateCustomer from "./customer/UpdateCustomer";
 import UpdateProject from "./projects/UpdateProject";
 import Sow from "./pages/Sow";
 import Nessus from "./Nessus";
+import Nessus2 from "./Nessus2";
 import AddGlbPip from "./GlbPip/AddGlbPip";
 import toast, { Toaster } from 'react-hot-toast';
 import ViewGlbPip from "./GlbPip/ViewGlbPip";
@@ -39,6 +40,7 @@ function App() {
         <Route path="/newcustomer" element={<AddCustomer />} />
         <Route path="/newproject" element={<AddProject />} />
         <Route path="/import" element={<Nessus />} />
+        <Route path="/import2" element={<Nessus2 />} />
         <Route path="/sow/:id" element={<Sow />} />
         <Route path="/add-glb-pip" element={<AddGlbPip />} />
         <Route path='/all-glb-pip' element={<ViewGlbPip />} /> 

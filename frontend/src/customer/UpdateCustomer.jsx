@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button, Grid } from "@mui/material";
 import { styled } from "@mui/system";
 import { ValidatorForm } from "react-material-ui-form-validator";
+import Swal from 'sweetalert2'
 import axios from "axios";
 import swal from "sweetalert";
 import { Span } from "../projects/Typography";
@@ -31,7 +32,7 @@ function UpdateCustom() {
   const [Fich, setFich] = useState(null);
   useEffect(() => {
     axios
-      .get(`http://webapp.smartskills.local/AppGenerator/backend/api/Customer/${id}/show`)
+      .get(`http://webapp.smartskills.tn/AppGenerator/backend/api/Customer/${id}/show`)
       .then((res) => {
         if (res.data.status === 200) {
           setCustomer(res.data.Customer);
@@ -56,7 +57,16 @@ function UpdateCustom() {
     e.preventDefault();
     setPicture({ attach: e.target.files[0] });
 
-    setFich(e.target.files[0].name);
+    const fileExtension = e.target.files[0].name.split('.').pop();
+    if(CustomerInput.SN){
+      setFich(CustomerInput.SN+"."+fileExtension);
+    }else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'You need to fill the SN before!'
+      })
+    }
   };
   console.log(Fich);
 
@@ -66,7 +76,7 @@ function UpdateCustom() {
       formData.append("attach", picture.attach);
       if (picture.attach) {
         axios
-          .post("http://webapp.smartskills.local/AppGenerator/backend/api/imageProfil", formData)
+          .post("http://webapp.smartskills.tn/AppGenerator/backend/api/imageProfil", formData)
           .then((res) => {
             if (res.status === 200) {
             } else if (res.status === 422) {
@@ -83,7 +93,7 @@ function UpdateCustom() {
     };
     console.log(data);
     axios
-      .put(`http://webapp.smartskills.local/AppGenerator/backend/api/Customer/${id}/update`, data)
+      .put(`http://webapp.smartskills.tn/AppGenerator/backend/api/Customer/${id}/update`, data)
       .then((res) => {
         if (res.data.status === 200) {
           swal("Created", "Customer", "success");
