@@ -39,7 +39,7 @@ return [
     |
     */
 
-    'debug' => (bool) env('APP_DEBUG', false),
+    'debug' => (bool) env('APP_DEBUG', true),
 
     /*
     |--------------------------------------------------------------------------
@@ -52,9 +52,9 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://webapp.smartskills.local'),
+    'url' => env('APP_URL', 'http://webapp.smartskills.tn'),
 
-    'asset_url' => env('ASSET_URL', 'http://webapp.smartskills.local/AppGenerator/backend/public'),
+    'asset_url' => env('ASSET_URL', 'http://webapp.smartskills.tn/AppGenerator/backend/public'),
 
     /*
     |--------------------------------------------------------------------------

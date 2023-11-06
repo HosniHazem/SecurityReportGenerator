@@ -245,7 +245,6 @@ Promise.all(promises)
   .then((parsedDataArray) => {
     // Access the parsedDataArray when all export requests are completed
     console.log('all parsed data here', parsedDataArray);
-
     // Process the import requests one by one
     let importPromiseChain = Promise.resolve();
     parsedDataArray.forEach((item) => {
