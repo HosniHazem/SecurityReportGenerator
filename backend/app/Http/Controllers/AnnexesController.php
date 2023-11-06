@@ -672,8 +672,31 @@ public static function translate($q)
     $q= str_replace("https://", " ",$q);
 */
     $q=urlencode(addslashes($q));
+    $translated=0;
+    $iteration =1;
+    do
+       {
+          try{
+            $res= file_get_contents("https://translate.googleapis.com/translate_a/single?client=gtx&ie=UTF-8&oe=UTF-8&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&dt=t&dt=at&sl=en&tl=fr&hl=hl&q=".$q, $_SERVER['DOCUMENT_ROOT']."/transes.html");
+            $translated=1;
+        } catch (\Exception $e) {
+            if(strlen($q) > 500)
+            {
+                $q= substr($q, strlen($q) -500);
+                $iteration ++;
+               // echo "Iteration: ".$iteration. "\n".$q."\n";
+            }
+            else
+            {
+            //    echo "Iteration: ".$iteration. "\n".$q."\n"; exit;
+            }
 
-    $res= @file_get_contents("https://translate.googleapis.com/translate_a/single?client=gtx&ie=UTF-8&oe=UTF-8&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&dt=t&dt=at&sl=en&tl=fr&hl=hl&q=".$q, $_SERVER['DOCUMENT_ROOT']."/transes.html");
+        }
+
+
+       }
+     while ($translated===0);
+
     // var_dump($res);
 
     if(isset(json_decode($res)[0][0][0]))
@@ -698,13 +721,14 @@ public static function translateAllVulnsCompliance(Request $req)
 {
     set_time_limit(50000);
 
+
     $condition="";
     if(isset($req->prj_id)) $condition = "and ID_Projet=".$req->prj_id;
     $sql = "SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  vuln WHERE Risk in ('FAILED', 'PASSED') and BID not in ('noway', 'yes' )".$condition;
    $allVuns =  DB::select($sql);
    //$allVuns =  DB::select("SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  vuln WHERE id=138473");
    $i=0;
-   echo "nbr vuln for trqnslqtion".count($allVuns). $sql;
+   //echo "nbr vuln for trqnslqtion".count($allVuns). $sql;
    foreach($allVuns as $vuln)
    {
    // echo $allVuns[$i]->id."\n";
@@ -714,8 +738,9 @@ public static function translateAllVulnsCompliance(Request $req)
    self::translate( self::cleanStrings($allVuns[$i]->synopsis) ) ,
    $allVuns[$i]->id
    ];
-   $inputQuery2=[
-    self::translate( self::cleanStrings($allVuns[$i]->description)),
+   $descTranslated= (self::translate( self::cleanStrings($allVuns[$i]->description)));
+   $inputQuery2=[ $descTranslated
+    ,
     $allVuns[$i]->id
     ];
     $re = DB::update("Update IGNORE vuln set `BID` = 'noway', `name` = ? ,`solution` =?, `synopsis` =?  WHERE id=?",$inputQuery1);
@@ -724,6 +749,13 @@ public static function translateAllVulnsCompliance(Request $req)
 
 
     $i++;
+
+/*
+    print_r($inputQuery1);
+    print_r($inputQuery2);
+    print($descTranslated);
+
+    exit;*/
 }
 
 return response()->json(['message'=>'done','status' => 200]);
@@ -762,7 +794,7 @@ public static function setAsExternal(Request $req)
 
 public static function cleanDescCompliance(Request $req)
 {
-    $sql = "UPDATE IGNORE `vuln` SET `Description`=REPLACE (REPLACE (Description, Solution, ''), 'Solution:', '') WHERE Risk in ('FAILED' , 'PASSED')";
+    $sql = "UPDATE IGNORE `vuln` SET `Description`=REPLACE (REPLACE (`Description`, Solution, ''), 'Solution:', '') WHERE Risk in ('FAILED' , 'PASSED')";
     if(isset($req->prj_id)) $sql.=" and `ID_Projet`=".$req->prj_id;
     //$re = DB::update("UPDATE sow SET ?='?' WHERE  ?=?;", [$req->attrName, $req->attrValue,$req->idFiledName, $req->idFieldValue]);
     $re = DB::update($sql);
@@ -799,8 +831,8 @@ public static function executeCronJobs(Request $req)
     self::sendMessage("[Starting Cron Job\n Time now:". date("Y-m-d H:i:s"));
    self::removeSpaceHOST_IP($req);
    self::cleanDescCompliance($req);
-   self::translateAllPlugins($req);
    NassusController2::getPluginsFromAllServers($req);
+   self::translateAllPlugins($req);
    self::translateAllVulnsCompliance($req);
 
    self::sendMessage("[Finishing Cron Job\n Time now:". date("Y-m-d H:i:s"));
