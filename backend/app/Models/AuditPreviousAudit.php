@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\GlbProject;
 
 class AuditPreviousAudit extends Model
 {
     use HasFactory;
     public $timestamps = false;
-
+    
     protected  $table='audit_previousaudits_ap';
     protected $fillable = [
         'ID_Projet',
@@ -25,4 +26,8 @@ class AuditPreviousAudit extends Model
     ];
     
     protected $primaryKey='ID';
+    
+        //  public function GlbProjects(){
+        //     return $this->hasMany(GlbProject::class);
+        //  }
 }
