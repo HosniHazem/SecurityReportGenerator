@@ -12,4 +12,9 @@ class GlbPip extends Model
     protected  $table='glb_pip';
     protected $primaryKey='ID';
 
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class, 'Cusotmer_ID');
+    }
 }

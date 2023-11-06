@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\GlbProject;
+use App\Models\Project;
 
 class AuditPreviousAudit extends Model
 {
@@ -13,7 +13,6 @@ class AuditPreviousAudit extends Model
     
     protected  $table='audit_previousaudits_ap';
     protected $fillable = [
-        'ID_Projet',
         'ProjetNumero',
         'Project_name',
         'ActionNumero',
@@ -23,11 +22,22 @@ class AuditPreviousAudit extends Model
         'ChargeHJ',
         'TauxRealisation',
         'Evaluation',
+        'ID_Projet', // Include the foreign key in the fillable array
     ];
+    
     
     protected $primaryKey='ID';
     
         //  public function GlbProjects(){
         //     return $this->hasMany(GlbProject::class);
         //  }
+        
+        public function project()
+        {
+            return $this->belongsTo(Project::class, 'ID_Projet')->refresh();
+        }
+        
+
+    
+
 }

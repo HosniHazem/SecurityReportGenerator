@@ -3,11 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditPreviousAudit;
-use App\Models\GlbProject;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use App\Models\Project;
 
 class AuditPreviousAuditController extends Controller
 {
@@ -36,8 +36,8 @@ class AuditPreviousAuditController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {
-    $validator=Validator::make($request->all(),[
+{
+    $validator = Validator::make($request->all(), [
         'ProjetNumero' => 'required|integer',
         'Project_name' => 'required|string',
         'ActionNumero' => 'required|integer',
@@ -47,42 +47,47 @@ class AuditPreviousAuditController extends Controller
         'ChargeHJ' => 'required|string',
         'TauxRealisation' => 'required|string',
         'Evaluation' => 'required|string',
-        'ID_Projet' => 'required|integer', 
-
-
+        'ID_Projet' => 'required|integer', // Ensure ID_Projet exists in the projects table
     ]);
+
     if ($validator->fails()) {
         return response()->json([
             'status' => 422,
             'validate_err' => $validator->getMessageBag(),
         ]);
     }
-    $exisitngAuditPrevious=AuditPreviousAudit::where('ProjetNumero',$request->input('ProjetNumero'))
-    ->orWhere('Project_name',$request->input('Project_name'))
-    ->first();
-    if($exisitngAuditPrevious){
-        return response()->json(['message'=>'A project with number or name already exists !','success'=>false]);
+
+    $existingAuditPrevious = AuditPreviousAudit::where('ProjetNumero', $request->input('ProjetNumero'))
+        ->orWhere('Project_name', $request->input('Project_name'))
+        ->first();
+
+    if ($existingAuditPrevious) {
+        return response()->json(['message' => 'A project with number or name already exists!', 'success' => false]);
     }
-        $auditPreviousAudit = new AuditPreviousAudit();
-        $auditPreviousAudit->ProjetNumero = $request->input('ProjetNumero');
-        $auditPreviousAudit->Project_name = $request->input('Project_name');
-        $auditPreviousAudit->ActionNumero = $request->input('ActionNumero');
-        $auditPreviousAudit->Action = $request->input('Action');
-        $auditPreviousAudit->Criticite = $request->input('Criticite');
-        $auditPreviousAudit->Chargee_action = $request->input('Chargee_action');
-        $auditPreviousAudit->ChargeHJ = $request->input('ChargeHJ');
-        $auditPreviousAudit->TauxRealisation = $request->input('TauxRealisation');
-        $auditPreviousAudit->Evaluation = $request->input('Evaluation');
-        $auditPreviousAudit->ID_Projet = $request->input('ID_Projet');
 
+    // Find the associated project by its ID
+    $project = Project::find($request->input('ID_Projet'));
 
-        $auditPreviousAudit->save();
-
-        return response()->json(['success'=>true,'message' => ' un audit prév à été crée avec succées', 'data' => $auditPreviousAudit]);
-
-
-
+    if (!$project) {
+        return response()->json(['message' => 'Project not found', 'success' => false]);
     }
+    return response()->json($project);
+    $auditPreviousAudit = new AuditPreviousAudit();
+    $auditPreviousAudit->ProjetNumero = $request->input('ProjetNumero');
+    $auditPreviousAudit->Project_name = $request->input('Project_name');
+    $auditPreviousAudit->ActionNumero = $request->input('ActionNumero');
+    $auditPreviousAudit->Action = $request->input('Action');
+    $auditPreviousAudit->Criticite = $request->input('Criticite');
+    $auditPreviousAudit->Chargee_action = $request->input('Chargee_action');
+    $auditPreviousAudit->ChargeHJ = $request->input('ChargeHJ');
+    $auditPreviousAudit->TauxRealisation = $request->input('TauxRealisation');
+    $auditPreviousAudit->Evaluation = $request->input('Evaluation');
+    $auditPreviousAudit->ID_Projet = $project->id; // Associate the project
+
+    $auditPreviousAudit->save();
+
+    return response()->json(['success' => true, 'message' => 'Un audit prév a été créé avec succès', 'data' => $auditPreviousAudit]);
+}
 
 
 
