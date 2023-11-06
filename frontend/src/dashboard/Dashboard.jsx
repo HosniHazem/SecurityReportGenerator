@@ -39,14 +39,14 @@ const Dashboard = () => {
     const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
     
     useEffect(() => {
-      axios.get(`http://webapp.smartskills.tn/AppGenerator/backend/api/Project`,).then((res) => {
+      axios.get(`http://webapp.ssk.lc/AppGenerator/backend/api/Project`,).then((res) => {
         if(res.status === 200){
         setProject(res.data.Project);
    }
       });
     }, []);
     useEffect(() => {
-      axios.get(`http://webapp.smartskills.tn/AppGenerator/backend/api/get_vm`,).then((res) => {
+      axios.get(`http://webapp.ssk.lc/AppGenerator/backend/api/get_vm`,).then((res) => {
         if(res.status === 200){
           const inputObject = res.data.Vm;
           const outputArray = Object.keys(inputObject).map(key => ({
@@ -107,12 +107,11 @@ const Dashboard = () => {
 <Link to={`/quality/${id}`} style={{ textDecoration: "none" }}>
           <div className="Pick3" onClick={()=>{sessionStorage.setItem('project_name',name);}} >QualityCheck</div>
           </Link>
-        <div className={`deleteButton ${params.row.quality === 0 ? 'disabled' : ''}`}  onClick={(e) => {
-    if (params.row.quality !== 0) { Export(id,e)}}}>Export</div>
+ 
 
-        <div className={`deButton ${params.row.quality === 0 ? 'disabled' : ''}`}   onClick={(e) => {if (params.row.quality !== 0) { Export2(name,id,e)}}}>Export Annexe</div>
+        <div className={`deButton ${params.row.QualityChecked === 0 ? 'disabled' : ''}`}   onClick={(e) => {if (params.row.QualityChecked !== 0) { Export2(name,id,e)}}}>Export Annexe</div>
 
-        <div className={`EButton ${params.row.quality === 0 ? 'disabled' : ''}`} onClick={(e) =>{if (params.row.quality !== 0) { Export3(name,id,e)}}}>Export Excel</div>
+        <div className={`EButton ${params.row.QualityChecked === 0 ? 'disabled' : ''}`} onClick={(e) =>{if (params.row.QualityChecked !== 0) { Export3(name,id,e)}}}>Export Excel</div>
               </div>
           );
          
@@ -127,7 +126,7 @@ const Dashboard = () => {
     const handleDelete = async (e,id) => {
 
       e.preventDefault();
-       await axios.delete(`http://webapp.smartskills.tn/AppGenerator/backend/api/Project/${id}/delete`).then(res=>{
+       await axios.delete(`http://webapp.ssk.lc/AppGenerator/backend/api/Project/${id}/delete`).then(res=>{
         if(res.status === 200)
           {
             
@@ -186,7 +185,7 @@ const Dashboard = () => {
       };
       setExporting(true);
       
-      axios.post(`http://webapp.smartskills.tn/AppGenerator/backend/api/generate-word-document/`, dataToSend, {
+      axios.post(`http://webapp.ssk.lc/AppGenerator/backend/api/generate-word-document/`, dataToSend, {
         responseType: 'blob', // Set responseType to 'blob' to indicate binary data
       })
         .then((response) => {
@@ -235,7 +234,7 @@ const Dashboard = () => {
       
       setExporting(true);
       
-      axios.post(`http://webapp.smartskills.tn/AppGenerator/backend/api/generate-annexe3/`, dataToSend, {
+      axios.post(`http://webapp.ssk.lc/AppGenerator/backend/api/generate-annexe3/`, dataToSend, {
         responseType: 'blob', // Set responseType to 'blob' to indicate binary data
       })
         .then((response) => {
@@ -283,7 +282,7 @@ const Dashboard = () => {
       
       setExporting(true);
       
-      axios.post(`http://webapp.smartskills.tn/AppGenerator/backend/api/generateExcelDocument/`, dataToSend, {
+      axios.post(`http://webapp.ssk.lc/AppGenerator/backend/api/generateExcelDocument/`, dataToSend, {
         responseType: 'blob', // Set responseType to 'blob' to indicate binary data
       })
         .then((response) => {

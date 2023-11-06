@@ -18,7 +18,7 @@ const Projects = () => {
 
     
     useEffect(() => {
-      axios.get(`http://webapp.smartskills.tn/AppGenerator/backend/api/Project`,).then((res) => {
+      axios.get(`http://webapp.ssk.lc/AppGenerator/backend/api/Project`,).then((res) => {
         if(res.status === 200){
         setProject(res.data.Project);
    }
@@ -59,7 +59,7 @@ const Projects = () => {
           return (
             <div className="cellAction">
 
-                <div className="viewButton" onClick={(e) => Select(name,id,e)}>Select/Add</div>
+           
          
              <Link to={`/updateproject/${id}`} style={{ textDecoration: "none" }}>
             <div className="upButton">Update</div>
@@ -85,11 +85,7 @@ const Projects = () => {
               Delete
             </div>
               
-                <div className="deleteButton"  onClick={(e) => Export(id,e)}>Export</div>
-
-                <div className="deButton"  onClick={(e) => Export2(name,id,e)}>Export Annexe</div>
-
-                <div className="EButton"  onClick={(e) => Export3(name,id,e)}>Export Excel</div>
+            
               </div>
           );
          
@@ -104,7 +100,7 @@ const Projects = () => {
     const handleDelete = async (e,id) => {
 
       e.preventDefault();
-       await axios.delete(`http://webapp.smartskills.tn/AppGenerator/backend/api/Project/${id}/delete`).then(res=>{
+       await axios.delete(`http://webapp.ssk.lc/AppGenerator/backend/api/Project/${id}/delete`).then(res=>{
         if(res.status === 200)
           {
             
@@ -138,7 +134,7 @@ const Projects = () => {
       };
       setExporting(true);
       
-      axios.post(`http://webapp.smartskills.tn/AppGenerator/backend/api/generate-word-document/`, dataToSend, {
+      axios.post(`http://webapp.ssk.lc/AppGenerator/backend/api/generate-word-document/`, dataToSend, {
         responseType: 'blob', // Set responseType to 'blob' to indicate binary data
       })
         .then((response) => {
@@ -187,7 +183,7 @@ const Projects = () => {
       
       setExporting(true);
       
-      axios.post(`http://webapp.smartskills.tn/AppGenerator/backend/api/generate-annexe3/`, dataToSend, {
+      axios.post(`http://webapp.ssk.lc/AppGenerator/backend/api/generate-annexe3/`, dataToSend, {
         responseType: 'blob', // Set responseType to 'blob' to indicate binary data
       })
         .then((response) => {
@@ -235,7 +231,7 @@ const Projects = () => {
       
       setExporting(true);
       
-      axios.post(`http://webapp.smartskills.tn/AppGenerator/backend/api/generateExcelDocument/`, dataToSend, {
+      axios.post(`http://webapp.ssk.lc/AppGenerator/backend/api/generateExcelDocument/`, dataToSend, {
         responseType: 'blob', // Set responseType to 'blob' to indicate binary data
       })
         .then((response) => {
