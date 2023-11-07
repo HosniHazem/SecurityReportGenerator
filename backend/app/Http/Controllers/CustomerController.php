@@ -85,6 +85,8 @@ class CustomerController extends Controller
 
         return response()->json(['message' => 'Customer created successfully', 'status' => 200]);
     }
+
+    
     public function uploadimage(Request $request)
     {
         $file = $request->file('attach');
@@ -98,7 +100,7 @@ class CustomerController extends Controller
     }
 
     static function uploadfile(){
-        
+
     }
 
 
