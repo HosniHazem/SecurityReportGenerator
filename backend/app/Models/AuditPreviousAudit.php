@@ -22,7 +22,8 @@ class AuditPreviousAudit extends Model
         'ChargeHJ',
         'TauxRealisation',
         'Evaluation',
-        'ID_Projet', // Include the foreign key in the fillable array
+        'projectID',
+        'ID_Projet'
     ];
     
     
@@ -34,7 +35,7 @@ class AuditPreviousAudit extends Model
         
         public function project()
         {
-            return $this->belongsTo(Project::class, 'ID_Projet')->refresh();
+            return $this->belongsTo(Project::class, 'projectID')->refresh();
         }
         
 
