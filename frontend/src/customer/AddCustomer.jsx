@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@mui/material";
 import { styled } from "@mui/system";
-import { ValidatorForm } from "react-material-ui-form-validator";
 import axios from "axios";
 import swal from "sweetalert";
 import Swal from "sweetalert2";
-
+import { Form, Input, Button, Upload, message } from "antd";
+import { UploadOutlined } from "@ant-design/icons";
 import { Span } from "../projects/Typography";
 import "./Add.css";
 
@@ -25,292 +24,217 @@ const Container = styled("div")(({ theme }) => ({
 
 function AddCustom() {
   const navigate = useNavigate();
-  const [CustomerInput, setCustomer] = useState({
-    SN: null,
-    LN: null,
-    Logo: null,
-    Description: null,
-    SecteurActivité: null,
-    Categorie: null,
-    SiteWeb: null,
-    AddresseMail: "",
-    Organigramme: null,
-    NetworkDesign: null,
-    error_list: [],
-  });
+  const [logoFile, setLogoFile] = useState(null);
+  const [organigrammeFile, setOrganigrammeFile] = useState(null);
+  const [networkDesignFile, setNetworkDesignFile] = useState(null);
 
-  const handleInput = (e) => {
-    e.persist();
-    setCustomer({ ...CustomerInput, [e.target.name]: e.target.value });
+  const normLogoFile = (e) => {
+    if (Array.isArray(e)) {
+      return e;
+    }
+    if (e && e.fileList && e.fileList[0]) {
+      setLogoFile(e.fileList[0].originFileObj);
+    }
+    return e && e.fileList;
   };
 
-  const [Fich, setFich] = useState(null);
-
-  const [Logo, setLogo] = useState(null);
-  const [Organigramme, setOrganigramme] = useState(null);
-  const [NetworkDesign, setNetworkDesign] = useState(null);
-
-   const handleLogoUpload = (e) => {
-    const file = e.target.files[0];
-    if (CustomerInput.SN) {
-      setLogo(file);
-    } else {
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "You need to fill the SN before!",
-      });
+  const normOrganigrammeFile = (e) => {
+    if (Array.isArray(e)) {
+      return e;
     }
+    if (e && e.fileList && e.fileList[0]) {
+      setOrganigrammeFile(e.fileList[0].originFileObj);
+    }
+    return e && e.fileList;
   };
 
-  const handleOrganigrammeUpload = (e) => {
-    const file = e.target.files[0];
-    if (CustomerInput.SN) {
-      setOrganigramme(file);
-    } else {
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "You need to fill the SN before!",
-      });
+  const normNetworkDesignFile = (e) => {
+    if (Array.isArray(e)) {
+      return e;
     }
+    if (e && e.fileList && e.fileList[0]) {
+      setNetworkDesignFile(e.fileList[0].originFileObj);
+    }
+    return e && e.fileList;
   };
 
-  const handleNetworkDesignUpload = (e) => {
-    const file = e.target.files[0];
-    if (CustomerInput.SN) {
-      setNetworkDesign(file);
-    } else {
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "You need to fill the SN before!",
-      });
-    }
-  };
+  const onFinish = async (values) => {
+    try {
+      const formData = new FormData();
+      formData.append("SN", values.SN);
+      formData.append("LN", values.LN);
+      formData.append("Description", values.Description);
+      formData.append("SecteurActivité", values.SecteurActivité);
+      formData.append("Categorie", values.Categorie);
+      formData.append("Site Web", values.Site_Web);
+      formData.append("Addresse mail", values.Addresse_mail);
 
+      // Append files to the form data
+      formData.append("Logo", values.Logo[0]?.originFileObj);
+      formData.append("Organigramme", values.Organigramme[0]?.originFileObj);
+      formData.append(
+        "Network_Design",
+        values.Network_Design[0]?.originFileObj
+      );
 
-  
-
-  const AddCustomer = (e) => {
-    e.preventDefault();
-
-    // Create separate FormData objects for each file
-    const logoFormData = new FormData();
-    const organigrammeFormData = new FormData();
-    const networkDesignFormData = new FormData();
-
-    if (Logo) {
-      logoFormData.append("Logo", Logo);
-      logoFormData.append("Logo_name", CustomerInput.SN + "_Logo." + Logo.name);
-    }
-
-    if (Organigramme) {
-      organigrammeFormData.append("Organigramme", Organigramme);
-      organigrammeFormData.append("Organigramme_name", CustomerInput.SN + "_Organigramme." + Organigramme.name);
-    }
-
-    if (NetworkDesign) {
-      networkDesignFormData.append("NetworkDesign", NetworkDesign);
-      networkDesignFormData.append("NetworkDesign_name", CustomerInput.SN + "_NetworkDesign." + NetworkDesign.name);
-    }
-
-
-    axios
-      .post(
-        "http://webapp.smartskills.tn/AppGenerator/backend/api/imageProfil",
-        logoFormData
-      )
-      .then((res) => {
-        // Handle response
-      });
-
-    axios
-      .post(
-        "http://webapp.smartskills.tn/AppGenerator/backend/api/imageProfil",
-        organigrammeFormData
-      )
-      .then((res) => {
-        // Handle response
-      });
-
-    axios
-      .post(
-        "http://webapp.smartskills.tn/AppGenerator/backend/api/imageProfil",
-        networkDesignFormData
-      )
-      .then((res) => {
-        // Handle response
-      });
-
-
-    e.preventDefault();
-
-    const data = {
-      SN: CustomerInput.SN,
-      LN: CustomerInput.LN,
-      Logo: Fich.Logo,
-      Description: CustomerInput.Description,
-      SecteurActivité: CustomerInput.SecteurActivité,
-      Categorie: CustomerInput.Categorie,
-      "Site Web": CustomerInput.SiteWeb,
-      "Addresse mail": CustomerInput.AddresseMail,
-      Organigramme: Fich.Organigramme,
-      Network_Design: Fich.NetworkDesign,
-    };
-    console.log(data);
-    axios
-      .post(
-        `http://webapp.smartskills.tn/AppGenerator/backend/api/Customer/create`,
-        data
-      )
-      .then((res) => {
-        if (res.data.status === 200) {
-          swal("Created", "Customer", "success");
-          navigate("/customer");
-        } else if (res.data.status === 404) {
-          swal("Error", CustomerInput.SN, "error");
-        } else if (res.data.status === 422) {
-          swal("All fields are mandatory", "", "error");
-
-          setCustomer({ ...CustomerInput, error_list: res.data.validate_err });
+      const response = await axios.post(
+        "http://webapp.smartskills.tn/AppGenerator/backend/api/Customer/create",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         }
-      });
+      );
+
+      // Handle the response from your Laravel backend
+      if (response.data.status === 200) {
+        Swal.fire({
+          title: "Customer Added Successfully",
+          icon: "success",
+        });
+        navigate("/customer");
+      } else {
+        Swal.fire({
+          title: "Error creating Customer",
+        });
+      }
+    } catch (error) {
+      // Handle errors
+      console.error(error);
+    }
+  };
+
+  const initialValues = {
+    SN: "Initial SN Value",
+    LN: "Initial LN Value",
+    Description: "Initial Description Value",
+    SecteurActivité: "Initial Secteur d'Activité Value",
+    Categorie: "Initial Catégorie Value",
+    Site_Web: "Initial Site Web Value",
+    Addresse_mail: "ali@gmail.com",
   };
 
   return (
-    <Container>
-      <div className="Container">
-        <ValidatorForm
-          onSubmit={AddCustomer}
-          onError={() => null}
-          encType="multipart/form-data"
+    <Form
+      name="customer_form"
+      onFinish={onFinish}
+      initialValues={initialValues}
+    >
+      <Form.Item
+        name="SN"
+        label="SN"
+        rules={[{ required: true, message: "Please enter SN" }]}
+      >
+        <Input />
+      </Form.Item>
+
+      <Form.Item
+        name="LN"
+        label="LN"
+        rules={[{ required: true, message: "Please enter LN" }]}
+      >
+        <Input />
+      </Form.Item>
+
+      <Form.Item
+        name="Description"
+        label="Description"
+        rules={[{ required: true, message: "Please enter Description" }]}
+      >
+        <Input />
+      </Form.Item>
+
+      <Form.Item
+        name="SecteurActivité"
+        label="Secteur d'Activité"
+        rules={[{ required: true, message: "Please enter Secteur d'Activité" }]}
+      >
+        <Input />
+      </Form.Item>
+
+      <Form.Item
+        name="Categorie"
+        label="Catégorie"
+        rules={[{ required: true, message: "Please enter Catégorie" }]}
+      >
+        <Input />
+      </Form.Item>
+
+      <Form.Item
+        name="Site_Web"
+        label="Site Web"
+        rules={[{ required: true, message: "Please enter Site Web" }]}
+      >
+        <Input />
+      </Form.Item>
+
+      <Form.Item
+        name="Addresse_mail"
+        label="Adresse Mail"
+        rules={[{ required: true, message: "Please enter Adresse Mail" }]}
+      >
+        <Input />
+      </Form.Item>
+
+      <Form.Item
+        name="Logo"
+        label="Logo"
+        valuePropName="fileList"
+        getValueFromEvent={normLogoFile}
+      >
+        <Upload
+          name="logo"
+          beforeUpload={(file) => {
+            setLogoFile(file);
+            return false; // Returning false prevents automatic upload
+          }}
         >
-          <label htmlFor="exampleFormControlInput1" className="item">
-            SN :
-          </label>
-          <input
-            type="text"
-            name="SN"
-            onChange={handleInput}
-            className="form-control"
-            htmlFor="exampleFormControlInput1"
-            value={CustomerInput.SN}
-          />
+          <Button icon={<UploadOutlined />}>Upload Logo</Button>
+        </Upload>
+      </Form.Item>
 
-          <label htmlFor="exampleFormControlInput1" className="item">
-            LN :
-          </label>
-          <input
-            type="text"
-            name="LN"
-            onChange={handleInput}
-            className="form-control"
-            htmlFor="exampleFormControlInput1"
-            value={CustomerInput.LN}
-          />
+      <Form.Item
+        name="Organigramme"
+        label="Organigramme"
+        valuePropName="fileList"
+        getValueFromEvent={normOrganigrammeFile}
+      >
+        <Upload
+          name="organigramme"
+          beforeUpload={(file) => {
+            setOrganigrammeFile(file);
+            return false; // Returning false prevents automatic upload
+          }}
+        >
+          <Button icon={<UploadOutlined />}>Upload Organigramme</Button>
+        </Upload>
+      </Form.Item>
 
-          <label htmlFor="exampleFormControlInput1" className="item">
-            Description :
-          </label>
-          <input
-            type="text"
-            name="Description"
-            onChange={handleInput}
-            className="form-control"
-            htmlFor="exampleFormControlInput1"
-            value={CustomerInput.Description}
-          />
+      <Form.Item
+        name="Network_Design"
+        label="Network Design"
+        valuePropName="fileList"
+        getValueFromEvent={normNetworkDesignFile}
+      >
+        <Upload
+          name="network_design"
+          beforeUpload={(file) => {
+            setNetworkDesignFile(file);
+            return false; // Returning false prevents automatic upload
+          }}
+          listType="picture"
+        >
+          <Button icon={<UploadOutlined />}>Upload Network Design</Button>
+        </Upload>
+      </Form.Item>
 
-          <label htmlFor="exampleFormControlInput1" className="item">
-            Secteur d'Activité :
-          </label>
-          <input
-            type="text"
-            name="SecteurActivité"
-            onChange={handleInput}
-            className="form-control"
-            htmlFor="exampleFormControlInput1"
-            value={CustomerInput.SecteurActivité}
-          />
-
-          <label htmlFor="exampleFormControlInput1" className="item">
-            Catégorie :
-          </label>
-          <input
-            type="text"
-            name="Categorie"
-            onChange={handleInput}
-            className="form-control"
-            htmlFor="exampleFormControlInput1"
-            value={CustomerInput.Categorie}
-          />
-
-          <label htmlFor="exampleFormControlInput1" className="item">
-            Site Web :
-          </label>
-          <input
-            type="text"
-            name="SiteWeb"
-            onChange={handleInput}
-            className="form-control"
-            htmlFor="exampleFormControlInput1"
-            value={CustomerInput.SiteWeb}
-          />
-
-          <label htmlFor="exampleFormControlInput1" className="item">
-            Addresse mail :
-          </label>
-          <input
-            type="text"
-            name="AddresseMail"
-            onChange={handleInput}
-            className="form-control"
-            htmlFor="exampleFormControlInput1"
-            value={CustomerInput.AddresseMail}
-          />
-
-          <Button className="upload" variant="contained" component="label">
-            Upload Logo
-            <input
-              type="file"
-              name="Logo"
-              onChange={(e) => handleImage(e, "Logo")}
-              hidden
-            />
-          </Button>
-
-          <Button className="upload" variant="contained" component="label">
-            Upload Organigramme
-            <input
-              type="file"
-              name="Organigramme"
-              onChange={(e) => handleImage(e, "Organigramme")}
-              hidden
-            />
-          </Button>
-
-          <Button className="upload" variant="contained" component="label">
-            Upload Network Design
-            <input
-              type="file"
-              name="NetworkDesign"
-              onChange={(e) => handleImage(e, "NetworkDesign")}
-              hidden
-            />
-          </Button>
-
-          <Button
-            color="primary"
-            variant="contained"
-            type="submit"
-            className="item"
-          >
-            <Span sx={{ pl: 1, textTransform: "capitalize" }}>ADD</Span>
-          </Button>
-        </ValidatorForm>
-      </div>
-    </Container>
+      <Form.Item>
+        <Button type="primary" htmlType="submit">
+          Submit
+        </Button>
+      </Form.Item>
+    </Form>
   );
 }
 
