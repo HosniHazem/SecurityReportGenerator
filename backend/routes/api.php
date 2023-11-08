@@ -115,3 +115,4 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
 
     Route::Post('/Uploadfile', [ImageController::class, 'uploadimage']);
 
+    Route::get('Customer/getProjectByCustomerId/{customerId}',[CustomerController::class,'getProjectByCustomerId']);

@@ -120,7 +120,7 @@ const imported = () => {
     parsedData.rs = r_sInput;
     parsedData.project_id = id;
 console.log(parsedData);
-/*    axios.post('http://webapp.ssk.lc/AppGenerator/backend/api/Sow/import',parsedData)
+/*    axios.post('http://webapp.smartskills.tn/AppGenerator/backend/api/Sow/import',parsedData)
   .then((response) => {
     if(response.data.status===200){
       swal("Imported","Successfully");
