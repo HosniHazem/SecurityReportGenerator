@@ -25,7 +25,7 @@ use Stichoza\GoogleTranslate\GoogleTranslate;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\Writer\PDF;
 use Barryvdh\DomPDF\Facade as PDFDom;
-
+use Dompdf\Dompdf;
 
 
 
@@ -267,21 +267,18 @@ class WordDocumentController4 extends Controller
         }
 
         // return response()->json($outputFileName);
-        $templateProcessor->saveAs($outputPath);
-        $basePath=base_path('public/');
-        // return response()->json($outputPath);
-        // // return response()->download($outputPath, 'ansi2023.docx')->deleteFileAfterSend(true);
-        // return response()->download($Path, $outputFileName , ['Content-Type' => $mimeType]);
-        if(file_exists($outputPath)){
-            // $downloadpath="C:\xampp\htdocs\AppGenerator\backend\public\downloads";
-            // $outputDownloadFilePath=$downloadpath.'\\'.$outputFileName;
-            $mimeType = mime_content_type($outputPath);
-            return response()->download($outputPath,$outputFileName, ['Content-Type' => $mimeType]);
-        }
-        else {
-            abort(404);
 
+        $templateProcessor->saveAs($outputPath);
+        $pdfContent = self::ConvertPDF($outputPath);
+        
+        if ($pdfContent) {
+            return response($pdfContent)
+                ->header('Content-Type', 'application/pdf')
+                ->header('Content-Disposition', 'attachment; filename=output.pdf');
+        } else {
+            abort(500, 'Failed to generate PDF');
         }
+        
 
     }
 
@@ -345,6 +342,30 @@ class WordDocumentController4 extends Controller
         }
     }
     
+    public static function ConvertPDF($inputPath)
+{
+    $docxFilePath = $inputPath;
+
+    // Load the DOCX file
+    $phpWord = IOFactory::load($docxFilePath);
+
+    // Save the DOCX content as HTML
+    $tempHtmlFile = tempnam(sys_get_temp_dir(), 'docx_to_pdf');
+    $phpWord->save($tempHtmlFile, 'HTML');
+
+    // Convert HTML to PDF
+    $dompdf = new Dompdf();
+    $dompdf->loadHtml(file_get_contents($tempHtmlFile));
+    $dompdf->setPaper('A4', 'portrait');
+    $dompdf->render();
+
+    // Clean up temporary files
+    unlink($tempHtmlFile);
+
+    // Return the PDF content as response
+    return $dompdf->output();
+}
+
     static function preparePagesDeGarde($templateProcessor, $annex_id, $customer, $project)
     {
 

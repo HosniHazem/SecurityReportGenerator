@@ -21,6 +21,8 @@ use App\Models\Vm;
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
 use App\CustomPhpWord\CustomPhpWord;
+use Dompdf\Dompdf;
+
 
 class TestController extends Controller
 {
@@ -76,22 +78,50 @@ public static function translateAllPlugins()
 }
 
 }
+public static function convertDocxToPdf($docxFilePath, $pdfFilePath)
+{
+    // Load the DOCX file
+    $phpWord = IOFactory::load($docxFilePath);
 
+    // Save the DOCX content as HTML
+    $tempHtmlFile = tempnam(sys_get_temp_dir(), 'docx_to_pdf');
+    $phpWord->save($tempHtmlFile, 'HTML');
+
+    // Convert HTML to PDF
+    $dompdf = new Dompdf();
+    $dompdf->loadHtml(file_get_contents($tempHtmlFile));
+    $dompdf->setPaper('A4', 'portrait');
+    $dompdf->render();
+
+    // Save the PDF file
+    file_put_contents($pdfFilePath, $dompdf->output());
+
+    // Clean up temporary files
+    unlink($tempHtmlFile);
+}
     public function get()
     {
+        $docxFilePath = public_path("0.docx");
+        $pdfFilePath = public_path("output.pdf");
+   // Load the DOCX file
+   $phpWord = IOFactory::load($docxFilePath);
 
- // HTML content to be inserted (replace this with your HTML)
- $htmlContent = '<p>Hello <strong>World</strong>!</p> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII" width="714" height="293" />';
+   // Save the DOCX content as HTML
+   $tempHtmlFile = tempnam(sys_get_temp_dir(), 'docx_to_pdf');
+   $phpWord->save($tempHtmlFile, 'HTML');
 
- $templatePath1 = public_path('1.docx');
- $templateProcessor1 = new TemplateProcessor($templatePath1);
+   // Convert HTML to PDF
+   $dompdf = new Dompdf();
+   $dompdf->loadHtml(file_get_contents($tempHtmlFile));
+   $dompdf->setPaper('A4', 'portrait');
+   $dompdf->render();
 
- // Get XML content from HTML
- $xmlContent = CustomPhpWord::getXmlFromHtml($htmlContent);
+   // Save the PDF file
+   file_put_contents($pdfFilePath, $dompdf->output());
 
- // Optionally, you can do something with $xmlContent
+   // Clean up temporary files
+   unlink($tempHtmlFile);
 
- return response()->json(['xml_content' => $xmlContent]);
 
 }
 

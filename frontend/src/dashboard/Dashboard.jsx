@@ -43,19 +43,19 @@ const Dashboard = () => {
   
   
   // }, []);
-  useEffect(() => {
-    axiosInstance
-      .get(`/Project/${id}/show`)
-      .then((response) => {
-        if (response.status === 200) {
-          setProject(response.data.Project);
+  // useEffect(() => {
+  //   axiosInstance
+  //     .get(`/Project/${id}/show`)
+  //     .then((response) => {
+  //       if (response.status === 200) {
+  //         setProject(response.data.Project);
         
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }, []);
+  //       }
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error fetching data:", error);
+  //     });
+  // }, []);
 
   useEffect(() => {
     axios
@@ -93,8 +93,8 @@ const Dashboard = () => {
 
   const handleGenerateWordDocument = async () => {
     try {
-      await axios.post("http://webapp.smartskills.tn/AppGenerator/backend/api/generate-ansi", {
-        customer: 2,
+      await axios.get(`http://webapp.smartskills.tn/AppGenerator/backend/api/generate-ansi/1`, {
+        
       });
   
       console.log("Request sent successfully");
@@ -511,7 +511,7 @@ const Dashboard = () => {
           </div>
         ) : (
           <div>
-            <Button onClick={()=>handleGenerateWordDocument()}>Generate Ansi</Button>
+        <Button onClick={handleGenerateWordDocument}>Generate Ansi</Button>
              <DataGrid
             className="datagrid"
             rows={Project}
