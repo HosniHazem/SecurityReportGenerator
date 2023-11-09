@@ -178,6 +178,8 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         Tymon\JWTAuth\Providers\LaravelServiceProvider::class,
+        Barryvdh\DomPDF\ServiceProvider::class,
+
     ],
 
     /*
@@ -237,6 +239,8 @@ return [
         'SnappyImage' => Barryvdh\Snappy\Facades\SnappyImage::class,
         'PDF' => Barryvdh\Snappy\Facades\SnappyPdf::class,
         'Charts' => ConsoleTVs\Charts\Facades\Charts::class,
+        'PDF_DOMPDF' => Barryvdh\DomPDF\Facade::class,
+
     ],
 
 ];

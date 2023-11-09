@@ -21,6 +21,8 @@ import Nessus from "../Nessus";
 import Nessus2 from "../Nessus2";
 import "./datatable.scss";
 import { green } from "@mui/material/colors";
+import { axiosInstance } from "../axios/axiosInstance";
+import { ButtonBase } from "@mui/material";
 
 function useDialogState() {
   const [open, setOpen] = React.useState(false);
@@ -29,6 +31,7 @@ function useDialogState() {
 const Dashboard = () => {
   const navigate = useNavigate();
   const [Project, setProject] = useState([]);
+  const [singleProject,setSinlgeProject]=useState();
   const [Vm, setVm] = useState([]);
   const [exporting, setExporting] = useState(false); // Add loading state
   const [downloading, setDownloading] = useState(false);
@@ -37,6 +40,22 @@ const Dashboard = () => {
   const [selectedIp, setSelectedIp] = useState(selected);
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
+  
+  
+  // }, []);
+  useEffect(() => {
+    axiosInstance
+      .get(`/Project/${id}/show`)
+      .then((response) => {
+        if (response.status === 200) {
+          setProject(response.data.Project);
+        
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, []);
 
   useEffect(() => {
     axios
@@ -61,6 +80,38 @@ const Dashboard = () => {
         }
       });
   }, []);
+
+  
+  const handleSelectProject = (id) => {
+    // Remove the previously selected project ID
+    localStorage.removeItem("selectedProjectId");
+  
+    // Set the new selected project ID
+    localStorage.setItem("selectedProjectId", id);
+  
+  };
+
+  const handleGenerateWordDocument = async () => {
+    try {
+      await axios.post("http://webapp.smartskills.tn/AppGenerator/backend/api/generate-ansi", {
+        customer: 2,
+      });
+  
+      console.log("Request sent successfully");
+      // Optionally, show a success message here
+  
+    } catch (error) {
+      // Handle errors or show an error message
+      console.error("Error generating ANSI document:", error);
+      // swal("Error", "An error occurred while generating ANSI document", "error");
+    }
+  };
+  
+  
+  
+
+
+
 
   const userColumns = [
     { field: "id", headerName: "ID", width: 30 },
@@ -129,6 +180,7 @@ const Dashboard = () => {
                 className="Pick3"
                 onClick={() => {
                   sessionStorage.setItem("project_name", name);
+                  // hendleSelectProject(id);
                 }}
               >
                 QualityCheck
@@ -195,6 +247,9 @@ const Dashboard = () => {
 
     navigate("/import");
   };
+
+  
+  
   const Popup = (name, id, e) => {
     e.persist();
     sessionStorage.setItem("project_id", id);
@@ -381,6 +436,8 @@ const Dashboard = () => {
     border: "1px solid black",
   };
 
+
+
   return (
     <div>
       <Dialog
@@ -453,7 +510,9 @@ const Dashboard = () => {
             </Box>
           </div>
         ) : (
-          <DataGrid
+          <div>
+            <Button onClick={()=>handleGenerateWordDocument()}>Generate Ansi</Button>
+             <DataGrid
             className="datagrid"
             rows={Project}
             columns={userColumns}
@@ -462,6 +521,8 @@ const Dashboard = () => {
             columnBuffer={2} // Add this line
 
           />
+          </div>
+         
         )}
       </div>
     </div>

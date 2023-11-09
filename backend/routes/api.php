@@ -52,11 +52,11 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::get('/get_vm', [VmController::class,'index']);
     Route::post('/generate-word-document', [WordDocumentController::class,'generateWordDocument']);
     Route::post('/generate-annexe', [WordDocumentController2::class,'generateWordDocument']);
-    Route::post('/generate-ansi', [WordDocumentController4::class,'generateWordDocument']);
+    // Route::post('/generate-ansi', [WordDocumentController4::class,'generateWordDocument']);
     Route::post('/getAnnexes', [AnnexesController::class,'getAnnexes']);
     Route::get('/getAnnexes', [AnnexesController::class,'getAnnexes']);
     Route::get('/generate-concat', [concatenateDocxFiles::class,'mergeDocxFiles']);
-
+    Route::get('/generate-ansi/{customerId}', [WordDocumentController4::class,'generateWordDocument']);
 ///nessus1
     Route::post('/getScan', [NassusController::class,'GetAll']);
     Route::Post('/ExportAll', [NassusController::class,'ExportAll']);
@@ -116,3 +116,6 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::Post('/Uploadfile', [ImageController::class, 'uploadimage']);
 
     Route::get('Customer/getProjectByCustomerId/{customerId}',[CustomerController::class,'getProjectByCustomerId']);
+    
+    //test
+    Route::get('/download-file/{filename}', [WordDocumentController4::class,'downloadFile']);

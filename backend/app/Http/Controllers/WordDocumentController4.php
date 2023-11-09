@@ -22,6 +22,10 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\Project; // Replace with your actual model
 use Illuminate\Support\Facades\Http;
 use Stichoza\GoogleTranslate\GoogleTranslate;
+use PhpOffice\PhpWord\IOFactory;
+use PhpOffice\PhpWord\Writer\PDF;
+use Barryvdh\DomPDF\Facade as PDFDom;
+
 
 
 
@@ -31,7 +35,7 @@ class WordDocumentController4 extends Controller
 
 
     //the function to fill ansi  repot
-    public function generateWordDocument(Request $request)
+    public function generateWordDocument($customerId)
     {
         set_time_limit(5000);
 
@@ -116,7 +120,7 @@ class WordDocumentController4 extends Controller
         
         //Year
 
-        $yearData = DB::select($sqlYear, [$request->customer]);
+        $yearData = DB::select($sqlYear, [$customerId]);
         if (!empty($yearData)) {
             $year = $yearData[0]->Year; 
             $templateProcessor->setValue('Y', $year);
@@ -139,7 +143,7 @@ class WordDocumentController4 extends Controller
 
 
         //table "equipe de projet"
-        $projectTeam = DB::select($sqlProjectTeam, [$request->customer]);
+        $projectTeam = DB::select($sqlProjectTeam, [$customerId]);
         $projectTeamArray = self::processDatabaseData($projectTeam);
         // twice becuz if I do once it only fills the first table
         $templateProcessor->cloneRowAndSetValues('SPOC_Tech_Name', $projectTeamArray);
@@ -152,7 +156,7 @@ class WordDocumentController4 extends Controller
         $templateProcessor->cloneRowAndSetValues('tool', $auditToolsArray);
 
         //Network Design image
-        $networkDesign = DB::select($sqlNetworkDesign, [$request->customer]);
+        $networkDesign = DB::select($sqlNetworkDesign, [$customerId]);
         
         $networkDesignArray = self::processDatabaseData($networkDesign);
         //NetworkDesign:800:800
@@ -162,25 +166,25 @@ class WordDocumentController4 extends Controller
 
         $templateProcessor->setImageValue('NetworkDesign:800:800', array('path'=>$networkDesignValue ,'width'=>500));
         //table:Postes de travail
-        $posteTravail=DB::select($sqlPosteTravail, [$request->customer]);
+        $posteTravail=DB::select($sqlPosteTravail, [$customerId]);
         $posteTravailArray= self::processDatabaseData($posteTravail);
         $templateProcessor->cloneRowAndSetValues('PC_SE', $posteTravailArray);
 
         //table:Infrastucture Réseau et sécurité 
-        $Infrastructure=DB::select($sqlInfrastructure, [$request->customer]);
+        $Infrastructure=DB::select($sqlInfrastructure, [$customerId]);
         $InfrastructureArray= self::processDatabaseData($Infrastructure);
         $templateProcessor->cloneRowAndSetValues('Infra_Nature', $InfrastructureArray);
 
 
 
         //Table:serveur par plateforme
-        $servers = DB::select($sqlServers, [$request->customer]);
+        $servers = DB::select($sqlServers, [$customerId]);
         $serverArray = self::processDatabaseData($servers);
          $templateProcessor->cloneRowAndSetValues('Srv_Name', $serverArray);
 
         //description du siege (Applications):
 
-        $application = DB::select($sqlApplication, [$request->customer]);
+        $application = DB::select($sqlApplication, [$customerId]);
         $applicationArray = self::processDatabaseData($application );
         $templateProcessor->cloneRowAndSetValues('App_Name', $applicationArray);
 
@@ -195,7 +199,7 @@ class WordDocumentController4 extends Controller
 
 
         //customer site 
-        $CustomersSite =  DB::select($sqlCustomerSite, [$request->customer]);
+        $CustomersSite =  DB::select($sqlCustomerSite, [$customerId]);
         $CustomersSiteArray =  self::processDatabaseData($CustomersSite);
         $templateProcessor->cloneRowAndSetValues('N_Site', $CustomersSiteArray);
 
@@ -208,7 +212,7 @@ class WordDocumentController4 extends Controller
 
 
         //Customer Table 
-        $Customers =  DB::select($sqlCustomers, [$request->customer]);
+        $Customers =  DB::select($sqlCustomers, [$customerId]);
         if (!empty($Customers)) {
             $firstRow = $Customers[0];
             $SN = $firstRow->SN;
@@ -262,15 +266,55 @@ class WordDocumentController4 extends Controller
             }
         }
 
-
+        // return response()->json($outputFileName);
         $templateProcessor->saveAs($outputPath);
+        $basePath=base_path('public/');
+        // return response()->json($outputPath);
+        // // return response()->download($outputPath, 'ansi2023.docx')->deleteFileAfterSend(true);
+        // return response()->download($Path, $outputFileName , ['Content-Type' => $mimeType]);
+        if(file_exists($outputPath)){
+            // $downloadpath="C:\xampp\htdocs\AppGenerator\backend\public\downloads";
+            // $outputDownloadFilePath=$downloadpath.'\\'.$outputFileName;
+            $mimeType = mime_content_type($outputPath);
+            return response()->download($outputPath,$outputFileName, ['Content-Type' => $mimeType]);
+        }
+        else {
+            abort(404);
 
-
-        //  return response()->download($filepath,$filename)->deleteFileAfterSend(true);
-
-
+        }
 
     }
+
+    //to test downloadble ifle
+    public function downloadFile(Request $request, $filename)
+{
+    // Define the source directory path where you want to check for the file
+    $sourcePath = 'C:\xampp\htdocs\AppGenerator\backend\public';
+
+    // Combine the source directory path with the requested filename to check for existence
+    $sourceFile = $sourcePath . '/' . $filename;
+
+    // Check if the file exists in the source directory
+    if (file_exists($sourceFile)) {
+        // Define the destination directory path where you want to save the downloaded file
+        $destinationPath = 'C:\xampp\htdocs\AppGenerator\backend\public\downloads';
+
+        // Combine the destination directory path with the requested filename
+        $outputPath = $destinationPath . '/' . $filename;
+
+        // Determine the file's MIME type
+        $mimeType = mime_content_type($sourceFile);
+
+        // Copy the file from the source directory to the destination directory
+        copy($sourceFile, $outputPath);
+
+        // Return the copied file as a downloadable response
+        return response()->download($outputPath, $filen, ['Content-Type' => $mimeType]);
+    } else {
+        // If the file doesn't exist in the source directory, return a 404 Not Found response
+        dd("File does not exist at path: " . $outputPath);
+    }
+}
 
     
     
