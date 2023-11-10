@@ -20,6 +20,7 @@ import ModifyGlbPip from "./GlbPip/ModfiyGlbPip";
 import AddAuditPreviousAudit from "./AuditPreviousAudit/AddAuditPreviousAudit";
 import ViewAuditPRevious from "./AuditPreviousAudit/ViewAuditPreviousAudit";
 import ModifyAuditPreviousAudit from "./AuditPreviousAudit/ModifyAuditPreviousAudit";
+import AnsiReport from "./AnsiReport";
 
 function App() {
   return (
@@ -49,6 +50,7 @@ function App() {
         <Route path="/add-audit-previous-audit/:id" element={<AddAuditPreviousAudit />} />
         <Route path="/all-audit-previous-audit" element={<ViewAuditPRevious />} />
         <Route path="/all-audit-previous-audit/modify-audit-previous-audit/:id" element={< ModifyAuditPreviousAudit/>} />
+        <Route path="/ansi-report/:id" element={<AnsiReport />} />
 
 
       </Routes>

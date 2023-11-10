@@ -169,7 +169,7 @@ const Dashboard = () => {
     {
       field: "Export",
       headerName: "Export",
-      width: 300,
+      width: 500,
       renderCell: (params) => {
         const id = params.row.id;
         const name = params.row.Nom;
@@ -210,6 +210,11 @@ const Dashboard = () => {
             >
               ANSI
             </div>
+            <div>
+            <Link to={`/ansi-report/${id}`} style={{ textDecoration: "none" }}>
+              <Button>Generate Ansi Report</Button>
+            </Link>
+          </div>
           </div>
         );
       },
