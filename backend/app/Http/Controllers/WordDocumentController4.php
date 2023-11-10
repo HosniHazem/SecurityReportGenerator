@@ -44,26 +44,36 @@ class WordDocumentController4 extends Controller
         c.id AS ID,
         c.SN AS SN,
         c.LN AS LN,
-        c.type AS Type,
         c.Logo AS Logo,
         c.Description AS Description,
-        c.SecteurActivite AS SecteurActivite,
+        c.SecteurActivité AS SecteurActivite,
         c.Categorie AS Categorie,
         c.`Site web` AS `Site_Web`,
         c.`Addresse mail` AS `Adresse_mail`,
         c.Organigramme AS Organigramme,
         c.Network_Design AS Network_Design,
-        t.leType AS leType
-    FROM glb_customers AS c
-    LEFT JOIN glb_type AS t ON c.type = t.id
+        c.type AS leType
+    FROM customers AS c
     WHERE c.id = ?;';
 
         //query for process  table
-        $sqlProcess = 'SELECT  RM_Processus_domains.ID,Processus_domaine AS  process , MAX(D) AS  Process_D , MAX(I) AS Process_I, MAX(C) AS Process_C
-        FROM RM_Processus_Actifs_Valeurs
-        LEFT JOIN RM_Processus_domains ON RM_Processus_Actifs_Valeurs.ID_Processus = RM_Processus_domains.ID
-        WHERE RM_Processus_domains.ID_ITERATION = 1
-        GROUP BY Processus_domaine';
+        $sqlProcess = 'SELECT
+        rpd.ID AS Processus_domaine_ID,
+        rpd.Processus_domaine AS process,
+        MAX(rpav.D) AS Process_D,
+        MAX(rpav.I) AS Process_I,
+        MAX(rpav.C) AS Process_C
+    FROM
+        rm_iteration ri
+    JOIN
+        rm_processus_domains rpd ON ri.ID = rpd.ID_ITERATION
+    LEFT JOIN
+        rm_processus_actifs_valeurs rpav ON rpd.ID = rpav.ID_Processus
+    WHERE
+        ri.CustomerId =?
+    GROUP BY
+        rpd.ID, rpd.Processus_domaine;';
+    
 
 
 
@@ -84,19 +94,13 @@ class WordDocumentController4 extends Controller
         //sql for postes de travail
         $sqlPosteTravail = "SELECT field4 as PC_SE , COUNT(field4) as PC_Number FROM Audit_sow WHERE Type='PC' AND Customer=? GROUP BY field4";
         //sql for network Design Image
-        $sqlNetworkDesign="SELECT `Network_Design` FROM `glb_customers` WHERE id=?";
+        $sqlNetworkDesign="SELECT `Network_Design` FROM `customers` WHERE id=?";
         //sql for audit tools
         $sqlAuditTools="SELECT `Tool_name` as tool ,`Version` tool_version,`License` as tool_license,`Feature` as tool_features,`Composante_SI` as tool_sow FROM `Audit_Tools` ORDER BY `Composante_SI`;";
         //sql for "equipe de projet"
         $sqlProjectTeam="SELECT `Nom` as SPOC_Tech_Name ,`Titre` as SPOC_Tech_Title,`Adresse mail primaire` as SPOC_Tech_email ,`Adresse mail secondaire`,`Tél` as SPOC_Tech_Tel FROM `glb_pip` WHERE `Cusotmer_ID`=?";
 
-        //sql for year
-        $sqlYear="SELECT p.Year
-        FROM glb_customers c
-        JOIN glb_contracts co ON c.ID = co.Customer_ID
-        JOIN glb_lots l ON co.ID = l.Contract_ID
-        JOIN glb_projects p ON l.ID = p.Lot_ID
-        WHERE c.ID = ?";
+       
         //sql for domain table 
         $sqlDomain = <<<HERE10
         SELECT
@@ -120,13 +124,7 @@ class WordDocumentController4 extends Controller
         
         //Year
 
-        $yearData = DB::select($sqlYear, [$customerId]);
-        if (!empty($yearData)) {
-            $year = $yearData[0]->Year; 
-            $templateProcessor->setValue('Y', $year);
-            $templateProcessor->setValue('year', $year);
-
-        } 
+      
         
         //today's date
         $today=self::currentDate();
@@ -205,7 +203,7 @@ class WordDocumentController4 extends Controller
 
 
         //Process Table  
-        $Process = DB::select($sqlProcess);
+        $Process = DB::select($sqlProcess, [$customerId]);
         $modifiedProcessArray = self::processDatabaseData($Process);
         $templateProcessor->cloneRowAndSetValues('process', $modifiedProcessArray);
 
