@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { axiosInstance } from '../axios/axiosInstance';
+import { Spin, Space } from 'antd';
 
 export default function AnsiReport() {
   const { id } = useParams();
   const [project, setProject] = useState(null);
+  const [loading, setLoading] = useState(true); // State to manage loading
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -13,15 +15,17 @@ export default function AnsiReport() {
         const response = await axiosInstance.get(`/Project/${id}/show`);
         if (response.status === 200) {
           setProject(response.data.Project);
-          console.log(response.data.Project.customer_id);
+          setLoading(true); // Set loading to false once data is fetched
 
           // Additional request using the customer_id
           if (response.data.Project && response.data.Project.customer_id) {
+            setLoading(false);
             window.location.href = `http://webapp.smartskills.tn/AppGenerator/backend/api/generate-ansi/${response.data.Project.customer_id}`;
           }
         }
       } catch (error) {
         console.error("Error fetching data:", error);
+        setLoading(false); // Set loading to false in case of an error
       }
     };
 
@@ -32,6 +36,12 @@ export default function AnsiReport() {
   }, [id, project]);
 
   return (
-    <div>index</div>
+    <Space direction="vertical" style={{ width: '100%', textAlign: 'center' }}>
+      {loading ? (
+        <Spin size="large" />
+      ) : (
+        <div>index</div>
+      )}
+    </Space>
   );
 }

@@ -126,7 +126,7 @@ const Dashboard = () => {
     {
       field: "Import",
       headerName: "Import",
-      width: 130,
+      width: 100,
       renderCell: (params) => {
         const id = params.row.id;
         const name = params.row.Nom;
@@ -145,13 +145,13 @@ const Dashboard = () => {
     {
       field: "ProjectDetails",
       headerName: "Project Details",
-      width: 300,
+      width: 250,
       renderCell: (params) => {
         const id = params.row.id;
         return (
           <div className="cellAction">
             <Link to={`/add-glb-pip/${id}`} style={{ textDecoration: "none" }}>
-              <div className="Pick2">GLBPIP</div>
+              <div className="Pick2">PIP</div>
             </Link>
             <Link to={`/sow/${id}`} style={{ textDecoration: "none" }}>
               <div className="Pick2">SOW</div>
@@ -160,7 +160,7 @@ const Dashboard = () => {
               <div className="Pick2">Sites</div>
             </Link>
             <Link to={`/add-audit-previous-audit/${id}`} style={{ textDecoration: "none" }}>
-              <div className="Pick2">Prev Audit</div>
+              <div className="Pick2">PrevAudit</div>
             </Link>
           </div>
         );
@@ -169,7 +169,7 @@ const Dashboard = () => {
     {
       field: "Export",
       headerName: "Export",
-      width: 500,
+      width: 300,
       renderCell: (params) => {
         const id = params.row.id;
         const name = params.row.Nom;
@@ -183,7 +183,7 @@ const Dashboard = () => {
                   // hendleSelectProject(id);
                 }}
               >
-                QualityCheck
+                QC
               </div>
             </Link>
             <div
@@ -196,7 +196,7 @@ const Dashboard = () => {
                 }
               }}
             >
-              Export Annexe
+               Annexe
             </div>
             {/* <div
               className={`EButton ${
@@ -212,7 +212,7 @@ const Dashboard = () => {
             </div> */}
             <div>
             <Link to={`/ansi-report/${id}`} style={{ textDecoration: "none" }}>
-              <Button>Generate Ansi Report</Button>
+              <Button> Ansi </Button>
             </Link>
           </div>
           </div>
@@ -444,7 +444,7 @@ const Dashboard = () => {
 
 
   return (
-    <div>
+    <div >
       <Dialog
         open={open}
         onClose={handleClose}
@@ -516,8 +516,8 @@ const Dashboard = () => {
           </div>
         ) : (
           <div>
-        <Button onClick={handleGenerateWordDocument}>Generate Ansi</Button>
              <DataGrid
+             style={{width:"90%"}}
             className="datagrid"
             rows={Project}
             columns={userColumns}
