@@ -198,7 +198,7 @@ const Dashboard = () => {
             >
               Export Annexe
             </div>
-            <div
+            {/* <div
               className={`EButton ${
                 params.row.QualityChecked === 0 ? "disabled" : ""
               }`}
@@ -209,7 +209,7 @@ const Dashboard = () => {
               }}
             >
               ANSI
-            </div>
+            </div> */}
             <div>
             <Link to={`/ansi-report/${id}`} style={{ textDecoration: "none" }}>
               <Button>Generate Ansi Report</Button>
