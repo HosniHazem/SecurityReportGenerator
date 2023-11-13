@@ -79,21 +79,56 @@ class WordDocumentController4 extends Controller
 
         $sql =  <<<HERE10
         SELECT `standards_controls`.`Clause`, `standards_controls`.`controle`, rm_answers.Answer, `rm_questions`.`Bonne pratique` as 'bp', `rm_questions`.`Vulnérabilité` as 'vuln'
-        FROM `standards_controls` LEFT JOIN rm_questions on standards_controls.ID=`rm_questions`.`Standard_Control_id`
-        LEFT Join rm_answers on rm_answers.ID_Question=rm_questions.ID WHERE LENGTH(`rm_questions`.`Vulnérabilité`) > 5
+        FROM `standards_controls` LEFT JOIN rm_questions on standards_controls.ID=`rm_questions`.`ID_control`
+        LEFT Join rm_answers on rm_answers.ID_Question=rm_questions.QuestionID WHERE LENGTH(`rm_questions`.`Vulnérabilité`) > 5
         order by `Clause`, `controle`,`rm_questions`.`Question_numero` ASC;
         HERE10;
         //sql for  Siege Description
-        $sqlApplication = "SELECT `Nom` as App_Name , `field3` as App_Module , `field4` as  App_Descr , `field5` as App_EnvDev , `dev by` as App_DevPar , `URL` as App_IPs , `Number of users`  as App_NumberUsers FROM `Audit_sow` WHERE Type = 'Application' and `Customer` = ?";
-        //sql for "serveurs par plateforme"
-        $sqlServers = "SELECT `Nom` as Srv_Name , IP_Host as Srv_IP , `field3` as Srv_Type, `field4` as Srv_SE , `field5` as Srv_Role FROM `Audit_sow` WHERE Type='Serveur' and `Customer`=?";
+        $sqlApplication = "SELECT
+        a.`Nom` AS App_Name,
+        a.`field3` AS App_Module,
+        a.`field4` AS App_Descr,
+        a.`field5` AS App_EnvDev,
+        a.`dev_by` AS App_DevPar,
+        a.`URL` AS App_IPs,
+        a.`Number_users` AS App_NumberUsers
+    FROM
+        `sow` a
+    JOIN
+        `projects` p ON a.`Projet` = p.`id`
+    WHERE
+        (a.`Type` = 'Apps' OR a.`Type` = 'Ext') AND p.`customer_id` = ?";
+            //sql for "serveurs par plateforme"
+        $sqlServers = "SELECT
+        a.`Nom` AS Srv_Name,
+        a.`IP_Host` AS Srv_IP,
+        a.`field3` AS Srv_Type,
+        a.`field4` AS Srv_SE,
+        a.`field5` AS Srv_Role
+    FROM
+        `sow` a
+    JOIN
+        `projects` p ON a.`Projet` = p.`id`
+    WHERE
+        a.`Type` = 'Serveur' AND p.`customer_id` = ?";
         //sql for customers site
         $sqlCustomerSite = 'SELECT Numero_site as N_Site, Structure as Structure_Site, Lieu as Lieu_Site FROM `Customer_sites` WHERE Customer_ID=? ';
         //sql for "Infrastucture Réseau et sécurité"
-        $sqlInfrastructure = "SELECT Nom as Infra_Nature, IP_Host as Infra_Marque , field3 as Infra_Number, field4 as Infra_ManagedBy, field5 as Infra_Obs FROM Audit_sow WHERE Type='Infra' AND Customer=?";
-        //sql for postes de travail
-        $sqlPosteTravail = "SELECT field4 as PC_SE , COUNT(field4) as PC_Number FROM Audit_sow WHERE Type='PC' AND Customer=? GROUP BY field4";
-        //sql for network Design Image
+        $sqlInfrastructure = "SELECT
+        a.`Nom` AS Infra_Nature,
+        a.`IP_Host` AS Infra_Marque,
+        a.`field3` AS Infra_Number,
+        a.`field4` AS Infra_ManagedBy,
+        a.`field5` AS Infra_Obs
+    FROM
+        `sow` a
+    JOIN
+        `projects` p ON a.`Projet` = p.`id`
+    WHERE
+        a.`Type` = 'R_S' AND p.`customer_id` = ?";
+            //sql for postes de travail
+        $sqlPosteTravail = "SELECT sow.field4 AS PC_SE, COUNT(sow.field4) AS PC_Number FROM sow JOIN projects ON sow.Projet = projects.id JOIN customers ON projects.customer_id = customers.id WHERE sow.`Type` LIKE 'PC' AND customers.id = ?";
+                //sql for network Design Image
         $sqlNetworkDesign="SELECT `Network_Design` FROM `customers` WHERE id=?";
         //sql for audit tools
         $sqlAuditTools="SELECT `Tool_name` as tool ,`Version` tool_version,`License` as tool_license,`Feature` as tool_features,`Composante_SI` as tool_sow FROM `Audit_Tools` ORDER BY `Composante_SI`;";
@@ -108,8 +143,8 @@ class WordDocumentController4 extends Controller
             `controle_name` as Mesures,
             ROUND(SUM(5 * `rm_questions`.`P` * rm_answers.Answer) / SUM(`rm_questions`.`P`), 1) as Value
         FROM `standards_controls`
-        LEFT JOIN rm_questions ON standards_controls.ID = `rm_questions`.`Standard_Control_id`
-        LEFT JOIN rm_answers ON rm_answers.ID_Question = rm_questions.ID
+        LEFT JOIN rm_questions ON standards_controls.ID = `rm_questions`.`ID_control`
+        LEFT JOIN rm_answers ON rm_answers.ID_Question = rm_questions.QuestionID
         GROUP BY `Clause`, `controle`
         ORDER BY `Clause`, `controle` ASC;
         HERE10;
