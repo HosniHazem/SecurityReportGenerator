@@ -304,15 +304,26 @@ class WordDocumentController4 extends Controller
         $templateProcessor->saveAs($outputPath);
         $pdfContent = self::ConvertPDF($outputPath);
         
-        if ($pdfContent) {
-            return response($pdfContent)
-                ->header('Content-Type', 'application/pdf')
-                ->header('Content-Disposition', 'attachment; filename=output.pdf');
-        } else {
-            abort(500, 'Failed to generate PDF');
-        }
+        // if ($pdfContent) {
+        //     return response($pdfContent)
+        //         ->header('Content-Type', 'application/pdf')
+        //         ->header('Content-Disposition', 'attachment; filename=output.pdf');
+        // } else {
+        //     abort(500, 'Failed to generate PDF');
+        // }
+        $headers = array(
+            'Content-Type: application/msword',
+        );
         
+        // Create a response with the file content and headers
+        $response = response()->download($outputPath, 'ansi2023.docx', $headers);
+        
+        // Delete the file after it's downloaded to avoid cluttering the server
+        
+        // Return the response
+        return $response;
 
+ 
     }
 
     //to test downloadble ifle
