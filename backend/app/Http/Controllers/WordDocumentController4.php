@@ -37,8 +37,7 @@ class WordDocumentController4 extends Controller
     //the function to fill ansi  repot
     public function generateWordDocument($customerId)
     {
-        set_time_limit(5000);
-
+        set_time_limit(1000);
         //query for  customers table 
         $sqlCustomers = 'SELECT 
         c.id AS ID,
@@ -78,11 +77,9 @@ class WordDocumentController4 extends Controller
 
 
         $sql =  <<<HERE10
-        SELECT `standards_controls`.`Clause`, `standards_controls`.`controle`, rm_answers.Answer, `rm_questions`.`Bonne pratique` as 'bp', `rm_questions`.`Vulnérabilité` as 'vuln'
-        FROM `standards_controls` LEFT JOIN rm_questions on standards_controls.ID=`rm_questions`.`ID_control`
-        LEFT Join rm_answers on rm_answers.ID_Question=rm_questions.QuestionID WHERE LENGTH(`rm_questions`.`Vulnérabilité`) > 5
-        order by `Clause`, `controle`,`rm_questions`.`Question_numero` ASC;
+        SELECT `standards_controls`.`Clause`, `standards_controls`.`controle`, rm_answers.Answer, `rm_questions`.`Bonne pratique` as 'bp', `rm_questions`.`Vulnérabilité` as 'vuln' FROM `standards_controls` LEFT JOIN `rm_questions` ON `standards_controls`.`ID` = `rm_questions`.`ID_control` LEFT JOIN `rm_answers` ON `rm_questions`.`QuestionID` = `rm_answers`.`ID_Question` LEFT JOIN `rm_iteration` ON `rm_answers`.`ID_ITERATION` = `rm_iteration`.`ID` WHERE LENGTH(`rm_questions`.`Vulnérabilité`) > 5 AND `rm_iteration`.`CustomerID` = ?  ORDER BY `Clause`, `controle`, `rm_questions`.`Question_numero` ASC LIMIT 1000;;
         HERE10;
+
         //sql for  Siege Description
         $sqlApplication = "SELECT
         a.`Nom` AS App_Name,
@@ -111,6 +108,7 @@ class WordDocumentController4 extends Controller
         `projects` p ON a.`Projet` = p.`id`
     WHERE
         a.`Type` = 'Serveur' AND p.`customer_id` = ?";
+
         //sql for customers site
         $sqlCustomerSite = 'SELECT Numero_site as N_Site, Structure as Structure_Site, Lieu as Lieu_Site FROM `Customer_sites` WHERE Customer_ID=? ';
         //sql for "Infrastucture Réseau et sécurité"
@@ -151,12 +149,15 @@ class WordDocumentController4 extends Controller
     
 
         $templatePath = public_path("0.docx");
-        $templateProcessor = new TemplateProcessor($templatePath);
+
+        $templateProcessor = new TemplateProcessor($templatePath);  
 
 
-        $outputFileName = 'ansi2023.docx';
-        $outputPath = public_path('' . $outputFileName);
+
+        $outputFileName = 'ansi-2023.docx';
         
+        $outputPath = public_path('' . $outputFileName);
+
         //Year
 
       
@@ -178,6 +179,7 @@ class WordDocumentController4 extends Controller
         //table "equipe de projet"
         $projectTeam = DB::select($sqlProjectTeam, [$customerId]);
         $projectTeamArray = self::processDatabaseData($projectTeam);
+
         // twice becuz if I do once it only fills the first table
         $templateProcessor->cloneRowAndSetValues('SPOC_Tech_Name', $projectTeamArray);
         $templateProcessor->cloneRowAndSetValues('SPOC_Tech_Name', $projectTeamArray);
@@ -186,12 +188,14 @@ class WordDocumentController4 extends Controller
 
         $auditTools = DB::select($sqlAuditTools);
         $auditToolsArray = self::processDatabaseData($auditTools);
+
         $templateProcessor->cloneRowAndSetValues('tool', $auditToolsArray);
 
         //Network Design image
         $networkDesign = DB::select($sqlNetworkDesign, [$customerId]);
         
         $networkDesignArray = self::processDatabaseData($networkDesign);
+
         //NetworkDesign:800:800
         $networkDesignRow = $networkDesignArray[0];
 
@@ -214,6 +218,7 @@ class WordDocumentController4 extends Controller
         $servers = DB::select($sqlServers, [$customerId]);
         $serverArray = self::processDatabaseData($servers);
          $templateProcessor->cloneRowAndSetValues('Srv_Name', $serverArray);
+
 
         //description du siege (Applications):
 
@@ -274,8 +279,7 @@ class WordDocumentController4 extends Controller
             return response()->json("no customer with this id exists ");
         }
 
-        $AllRows =  DB::select($sql);
-
+        $AllRows =  DB::select($sql,[$customerId]);
         $allRowsAsArray = [];
 
         foreach ($AllRows as $row) {
@@ -287,22 +291,23 @@ class WordDocumentController4 extends Controller
                 //  echo $row->Answer."aaaaaaaaaaaaaaaa";
             }
         }
-        //return $allRowsAsArray;
         foreach ($allRowsAsArray as $ClauseId => $rowData) {
-
-
             foreach ($rowData as $ControlID => $cellData) {
-
+                // Add debug statements here
+        
+                // Call the setOneRowControl function for Best Practices
                 self::setOneRowControl($templateProcessor, $ClauseId, $ControlID, $cellData, 1, "_BestPractice#");
-
+        
+                // Call the setOneRowControl function for Vulnerabilities
                 self::setOneRowControl($templateProcessor, $ClauseId, $ControlID, $cellData, 0, "_Vuln#");
             }
         }
+        
+        // return $allRowsAsArray;
 
-        // return response()->json($outputFileName);
 
         $templateProcessor->saveAs($outputPath);
-        $pdfContent = self::ConvertPDF($outputPath);
+        // $pdfContent = self::ConvertPDF($outputPath);
         
         // if ($pdfContent) {
         //     return response($pdfContent)
@@ -311,17 +316,19 @@ class WordDocumentController4 extends Controller
         // } else {
         //     abort(500, 'Failed to generate PDF');
         // }
-        $headers = array(
-            'Content-Type: application/msword',
-        );
+
+        //header for the type  of the file which is .docx
+        // $headers = array(
+        //     'Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        // );
         
-        // Create a response with the file content and headers
-        $response = response()->download($outputPath, 'ansi2023.docx', $headers);
+        // // Create a response with the file content and headers
+        // $response = response()->download($outputPath, 'ansi2023.docx', $headers);
         
-        // Delete the file after it's downloaded to avoid cluttering the server
+        // // Delete the file after it's downloaded to avoid cluttering the server
         
-        // Return the response
-        return $response;
+        // // Return the response
+        // return $response;
 
  
     }
