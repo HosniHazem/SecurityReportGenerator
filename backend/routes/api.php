@@ -124,3 +124,4 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::post('/create-iteration', [RmAnswerController::class, 'CreateIteration']);
 
     Route::get('/get-all-questions', [RmAnswerController::class, 'getAllQuestions']);
+    Route::post('/answer-a-question', [RmAnswerController::class, 'associateResponseWithQuestion']);

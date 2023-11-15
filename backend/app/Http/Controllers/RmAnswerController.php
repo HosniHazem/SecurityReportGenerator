@@ -47,18 +47,20 @@ class RmAnswerController extends Controller
             'rm_iteration_id' => $existingIteration->id,
         ]);
     }
+    $currentDate = date('Y-m-d');
+    
 
     // If no iteration exists, create a new rm_iteration
     $newIteration = RmIteration::create([
         'MehariVersion' => 2,
         'CustomerID' => $request->input('CustomerID'),
-        'Date création' => now(), 
+        'Date création' => $currentDate, 
     ]);
 
     return response()->json([
         'status' => 201,
         'message' => 'New rm_iteration created successfully.',
-        'rm_iteration_id' => $newIteration->id,
+        'rm_iteration' => $newIteration,
     ]);
 }
 public function getAllQuestions (){
@@ -69,6 +71,43 @@ public function getAllQuestions (){
     return response()->json($results);
 
 }
+
+public function associateResponseWithQuestion(Request $request)
+{
+    // Validate the request data
+    $validator = Validator::make($request->all(), [
+        'ID_Question' => 'required|integer',
+        'Answer' => 'required|in:0,1',
+        'Commentaire' => 'nullable|string',
+        'ID_ITERATION' => 'required|integer',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 422,
+            'validate_err' => $validator->getMessageBag(),
+        ]);
+    }
+
+    // Find the question by ID
+
+    // Create a new answer for the question
+    $answer = new RmAnswer([
+        'ID_Question' => $request->input('ID_Question'),
+        'Answer' => $request->input('Answer'),
+        'Commentaire' => $request->input('Commentaire'),
+        'ID_ITERATION' => $request->input('ID_ITERATION'),
+    ]);
+
+    // Save the answer for the question
+
+    return response()->json([
+        'status' => 200,
+        'message' => 'Response associated with the question successfully.',
+        $answer
+    ]);
+}
+
 
     /**
      * Show the form for creating a new resource.
