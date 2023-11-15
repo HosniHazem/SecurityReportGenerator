@@ -24,6 +24,7 @@ use App\Http\Controllers\GlbPipController;
 use App\Http\Controllers\SowController;
 use App\Http\Controllers\AuditPreviousAuditController;
 use App\Http\Controllers\ImageController;
+use App\Http\Controllers\RmAnswerController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -46,7 +47,7 @@ Route::post('/QualityCheck', [AnnexesController::class,'QualityCheck']);
 Route::post('/generateExcelDocument', [AnnexesController::class,'generateExcelDocument']);
 Route::get('/translatePlugins', [AnnexesController::class,'translateAllPlugins']);
 Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompliance']);
-    Route::get('/test2', [TestController::class,'get'])->middleware('web');
+    Route::get('/test2', [TestController::class,'get']);
     Route::get('/test', [TestController::class,'get2'])->middleware('web');
 
     Route::get('/get_vm', [VmController::class,'index']);
@@ -119,3 +120,7 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     
     //test
     Route::get('/download-file/{filename}', [WordDocumentController4::class,'downloadFile']);
+
+    Route::post('/create-iteration', [RmAnswerController::class, 'CreateIteration']);
+
+    Route::get('/get-all-questions', [RmAnswerController::class, 'getAllQuestions']);
