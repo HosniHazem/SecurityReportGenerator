@@ -28,7 +28,6 @@ use Barryvdh\DomPDF\Facade as PDFDom;
 use Dompdf\Dompdf;
 
 
-
 class WordDocumentController4 extends Controller
 {
 
@@ -37,6 +36,8 @@ class WordDocumentController4 extends Controller
     //the function to fill ansi  repot
     public function generateWordDocument($customerId)
     {
+
+      
         set_time_limit(1000);
         //query for  customers table 
         $sqlCustomers = 'SELECT 
@@ -167,21 +168,40 @@ HERE10;
         GROUP BY `Clause`, `controle`
         ORDER BY `Clause`, `controle` ASC;
         HERE10;
-    
 
+
+        //sql for prev audit
+        $sqlPrevAudit = "SELECT Project_name as ProjectName, `ActionNumero` as ActionNumero, `Criticite` as Criticite ,`Chargee_action` as chargeaction,`ChargeHJ` as charge,`TauxRealisation` as tauxrealisation,`Evaluation` as Evaluation FROM audit_previousaudits_ap AS ap JOIN projects ON ap.projectID = projects.id JOIN customers ON projects.customer_id = customers.id WHERE customers.id = ? Order by `ProjetNumero`,`ActionNumero`";
+
+
+        $sqlYear= 'SELECT `year` from `projects`WHERE `customer_id`=?';
+       
         $templatePath = public_path("0.docx");
 
         $templateProcessor = new TemplateProcessor($templatePath);  
 
-
+        $allImagesPath = public_path('images/uploads');
 
         $outputFileName = 'ansi-2023.docx';
         
         $outputPath = public_path('' . $outputFileName);
 
-        //Year
+        //Year of customer
+        $yearResult = DB::select($sqlYear,[$customerId]);
+        if(!empty($yearResult)){
+            $yearRow=$yearResult[0];
+            $year=$yearRow->year;
+            $templateProcessor->setValue('Y', $year);
 
-      
+        }
+
+        //current year 
+        $currentYear = date('Y');
+        $templateProcessor->setValue('year', $year);
+
+         
+
+
         
         //today's date
         $today=self::currentDate();
@@ -193,7 +213,11 @@ HERE10;
         $templateProcessor->cloneRowAndSetValues('Domain', $domainArray);
 
 
-        
+        //table prev audit 
+
+        // $prevAudit=DB::select($sqlPrevAudit, [$customerId]);
+        // $prevAuditArray=self::processDatabaseData($prevAudit);
+        // $templateProcessor->cloneRowAndSetValues('ProjectName',$prevAuditArray);
 
 
 
@@ -214,15 +238,15 @@ HERE10;
 
         //Network Design image
         $networkDesign = DB::select($sqlNetworkDesign, [$customerId]);
+
+        $networkDesignRow = $networkDesign[0] ?? null;
+        $networkDesignValue = $networkDesignRow->Network_Design ?? "pas de network Design";
         
-        $networkDesignArray = self::processDatabaseData($networkDesign);
-
-        //NetworkDesign:800:800
-        $networkDesignRow = $networkDesignArray[0];
-
-        $networkDesignValue = $networkDesignRow['Network_Design'] ?? "pas de network Design";
-
-        $templateProcessor->setImageValue('NetworkDesign:800:800', array('path'=>$networkDesignValue ,'width'=>500));
+        $imagePath = $allImagesPath . DIRECTORY_SEPARATOR . $networkDesignValue;
+        
+        
+        
+        $templateProcessor->setImageValue('NetworkDesign:800:800', ['path' => $imagePath, 'width' => 500]);
         //table:Postes de travail
         $posteTravail=DB::select($sqlPosteTravail, [$customerId]);
         $posteTravailArray= self::processDatabaseData($posteTravail);
@@ -275,6 +299,8 @@ HERE10;
         if (!empty($Customers)) {
             $firstRow = $Customers[0];
             $SN = $firstRow->SN;
+             AnnexesController::sendMessage("Starting Generating Report for ".$SN . "\n Time now:". date("Y-m-d H:i:s"));
+
             $LN = $firstRow->LN;
             $typeCompany = $firstRow->leType;
 
@@ -284,7 +310,7 @@ HERE10;
             $mailAddress = $firstRow->Adresse_mail;
             $description = $firstRow->Description;
             $organigrame = $firstRow->Organigramme ? $firstRow->Organigramme : " organigramme non disponible";
-
+            $Logo=$firstRow->Logo ? $firstRow->Logo :" Logo non dispo";
 
             $templateProcessor->setValue('SN', $SN);
             $templateProcessor->setValue('LN', $LN);
@@ -294,8 +320,14 @@ HERE10;
             $templateProcessor->setValue('siteweb', $siteWeb);
             $templateProcessor->setValue('mailadress', $mailAddress);
             $templateProcessor->setValue('DescriptionCompany', $description);
+            
+            $organigramePath=$allImagesPath. DIRECTORY_SEPARATOR . $organigrame;
+            $logoPath=$allImagesPath. DIRECTORY_SEPARATOR . $Logo;
 
-            $templateProcessor->setImageValue('organigrame:800:800', array('path'=>$organigrame,'width'=>500));
+
+           $templateProcessor->setImageValue('organigrame:800:800', array('path'=>$organigramePath));
+           $templateProcessor->setImageValue('icon', array('path'=>$logoPath));
+
         } else {
             return response()->json("no customer with this id exists ");
         }
@@ -328,6 +360,8 @@ HERE10;
 
 
         $templateProcessor->saveAs($outputPath);
+        AnnexesController::sendMessage("Finishing Generating Report for ".$SN . "\n Time now:". date("Y-m-d H:i:s"));
+
         // $pdfContent = self::ConvertPDF($outputPath);
         
         // if ($pdfContent) {
@@ -441,11 +475,10 @@ HERE10;
     return $dompdf->output();
 }
 
-    static function preparePagesDeGarde($templateProcessor, $annex_id, $customer, $project)
+    static function preparePagesDeGarde($templateProcessor,  $customer, $project)
     {
 
-        $templateProcessor->setValue('SRV_TITLE', self::$AnnexesTitles[$annex_id]);
-        $templateProcessor->setValue('SRV_LETTER', self::$AnnexesLetters[$annex_id]);
+    
         /*      $imageData = file_get_contents($customer->Logo);
     $localImagePath = public_path('images/'.basename($customer->Logo)); // Specify the local path to save the image
     file_put_contents($localImagePath, $imageData);
@@ -457,19 +490,7 @@ HERE10;
         $templateProcessor->setValue('URL',  $project->URL);
         $templateProcessor->setValue('DESC',  $project->description);
     }
-    public static function send_whatsapp($message = "Test")
-    {
-        $url = 'https://api.callmebot.com/whatsapp.php?phone=21629961666&apikey=2415178&text=' . urlencode($message);
-        if ($ch = curl_init($url)) {
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-            $html = curl_exec($ch);
-            $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            // echo "Output:".$html;  // you can print the output for troubleshooting
-            curl_close($ch);
-            return (int) $status;
-        } else return;
-    }
+   
     static function processDatabaseData($data) {
         $result = [];
     
