@@ -76,9 +76,30 @@ class WordDocumentController4 extends Controller
 
 
 
-        $sql =  <<<HERE10
-        SELECT `standards_controls`.`Clause`, `standards_controls`.`controle`, rm_answers.Answer, `rm_questions`.`Bonne pratique` as 'bp', `rm_questions`.`Vulnérabilité` as 'vuln' FROM `standards_controls` LEFT JOIN `rm_questions` ON `standards_controls`.`ID` = `rm_questions`.`ID_control` LEFT JOIN `rm_answers` ON `rm_questions`.`QuestionID` = `rm_answers`.`ID_Question` LEFT JOIN `rm_iteration` ON `rm_answers`.`ID_ITERATION` = `rm_iteration`.`ID` WHERE LENGTH(`rm_questions`.`Vulnérabilité`) > 5 AND `rm_iteration`.`CustomerID` = ?  ORDER BY `Clause`, `controle`, `rm_questions`.`Question_numero` ASC LIMIT 1000;;
-        HERE10;
+    $sql =  <<<HERE10
+    SELECT
+        rm_answers.ID_Question,
+        standards_controls.Controle_ID,
+        standards_controls.Clause,
+        standards_controls.controle,
+        rm_answers.Answer,
+        rm_questions.`Bonne pratique` as bp,
+        rm_questions.Vulnérabilité as vuln
+    FROM
+        standards_controls
+    LEFT JOIN
+        rm_questions ON standards_controls.Controle_ID = rm_questions.`ISO 27002:2022`
+    LEFT JOIN
+        rm_answers ON rm_answers.ID_Question = rm_questions.QuestionID
+    LEFT JOIN
+        rm_iteration ON rm_answers.ID_ITERATION = rm_iteration.id
+    WHERE
+        LENGTH(rm_questions.Vulnérabilité) > 5
+        AND rm_iteration.CustomerID = ?
+    ORDER BY
+        rm_answers.ID_Question ASC;
+HERE10;
+
 
         //sql for  Siege Description
         $sqlApplication = "SELECT
