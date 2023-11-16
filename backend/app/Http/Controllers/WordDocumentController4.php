@@ -338,20 +338,23 @@ HERE10;
         //     abort(500, 'Failed to generate PDF');
         // }
 
-        //header for the type  of the file which is .docx
-        // $headers = array(
-        //     'Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        // );
-        
-        // // Create a response with the file content and headers
-        // $response = response()->download($outputPath, 'ansi2023.docx', $headers);
-        
-        // // Delete the file after it's downloaded to avoid cluttering the server
-        
-        // // Return the response
-        // return $response;
+        header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
 
- 
+        // Set the Content-Disposition header to force download with a specific filename
+        header('Content-Disposition: attachment;filename="ansi-2023.docx"');
+        
+        // Set the Content-Length header
+        header('Content-Length: ' . filesize($outputPath));
+        
+        // Clear the output buffer
+        ob_clean();
+        
+        // Read the file and output it to the browser
+        readfile($outputPath);
+
+// Read the file and output it to the browser
+        
+            
     }
 
     //to test downloadble ifle
