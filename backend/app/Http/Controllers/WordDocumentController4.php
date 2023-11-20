@@ -171,7 +171,7 @@ HERE10;
 
 
         //sql for prev audit
-        $sqlPrevAudit = "SELECT Project_name as ProjectName, `ActionNumero` as ActionNumero, `Criticite` as Criticite ,`Chargee_action` as chargeaction,`ChargeHJ` as charge,`TauxRealisation` as tauxrealisation,`Evaluation` as Evaluation FROM audit_previousaudits_ap AS ap JOIN projects ON ap.projectID = projects.id JOIN customers ON projects.customer_id = customers.id WHERE customers.id = ? Order by `ProjetNumero`,`ActionNumero`";
+        $sqlPrevAudit = "SELECT Project_name as ProjectName,`Action` as Action, `ActionNumero` as ActionNumero,`ProjetNumero` as projNum ,`Criticite` as Criticite ,`Chargee_action` as chargeaction,`ChargeHJ` as charge,`TauxRealisation` as tauxrealisation,`Evaluation` as Evaluation FROM audit_previousaudits_ap AS ap JOIN projects ON ap.projectID = projects.id JOIN customers ON projects.customer_id = customers.id WHERE customers.id = ? Order by `ProjetNumero`,`ActionNumero`";
 
 
         $sqlYear= 'SELECT `year` from `projects`WHERE `customer_id`=?';
@@ -215,9 +215,57 @@ HERE10;
 
         //table prev audit 
 
-        // $prevAudit=DB::select($sqlPrevAudit, [$customerId]);
-        // $prevAuditArray=self::processDatabaseData($prevAudit);
-        // $templateProcessor->cloneRowAndSetValues('ProjectName',$prevAuditArray);
+        $prevAudit = DB::select($sqlPrevAudit, [$customerId]);
+        $prevAuditArray = self::processDatabaseData($prevAudit);
+        $prevAuditArrayLength=count($prevAuditArray);
+        $maxProjNum = self::getMaxProjNum($prevAuditArray);
+
+        $organizedData = [];
+        foreach ($prevAuditArray as $entry) {
+            $projectName = $entry['ProjectName'];
+            if (!isset($organizedData[$projectName])) {
+                $organizedData[$projectName] = [];
+            }
+            $organizedData[$projectName][] = [
+                'Action' => $entry['Action'],
+                'ActionNumero' => $entry['ActionNumero'],
+                'Criticite' => $entry['Criticite'],
+                'chargeaction' => $entry['chargeaction'],
+                'charge' => $entry['charge'],
+                'tauxrealisation' => $entry['tauxrealisation'],
+                'Evaluation' => $entry['Evaluation'],
+                'projNum'=>$entry['projNum'],
+            ];
+        }
+       
+                $flattenedData = [];
+foreach ($organizedData as $projectName => $entries) {
+    foreach ($entries as $entry) {
+        $flattenedData[] = $entry;
+    }
+}
+$templateProcessor->cloneRowAndSetValues('ProjectName', $flattenedData);
+
+for ($x = 0; $x <count($prevAuditArray)+1; $x++) {
+
+    if (isset($prevAuditArray[$x]['ProjectName'])) {
+        $projectName = $prevAuditArray[$x]['ProjectName'];
+        $templateProcessor->setValue( "ProjectName#" .$x+1, $projectName);
+    } else {
+        error_log("Warning: 'ProjectName' key not found in entry at index $x");
+    }
+}
+
+
+
+
+        
+
+        
+        
+
+
+        
 
 
 
@@ -355,6 +403,7 @@ HERE10;
                 self::setOneRowControl($templateProcessor, $ClauseId, $ControlID, $cellData, 0, "_Vuln#");
             }
         }
+
         
         // return $allRowsAsArray;
 
@@ -391,6 +440,37 @@ HERE10;
             
     }
 
+    static function getMaxProjNum($prevAuditArray)
+{
+    $maxProjNum = isset($prevAuditArray[0]['projNum']) ? $prevAuditArray[0]['projNum'] : null;
+
+    foreach ($prevAuditArray as $item) {
+        if (isset($item['projNum']) && $item['projNum'] > $maxProjNum) {
+            $maxProjNum = $item['projNum'];
+        }
+    }
+
+    return $maxProjNum;
+}
+
+
+// function setOneRowProject($templateProcessor, $project) {
+//     // Extract project data
+//     $projectName = $project['ProjectName'];
+//     $actionNumero = $project['ActionNumero'];
+//     $projNum = $project['projNum'];
+//     $criticite = $project['Criticite'];
+//     $chargeAction = $project['chargeaction'];
+//     $charge = $project['charge'];
+//     $tauxRealisation = $project['tauxrealisation'];
+//     $evaluation = $project['Evaluation'];
+
+//     // Call setOneRowControl function for each project
+//     self::setOneRowControl($templateProcessor, $projectName, $actionNumero, $projNum, $criticite, $chargeAction, $charge, $tauxRealisation, $evaluation);
+// }
+
+
+
     //to test downloadble ifle
     public function downloadFile(Request $request, $filename)
 {
@@ -422,8 +502,8 @@ HERE10;
     }
 }
 
-    
-    
+   
+
 
     static function setOneRowControl($templateProcessor, $ClauseId, $ControlID, $cellData, $type, $typeTag)
     {
