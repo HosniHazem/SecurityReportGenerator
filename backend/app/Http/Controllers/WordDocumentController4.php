@@ -171,7 +171,7 @@ HERE10;
 
 
         //sql for prev audit
-        $sqlPrevAudit = "SELECT Project_name as ProjectName,`Action` as Action, `ActionNumero` as ActionNumero,`ProjetNumero` as projNum ,`Criticite` as Criticite ,`Chargee_action` as chargeaction,`ChargeHJ` as charge,`TauxRealisation` as tauxrealisation,`Evaluation` as Evaluation FROM audit_previousaudits_ap AS ap JOIN projects ON ap.projectID = projects.id JOIN customers ON projects.customer_id = customers.id WHERE customers.id = ? Order by `ProjetNumero`,`ActionNumero`";
+            $sqlPrevAudit = "SELECT Project_name as ProjectName,`Action` as Action, `ActionNumero` as ActionNumero,`ProjetNumero` as projNum ,`Criticite` as Criticite ,`Chargee_action` as chargeaction,`ChargeHJ` as charge,`TauxRealisation` as tauxrealisation,`Evaluation` as Evaluation FROM audit_previousaudits_ap AS ap JOIN projects ON ap.projectID = projects.id JOIN customers ON projects.customer_id = customers.id WHERE customers.id = ? Order by `ProjetNumero`,`ActionNumero`";
 
 
         $sqlYear= 'SELECT `year` from `projects`WHERE `customer_id`=?';
@@ -214,12 +214,24 @@ HERE10;
 
 
         //table prev audit 
-
+        //to do:Merge Cells
+        
         $prevAudit = DB::select($sqlPrevAudit, [$customerId]);
         $prevAuditArray = self::processDatabaseData($prevAudit);
         $prevAuditArrayLength=count($prevAuditArray);
-        $maxProjNum = self::getMaxProjNum($prevAuditArray);
+        //get number of projects 
+        $uniqueProjects = [];
 
+        foreach ($prevAuditArray as $entry) {
+            $projectName = $entry['ProjectName'];
+            if (!in_array($projectName, $uniqueProjects)) {
+                $uniqueProjects[] = $projectName;
+            }
+        }
+        
+        $numberOfProjects = count($uniqueProjects);
+
+        $maxProjNum = self::getMaxProjNum($prevAuditArray);
         $organizedData = [];
         foreach ($prevAuditArray as $entry) {
             $projectName = $entry['ProjectName'];
@@ -237,7 +249,8 @@ HERE10;
                 'projNum'=>$entry['projNum'],
             ];
         }
-       
+        return response()->json($organizedData);
+
                 $flattenedData = [];
 foreach ($organizedData as $projectName => $entries) {
     foreach ($entries as $entry) {
@@ -591,5 +604,13 @@ for ($x = 0; $x <count($prevAuditArray)+1; $x++) {
 
         return $current_date;
     }
-    
+    private function setTableRowValues(Row $table, int $rowIndex, array $data)
+    {
+        // Iterate through each cell of the row and set values
+        foreach ($data as $columnName => $value) {
+            $table->setValue("${columnName}_$rowIndex", $value);
+        }
+    }
 }
+
+
