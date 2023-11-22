@@ -38,13 +38,7 @@ class AuditPreviousAuditController extends Controller
             ]);
         }
 
-        $existingAuditPrevious = AuditPreviousAudit::where('ProjetNumero', $request->input('ProjetNumero'))
-            ->orWhere('Project_name', $request->input('Project_name'))
-            ->first();
-
-        if ($existingAuditPrevious) {
-            return response()->json(['message' => 'A project with the same number or name already exists!', 'success' => false]);
-        }
+       
 
         $projectID = $request->input('projectID');
         $project = Project::find($projectID);
