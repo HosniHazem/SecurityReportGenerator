@@ -158,15 +158,7 @@ HERE10;
        
         //sql for domain table 
         $sqlDomain = <<<HERE10
-        SELECT
-            `Clause_name` as Domain,
-            `controle_name` as Mesures,
-            ROUND(SUM(5 * `rm_questions`.`P` * rm_answers.Answer) / SUM(`rm_questions`.`P`), 1) as Value
-        FROM `standards_controls`
-        LEFT JOIN rm_questions ON standards_controls.ID = `rm_questions`.`ID_control`
-        LEFT JOIN rm_answers ON rm_answers.ID_Question = rm_questions.QuestionID
-        GROUP BY `Clause`, `controle`
-        ORDER BY `Clause`, `controle` ASC;
+        SELECT `Clause_name` AS Domain, `controle_name` AS Mesures, ROUND( SUM(5 * `rm_questions`.`P` * rm_answers.Answer) / SUM(`rm_questions`.`P`), 1 ) AS Value FROM `standards_controls` LEFT JOIN `rm_questions` ON `standards_controls`.`ID` = `rm_questions`.`ID_control` LEFT JOIN `rm_answers` ON `rm_answers`.`ID_Question` = `rm_questions`.`QuestionID` LEFT JOIN `rm_iteration` ON `rm_iteration`.`ID` = `rm_answers`.`ID_ITERATION` WHERE `rm_iteration`.`CustomerID` = ? GROUP BY `Clause`, `controle` ORDER BY `Clause`, `controle` ASC;
         HERE10;
 
 
@@ -191,7 +183,14 @@ HERE10;
         if(!empty($yearResult)){
             $yearRow=$yearResult[0];
             $year=$yearRow->year;
+            if(isset($year)){
+                
+            }
             $templateProcessor->setValue('Y', $year);
+
+        }
+        else {
+            $templateProcessor->setValue('Y', "2023");
 
         }
 
@@ -208,7 +207,7 @@ HERE10;
         $templateProcessor->setValue('today',$today);
 
         //table "domaine"
-        $domain= DB::select($sqlDomain);
+        $domain= DB::select($sqlDomain,[$customerId]);
         $domainArray= self::processDatabaseData($domain);
         $templateProcessor->cloneRowAndSetValues('Domain', $domainArray);
 
@@ -218,6 +217,7 @@ HERE10;
         
         $prevAudit = DB::select($sqlPrevAudit, [$customerId]);
         $prevAuditArray = self::processDatabaseData($prevAudit);
+
         $prevAuditArrayLength=count($prevAuditArray);
         //get number of projects 
         $uniqueProjects = [];
@@ -249,7 +249,6 @@ HERE10;
                 'projNum'=>$entry['projNum'],
             ];
         }
-        return response()->json($organizedData);
 
                 $flattenedData = [];
 foreach ($organizedData as $projectName => $entries) {
@@ -307,7 +306,7 @@ for ($x = 0; $x <count($prevAuditArray)+1; $x++) {
         
         
         
-        $templateProcessor->setImageValue('NetworkDesign:800:800', ['path' => $imagePath, 'width' => 500]);
+        $templateProcessor->setImageValue('NetworkDesign', ['path' => $imagePath, 'width' => 500]);
         //table:Postes de travail
         $posteTravail=DB::select($sqlPosteTravail, [$customerId]);
         $posteTravailArray= self::processDatabaseData($posteTravail);
@@ -395,7 +394,6 @@ for ($x = 0; $x <count($prevAuditArray)+1; $x++) {
 
         $AllRows =  DB::select($sql,[$customerId]);
         $allRowsAsArray = [];
-
         foreach ($AllRows as $row) {
 
             if ($row->Answer > 0) {
@@ -405,17 +403,40 @@ for ($x = 0; $x <count($prevAuditArray)+1; $x++) {
                 //  echo $row->Answer."aaaaaaaaaaaaaaaa";
             }
         }
+        
         foreach ($allRowsAsArray as $ClauseId => $rowData) {
             foreach ($rowData as $ControlID => $cellData) {
-                // Add debug statements here
-        
                 // Call the setOneRowControl function for Best Practices
                 self::setOneRowControl($templateProcessor, $ClauseId, $ControlID, $cellData, 1, "_BestPractice#");
         
                 // Call the setOneRowControl function for Vulnerabilities
                 self::setOneRowControl($templateProcessor, $ClauseId, $ControlID, $cellData, 0, "_Vuln#");
+        
+                // Check if both Best Practices and Vulnerabilities are empty
+               
             }
         }
+        
+        for ($clause = 5; $clause <= 8; $clause++) {
+            for ($control = 1; $control <= 40; $control++) {
+                // Replace Best Practice placeholder
+                $bestPracticePlaceholder = $clause . "_BestPractice#" . $control;
+                $bestPracticeVariables = $templateProcessor->getVariables($bestPracticePlaceholder);
+                if (!empty($bestPracticeVariables)) {
+                    $templateProcessor->setValue($bestPracticePlaceholder, '');
+                }
+        
+                // Replace Vulnerability placeholder
+                $vulnPlaceholder = $clause . "_Vuln#" . $control;
+                $vulnVariables = $templateProcessor->getVariables($vulnPlaceholder);
+                if (!empty($vulnVariables)) {
+                    $templateProcessor->setValue($vulnPlaceholder, '');
+                }
+            }
+        }
+        
+        
+            
 
         
         // return $allRowsAsArray;
@@ -525,6 +546,7 @@ for ($x = 0; $x <count($prevAuditArray)+1; $x++) {
         if (!isset($cellData[$type])) {
             echo $ClauseId . $typeTag . $ControlID;
             $templateProcessor->setValue($ClauseId . $typeTag . $ControlID, "");
+
             return;
         };
 
@@ -591,7 +613,7 @@ for ($x = 0; $x <count($prevAuditArray)+1; $x++) {
             $modifiedItem = [];
     
             foreach ($item as $key => $value) {
-                $modifiedItem[$key] = htmlspecialchars($value, ENT_XML1);
+                $modifiedItem[$key] = AnnexesController::cleanStrings($value,);
             }
     
             $result[] = $modifiedItem;
