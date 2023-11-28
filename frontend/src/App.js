@@ -20,6 +20,7 @@ import ModifyGlbPip from "./GlbPip/ModfiyGlbPip";
 import AddAuditPreviousAudit from "./AuditPreviousAudit/AddAuditPreviousAudit";
 import ViewAuditPRevious from "./AuditPreviousAudit/ViewAuditPreviousAudit";
 import ModifyAuditPreviousAudit from "./AuditPreviousAudit/ModifyAuditPreviousAudit";
+import AnsiReport from "./AnsiReport";
 
 function App() {
   return (
@@ -42,13 +43,14 @@ function App() {
         <Route path="/import" element={<Nessus />} />
         <Route path="/import2" element={<Nessus2 />} />
         <Route path="/sow/:id" element={<Sow />} />
-        <Route path="/add-glb-pip" element={<AddGlbPip />} />
+        <Route path="/add-glb-pip/:id" element={<AddGlbPip />} />
         <Route path='/all-glb-pip' element={<ViewGlbPip />} /> 
         <Route path="/quality/:id" element={<Quality />} />
         <Route path="/modify-glb-pip/:id" element={<ModifyGlbPip />} />
-        <Route path="/add-audit-previous-audit" element={<AddAuditPreviousAudit />} />
+        <Route path="/add-audit-previous-audit/:id" element={<AddAuditPreviousAudit />} />
         <Route path="/all-audit-previous-audit" element={<ViewAuditPRevious />} />
         <Route path="/all-audit-previous-audit/modify-audit-previous-audit/:id" element={< ModifyAuditPreviousAudit/>} />
+        <Route path="/ansi-report/:id" element={<AnsiReport />} />
 
 
       </Routes>

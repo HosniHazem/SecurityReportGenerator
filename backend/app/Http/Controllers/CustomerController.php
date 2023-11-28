@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Customer;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\File;
+use App\Models\Project;
 
 class CustomerController extends Controller
 {
@@ -172,6 +173,11 @@ class CustomerController extends Controller
                 {
                 return response()->json(['message'=>'not deleted'], 404);
                 }
+    }
+    public function getProjectByCustomerId($projectId){
+        $item =Customer::find($projectId);
+
+        return response()->json(['Customer'=>$item,'status' => 200]);
     }
 }
 

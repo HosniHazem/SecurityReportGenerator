@@ -22,7 +22,10 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\Project; // Replace with your actual model
 use Illuminate\Support\Facades\Http;
 use Stichoza\GoogleTranslate\GoogleTranslate;
-
+use PhpOffice\PhpWord\IOFactory;
+use PhpOffice\PhpWord\Writer\PDF;
+use Barryvdh\DomPDF\Facade as PDFDom;
+use Dompdf\Dompdf;
 
 
 class WordDocumentController4 extends Controller
@@ -31,107 +34,247 @@ class WordDocumentController4 extends Controller
 
 
     //the function to fill ansi  repot
-    public function generateWordDocument(Request $request)
+    public function generateWordDocument($customerId)
     {
-        set_time_limit(5000);
 
+      
+        set_time_limit(1000);
         //query for  customers table 
         $sqlCustomers = 'SELECT 
         c.id AS ID,
         c.SN AS SN,
         c.LN AS LN,
-        c.type AS Type,
         c.Logo AS Logo,
         c.Description AS Description,
-        c.SecteurActivite AS SecteurActivite,
+        c.SecteurActivité AS SecteurActivite,
         c.Categorie AS Categorie,
         c.`Site web` AS `Site_Web`,
         c.`Addresse mail` AS `Adresse_mail`,
         c.Organigramme AS Organigramme,
         c.Network_Design AS Network_Design,
-        t.leType AS leType
-    FROM glb_customers AS c
-    LEFT JOIN glb_type AS t ON c.type = t.id
+        c.type AS leType
+    FROM customers AS c
     WHERE c.id = ?;';
 
         //query for process  table
-        $sqlProcess = 'SELECT  RM_Processus_domains.ID,Processus_domaine AS  process , MAX(D) AS  Process_D , MAX(I) AS Process_I, MAX(C) AS Process_C
-        FROM RM_Processus_Actifs_Valeurs
-        LEFT JOIN RM_Processus_domains ON RM_Processus_Actifs_Valeurs.ID_Processus = RM_Processus_domains.ID
-        WHERE RM_Processus_domains.ID_ITERATION = 1
-        GROUP BY Processus_domaine';
+        $sqlProcess = 'SELECT
+        rpd.ID AS Processus_domaine_ID,
+        rpd.Processus_domaine AS process,
+        MAX(rpav.D) AS Process_D,
+        MAX(rpav.I) AS Process_I,
+        MAX(rpav.C) AS Process_C
+    FROM
+        rm_iteration ri
+    JOIN
+        rm_processus_domains rpd ON ri.ID = rpd.ID_ITERATION
+    LEFT JOIN
+        rm_processus_actifs_valeurs rpav ON rpd.ID = rpav.ID_Processus
+    WHERE
+        ri.CustomerId =?
+    GROUP BY
+        rpd.ID, rpd.Processus_domaine;';
+    
 
 
 
-        $sql =  <<<HERE10
-        SELECT `standards_controls`.`Clause`, `standards_controls`.`controle`, rm_answers.Answer, `rm_questions`.`Bonne pratique` as 'bp', `rm_questions`.`Vulnérabilité` as 'vuln'
-        FROM `standards_controls` LEFT JOIN rm_questions on standards_controls.ID=`rm_questions`.`Standard_Control_id`
-        LEFT Join rm_answers on rm_answers.ID_Question=rm_questions.ID WHERE LENGTH(`rm_questions`.`Vulnérabilité`) > 5
-        order by `Clause`, `controle`,`rm_questions`.`Question_numero` ASC;
-        HERE10;
+    $sql =  <<<HERE10
+    SELECT
+        rm_answers.ID_Question,
+        standards_controls.Controle_ID,
+        standards_controls.Clause,
+        standards_controls.controle,
+        rm_answers.Answer,
+        rm_questions.`Bonne pratique` as bp,
+        rm_questions.Vulnérabilité as vuln
+    FROM
+        standards_controls
+    LEFT JOIN
+        rm_questions ON standards_controls.Controle_ID = rm_questions.`ISO 27002:2022`
+    LEFT JOIN
+        rm_answers ON rm_answers.ID_Question = rm_questions.QuestionID
+    LEFT JOIN
+        rm_iteration ON rm_answers.ID_ITERATION = rm_iteration.id
+    WHERE
+        LENGTH(rm_questions.Vulnérabilité) > 5
+        AND rm_iteration.CustomerID = ?
+    ORDER BY
+        rm_answers.ID_Question ASC;
+HERE10;
+
+
         //sql for  Siege Description
-        $sqlApplication = "SELECT `Nom` as App_Name , `field3` as App_Module , `field4` as  App_Descr , `field5` as App_EnvDev , `dev by` as App_DevPar , `URL` as App_IPs , `Number of users`  as App_NumberUsers FROM `Audit_sow` WHERE Type = 'Application' and `Customer` = ?";
-        //sql for "serveurs par plateforme"
-        $sqlServers = "SELECT `Nom` as Srv_Name , IP_Host as Srv_IP , `field3` as Srv_Type, `field4` as Srv_SE , `field5` as Srv_Role FROM `Audit_sow` WHERE Type='Serveur' and `Customer`=?";
+        $sqlApplication = "SELECT
+        a.`Nom` AS App_Name,
+        a.`field3` AS App_Module,
+        a.`field4` AS App_Descr,
+        a.`field5` AS App_EnvDev,
+        a.`dev_by` AS App_DevPar,
+        a.`URL` AS App_IPs,
+        a.`Number_users` AS App_NumberUsers
+    FROM
+        `sow` a
+    JOIN
+        `projects` p ON a.`Projet` = p.`id`
+    WHERE
+        (a.`Type` = 'Apps' OR a.`Type` = 'Ext') AND p.`customer_id` = ?";
+            //sql for "serveurs par plateforme"
+        $sqlServers = "SELECT
+        a.`Nom` AS Srv_Name,
+        a.`IP_Host` AS Srv_IP,
+        a.`field3` AS Srv_Type,
+        a.`field4` AS Srv_SE,
+        a.`field5` AS Srv_Role
+    FROM
+        `sow` a
+    JOIN
+        `projects` p ON a.`Projet` = p.`id`
+    WHERE
+        a.`Type` = 'Serveur' AND p.`customer_id` = ?";
+
         //sql for customers site
         $sqlCustomerSite = 'SELECT Numero_site as N_Site, Structure as Structure_Site, Lieu as Lieu_Site FROM `Customer_sites` WHERE Customer_ID=? ';
         //sql for "Infrastucture Réseau et sécurité"
-        $sqlInfrastructure = "SELECT Nom as Infra_Nature, IP_Host as Infra_Marque , field3 as Infra_Number, field4 as Infra_ManagedBy, field5 as Infra_Obs FROM Audit_sow WHERE Type='Infra' AND Customer=?";
-        //sql for postes de travail
-        $sqlPosteTravail = "SELECT field4 as PC_SE , COUNT(field4) as PC_Number FROM Audit_sow WHERE Type='PC' AND Customer=? GROUP BY field4";
-        //sql for network Design Image
-        $sqlNetworkDesign="SELECT `Network_Design` FROM `glb_customers` WHERE id=?";
+        $sqlInfrastructure = "SELECT
+        a.`Nom` AS Infra_Nature,
+        a.`IP_Host` AS Infra_Marque,
+        a.`field3` AS Infra_Number,
+        a.`field4` AS Infra_ManagedBy,
+        a.`field5` AS Infra_Obs
+    FROM
+        `sow` a
+    JOIN
+        `projects` p ON a.`Projet` = p.`id`
+    WHERE
+        a.`Type` = 'R_S' AND p.`customer_id` = ?";
+            //sql for postes de travail
+        $sqlPosteTravail = "SELECT sow.field4 AS PC_SE, COUNT(sow.field4) AS PC_Number FROM sow JOIN projects ON sow.Projet = projects.id JOIN customers ON projects.customer_id = customers.id WHERE sow.`Type` LIKE 'PC' AND customers.id = ?";
+                //sql for network Design Image
+        $sqlNetworkDesign="SELECT `Network_Design` FROM `customers` WHERE id=?";
         //sql for audit tools
         $sqlAuditTools="SELECT `Tool_name` as tool ,`Version` tool_version,`License` as tool_license,`Feature` as tool_features,`Composante_SI` as tool_sow FROM `Audit_Tools` ORDER BY `Composante_SI`;";
         //sql for "equipe de projet"
         $sqlProjectTeam="SELECT `Nom` as SPOC_Tech_Name ,`Titre` as SPOC_Tech_Title,`Adresse mail primaire` as SPOC_Tech_email ,`Adresse mail secondaire`,`Tél` as SPOC_Tech_Tel FROM `glb_pip` WHERE `Cusotmer_ID`=?";
 
-        //sql for year
-        $sqlYear="SELECT p.Year
-        FROM glb_customers c
-        JOIN glb_contracts co ON c.ID = co.Customer_ID
-        JOIN glb_lots l ON co.ID = l.Contract_ID
-        JOIN glb_projects p ON l.ID = p.Lot_ID
-        WHERE c.ID = ?";
+       
         //sql for domain table 
         $sqlDomain = <<<HERE10
-        SELECT
-            `Clause_name` as Domain,
-            `controle_name` as Mesures,
-            ROUND(SUM(5 * `rm_questions`.`P` * rm_answers.Answer) / SUM(`rm_questions`.`P`), 1) as Value
-        FROM `standards_controls`
-        LEFT JOIN rm_questions ON standards_controls.ID = `rm_questions`.`Standard_Control_id`
-        LEFT JOIN rm_answers ON rm_answers.ID_Question = rm_questions.ID
-        GROUP BY `Clause`, `controle`
-        ORDER BY `Clause`, `controle` ASC;
+        SELECT `Clause_name` AS Domain, `controle_name` AS Mesures, ROUND( SUM(5 * `rm_questions`.`P` * rm_answers.Answer) / SUM(`rm_questions`.`P`), 1 ) AS Value FROM `standards_controls` LEFT JOIN `rm_questions` ON `standards_controls`.`ID` = `rm_questions`.`ID_control` LEFT JOIN `rm_answers` ON `rm_answers`.`ID_Question` = `rm_questions`.`QuestionID` LEFT JOIN `rm_iteration` ON `rm_iteration`.`ID` = `rm_answers`.`ID_ITERATION` WHERE `rm_iteration`.`CustomerID` = ? GROUP BY `Clause`, `controle` ORDER BY `Clause`, `controle` ASC;
         HERE10;
-    
 
+
+        //sql for prev audit
+            $sqlPrevAudit = "SELECT Project_name as ProjectName,`Action` as Action, `ActionNumero` as ActionNumero,`ProjetNumero` as projNum ,`Criticite` as Criticite ,`Chargee_action` as chargeaction,`ChargeHJ` as charge,`TauxRealisation` as tauxrealisation,`Evaluation` as Evaluation FROM audit_previousaudits_ap AS ap JOIN projects ON ap.projectID = projects.id JOIN customers ON projects.customer_id = customers.id WHERE customers.id = ? Order by `ProjetNumero`,`ActionNumero`";
+
+
+        $sqlYear= 'SELECT `year` from `projects`WHERE `customer_id`=?';
+       
         $templatePath = public_path("0.docx");
-        $templateProcessor = new TemplateProcessor($templatePath);
 
+        $templateProcessor = new TemplateProcessor($templatePath);  
 
-        $outputFileName = 'ansi2023.docx';
-        $outputPath = public_path('' . $outputFileName);
+        $allImagesPath = public_path('images/uploads');
+
+        $outputFileName = 'ansi-2023.docx';
         
-        //Year
+        $outputPath = public_path('' . $outputFileName);
 
-        $yearData = DB::select($sqlYear, [$request->customer]);
-        if (!empty($yearData)) {
-            $year = $yearData[0]->Year; 
+        //Year of customer
+        $yearResult = DB::select($sqlYear,[$customerId]);
+        if(!empty($yearResult)){
+            $yearRow=$yearResult[0];
+            $year=$yearRow->year;
+            if(isset($year)){
+                
+            }
             $templateProcessor->setValue('Y', $year);
-            $templateProcessor->setValue('year', $year);
 
-        } 
+        }
+        else {
+            $templateProcessor->setValue('Y', "2023");
+
+        }
+
+        //current year 
+        $currentYear = date('Y');
+        $templateProcessor->setValue('year', $year);
+
+         
+
+
         
         //today's date
         $today=self::currentDate();
         $templateProcessor->setValue('today',$today);
 
         //table "domaine"
-        $domain= DB::select($sqlDomain);
+        $domain= DB::select($sqlDomain,[$customerId]);
         $domainArray= self::processDatabaseData($domain);
         $templateProcessor->cloneRowAndSetValues('Domain', $domainArray);
+
+
+        //table prev audit 
+        //to do:Merge Cells
+        
+        $prevAudit = DB::select($sqlPrevAudit, [$customerId]);
+        $prevAuditArray = self::processDatabaseData($prevAudit);
+
+        $prevAuditArrayLength=count($prevAuditArray);
+        //get number of projects 
+        $uniqueProjects = [];
+
+        foreach ($prevAuditArray as $entry) {
+            $projectName = $entry['ProjectName'];
+            if (!in_array($projectName, $uniqueProjects)) {
+                $uniqueProjects[] = $projectName;
+            }
+        }
+        
+        $numberOfProjects = count($uniqueProjects);
+
+        $maxProjNum = self::getMaxProjNum($prevAuditArray);
+        $organizedData = [];
+        foreach ($prevAuditArray as $entry) {
+            $projectName = $entry['ProjectName'];
+            if (!isset($organizedData[$projectName])) {
+                $organizedData[$projectName] = [];
+            }
+            $organizedData[$projectName][] = [
+                'Action' => $entry['Action'],
+                'ActionNumero' => $entry['ActionNumero'],
+                'Criticite' => $entry['Criticite'],
+                'chargeaction' => $entry['chargeaction'],
+                'charge' => $entry['charge'],
+                'tauxrealisation' => $entry['tauxrealisation'],
+                'Evaluation' => $entry['Evaluation'],
+                'projNum'=>$entry['projNum'],
+            ];
+        }
+
+                $flattenedData = [];
+foreach ($organizedData as $projectName => $entries) {
+    foreach ($entries as $entry) {
+        $flattenedData[] = $entry;
+    }
+}
+$templateProcessor->cloneRowAndSetValues('ProjectName', $flattenedData);
+
+for ($x = 0; $x <count($prevAuditArray)+1; $x++) {
+
+    if (isset($prevAuditArray[$x]['ProjectName'])) {
+        $projectName = $prevAuditArray[$x]['ProjectName'];
+        $templateProcessor->setValue( "ProjectName#" .$x+1, $projectName);
+    } else {
+        error_log("Warning: 'ProjectName' key not found in entry at index $x");
+    }
+}
+
+
+
+
+        
+
+        
+        
 
 
         
@@ -139,8 +282,9 @@ class WordDocumentController4 extends Controller
 
 
         //table "equipe de projet"
-        $projectTeam = DB::select($sqlProjectTeam, [$request->customer]);
+        $projectTeam = DB::select($sqlProjectTeam, [$customerId]);
         $projectTeamArray = self::processDatabaseData($projectTeam);
+
         // twice becuz if I do once it only fills the first table
         $templateProcessor->cloneRowAndSetValues('SPOC_Tech_Name', $projectTeamArray);
         $templateProcessor->cloneRowAndSetValues('SPOC_Tech_Name', $projectTeamArray);
@@ -149,38 +293,41 @@ class WordDocumentController4 extends Controller
 
         $auditTools = DB::select($sqlAuditTools);
         $auditToolsArray = self::processDatabaseData($auditTools);
+
         $templateProcessor->cloneRowAndSetValues('tool', $auditToolsArray);
 
         //Network Design image
-        $networkDesign = DB::select($sqlNetworkDesign, [$request->customer]);
+        $networkDesign = DB::select($sqlNetworkDesign, [$customerId]);
+
+        $networkDesignRow = $networkDesign[0] ?? null;
+        $networkDesignValue = $networkDesignRow->Network_Design ?? "pas de network Design";
         
-        $networkDesignArray = self::processDatabaseData($networkDesign);
-        //NetworkDesign:800:800
-        $networkDesignRow = $networkDesignArray[0];
-
-        $networkDesignValue = $networkDesignRow['Network_Design'] ?? "pas de network Design";
-
-        $templateProcessor->setImageValue('NetworkDesign:800:800', array('path'=>$networkDesignValue ,'width'=>500));
+        $imagePath = $allImagesPath . DIRECTORY_SEPARATOR . $networkDesignValue;
+        
+        
+        
+        $templateProcessor->setImageValue('NetworkDesign', ['path' => $imagePath, 'width' => 500]);
         //table:Postes de travail
-        $posteTravail=DB::select($sqlPosteTravail, [$request->customer]);
+        $posteTravail=DB::select($sqlPosteTravail, [$customerId]);
         $posteTravailArray= self::processDatabaseData($posteTravail);
         $templateProcessor->cloneRowAndSetValues('PC_SE', $posteTravailArray);
 
         //table:Infrastucture Réseau et sécurité 
-        $Infrastructure=DB::select($sqlInfrastructure, [$request->customer]);
+        $Infrastructure=DB::select($sqlInfrastructure, [$customerId]);
         $InfrastructureArray= self::processDatabaseData($Infrastructure);
         $templateProcessor->cloneRowAndSetValues('Infra_Nature', $InfrastructureArray);
 
 
 
         //Table:serveur par plateforme
-        $servers = DB::select($sqlServers, [$request->customer]);
+        $servers = DB::select($sqlServers, [$customerId]);
         $serverArray = self::processDatabaseData($servers);
          $templateProcessor->cloneRowAndSetValues('Srv_Name', $serverArray);
 
+
         //description du siege (Applications):
 
-        $application = DB::select($sqlApplication, [$request->customer]);
+        $application = DB::select($sqlApplication, [$customerId]);
         $applicationArray = self::processDatabaseData($application );
         $templateProcessor->cloneRowAndSetValues('App_Name', $applicationArray);
 
@@ -195,23 +342,25 @@ class WordDocumentController4 extends Controller
 
 
         //customer site 
-        $CustomersSite =  DB::select($sqlCustomerSite, [$request->customer]);
+        $CustomersSite =  DB::select($sqlCustomerSite, [$customerId]);
         $CustomersSiteArray =  self::processDatabaseData($CustomersSite);
         $templateProcessor->cloneRowAndSetValues('N_Site', $CustomersSiteArray);
 
 
         //Process Table  
-        $Process = DB::select($sqlProcess);
+        $Process = DB::select($sqlProcess, [$customerId]);
         $modifiedProcessArray = self::processDatabaseData($Process);
         $templateProcessor->cloneRowAndSetValues('process', $modifiedProcessArray);
 
 
 
         //Customer Table 
-        $Customers =  DB::select($sqlCustomers, [$request->customer]);
+        $Customers =  DB::select($sqlCustomers, [$customerId]);
         if (!empty($Customers)) {
             $firstRow = $Customers[0];
             $SN = $firstRow->SN;
+             AnnexesController::sendMessage("Starting Generating Report for ".$SN . "\n Time now:". date("Y-m-d H:i:s"));
+
             $LN = $firstRow->LN;
             $typeCompany = $firstRow->leType;
 
@@ -221,7 +370,7 @@ class WordDocumentController4 extends Controller
             $mailAddress = $firstRow->Adresse_mail;
             $description = $firstRow->Description;
             $organigrame = $firstRow->Organigramme ? $firstRow->Organigramme : " organigramme non disponible";
-
+            $Logo=$firstRow->Logo ? $firstRow->Logo :" Logo non dispo";
 
             $templateProcessor->setValue('SN', $SN);
             $templateProcessor->setValue('LN', $LN);
@@ -231,16 +380,20 @@ class WordDocumentController4 extends Controller
             $templateProcessor->setValue('siteweb', $siteWeb);
             $templateProcessor->setValue('mailadress', $mailAddress);
             $templateProcessor->setValue('DescriptionCompany', $description);
+            
+            $organigramePath=$allImagesPath. DIRECTORY_SEPARATOR . $organigrame;
+            $logoPath=$allImagesPath. DIRECTORY_SEPARATOR . $Logo;
 
-            $templateProcessor->setImageValue('organigrame:800:800', array('path'=>$organigrame,'width'=>500));
+
+           $templateProcessor->setImageValue('organigrame:800:800', array('path'=>$organigramePath));
+           $templateProcessor->setImageValue('icon', array('path'=>$logoPath));
+
         } else {
             return response()->json("no customer with this id exists ");
         }
 
-        $AllRows =  DB::select($sql);
-
+        $AllRows =  DB::select($sql,[$customerId]);
         $allRowsAsArray = [];
-
         foreach ($AllRows as $row) {
 
             if ($row->Answer > 0) {
@@ -250,30 +403,141 @@ class WordDocumentController4 extends Controller
                 //  echo $row->Answer."aaaaaaaaaaaaaaaa";
             }
         }
-        //return $allRowsAsArray;
+        
         foreach ($allRowsAsArray as $ClauseId => $rowData) {
-
-
             foreach ($rowData as $ControlID => $cellData) {
-
+                // Call the setOneRowControl function for Best Practices
                 self::setOneRowControl($templateProcessor, $ClauseId, $ControlID, $cellData, 1, "_BestPractice#");
-
+        
+                // Call the setOneRowControl function for Vulnerabilities
                 self::setOneRowControl($templateProcessor, $ClauseId, $ControlID, $cellData, 0, "_Vuln#");
+        
+                // Check if both Best Practices and Vulnerabilities are empty
+               
             }
         }
+        
+        for ($clause = 5; $clause <= 8; $clause++) {
+            for ($control = 1; $control <= 40; $control++) {
+                // Replace Best Practice placeholder
+                $bestPracticePlaceholder = $clause . "_BestPractice#" . $control;
+                $bestPracticeVariables = $templateProcessor->getVariables($bestPracticePlaceholder);
+                if (!empty($bestPracticeVariables)) {
+                    $templateProcessor->setValue($bestPracticePlaceholder, '');
+                }
+        
+                // Replace Vulnerability placeholder
+                $vulnPlaceholder = $clause . "_Vuln#" . $control;
+                $vulnVariables = $templateProcessor->getVariables($vulnPlaceholder);
+                if (!empty($vulnVariables)) {
+                    $templateProcessor->setValue($vulnPlaceholder, '');
+                }
+            }
+        }
+        
+        
+            
+
+        
+        // return $allRowsAsArray;
 
 
         $templateProcessor->saveAs($outputPath);
+        AnnexesController::sendMessage("Finishing Generating Report for ".$SN . "\n Time now:". date("Y-m-d H:i:s"));
 
+        // $pdfContent = self::ConvertPDF($outputPath);
+        
+        // if ($pdfContent) {
+        //     return response($pdfContent)
+        //         ->header('Content-Type', 'application/pdf')
+        //         ->header('Content-Disposition', 'attachment; filename=output.pdf');
+        // } else {
+        //     abort(500, 'Failed to generate PDF');
+        // }
 
-        //  return response()->download($filepath,$filename)->deleteFileAfterSend(true);
+        header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
 
+        // Set the Content-Disposition header to force download with a specific filename
+        header('Content-Disposition: attachment;filename="ansi-2023.docx"');
+        
+        // Set the Content-Length header
+        header('Content-Length: ' . filesize($outputPath));
+        
+        // Clear the output buffer
+        ob_clean();
+        
+        // Read the file and output it to the browser
+        readfile($outputPath);
 
-
+// Read the file and output it to the browser
+        
+            
     }
 
-    
-    
+    static function getMaxProjNum($prevAuditArray)
+{
+    $maxProjNum = isset($prevAuditArray[0]['projNum']) ? $prevAuditArray[0]['projNum'] : null;
+
+    foreach ($prevAuditArray as $item) {
+        if (isset($item['projNum']) && $item['projNum'] > $maxProjNum) {
+            $maxProjNum = $item['projNum'];
+        }
+    }
+
+    return $maxProjNum;
+}
+
+
+// function setOneRowProject($templateProcessor, $project) {
+//     // Extract project data
+//     $projectName = $project['ProjectName'];
+//     $actionNumero = $project['ActionNumero'];
+//     $projNum = $project['projNum'];
+//     $criticite = $project['Criticite'];
+//     $chargeAction = $project['chargeaction'];
+//     $charge = $project['charge'];
+//     $tauxRealisation = $project['tauxrealisation'];
+//     $evaluation = $project['Evaluation'];
+
+//     // Call setOneRowControl function for each project
+//     self::setOneRowControl($templateProcessor, $projectName, $actionNumero, $projNum, $criticite, $chargeAction, $charge, $tauxRealisation, $evaluation);
+// }
+
+
+
+    //to test downloadble ifle
+    public function downloadFile(Request $request, $filename)
+{
+    // Define the source directory path where you want to check for the file
+    $sourcePath = 'C:\xampp\htdocs\AppGenerator\backend\public';
+
+    // Combine the source directory path with the requested filename to check for existence
+    $sourceFile = $sourcePath . '/' . $filename;
+
+    // Check if the file exists in the source directory
+    if (file_exists($sourceFile)) {
+        // Define the destination directory path where you want to save the downloaded file
+        $destinationPath = 'C:\xampp\htdocs\AppGenerator\backend\public\downloads';
+
+        // Combine the destination directory path with the requested filename
+        $outputPath = $destinationPath . '/' . $filename;
+
+        // Determine the file's MIME type
+        $mimeType = mime_content_type($sourceFile);
+
+        // Copy the file from the source directory to the destination directory
+        copy($sourceFile, $outputPath);
+
+        // Return the copied file as a downloadable response
+        return response()->download($outputPath, $filen, ['Content-Type' => $mimeType]);
+    } else {
+        // If the file doesn't exist in the source directory, return a 404 Not Found response
+        dd("File does not exist at path: " . $outputPath);
+    }
+}
+
+   
+
 
     static function setOneRowControl($templateProcessor, $ClauseId, $ControlID, $cellData, $type, $typeTag)
     {
@@ -282,6 +546,7 @@ class WordDocumentController4 extends Controller
         if (!isset($cellData[$type])) {
             echo $ClauseId . $typeTag . $ControlID;
             $templateProcessor->setValue($ClauseId . $typeTag . $ControlID, "");
+
             return;
         };
 
@@ -301,11 +566,34 @@ class WordDocumentController4 extends Controller
         }
     }
     
-    static function preparePagesDeGarde($templateProcessor, $annex_id, $customer, $project)
+    public static function ConvertPDF($inputPath)
+{
+    $docxFilePath = $inputPath;
+
+    // Load the DOCX file
+    $phpWord = IOFactory::load($docxFilePath);
+
+    // Save the DOCX content as HTML
+    $tempHtmlFile = tempnam(sys_get_temp_dir(), 'docx_to_pdf');
+    $phpWord->save($tempHtmlFile, 'HTML');
+
+    // Convert HTML to PDF
+    $dompdf = new Dompdf();
+    $dompdf->loadHtml(file_get_contents($tempHtmlFile));
+    $dompdf->setPaper('A4', 'portrait');
+    $dompdf->render();
+
+    // Clean up temporary files
+    unlink($tempHtmlFile);
+
+    // Return the PDF content as response
+    return $dompdf->output();
+}
+
+    static function preparePagesDeGarde($templateProcessor,  $customer, $project)
     {
 
-        $templateProcessor->setValue('SRV_TITLE', self::$AnnexesTitles[$annex_id]);
-        $templateProcessor->setValue('SRV_LETTER', self::$AnnexesLetters[$annex_id]);
+    
         /*      $imageData = file_get_contents($customer->Logo);
     $localImagePath = public_path('images/'.basename($customer->Logo)); // Specify the local path to save the image
     file_put_contents($localImagePath, $imageData);
@@ -317,19 +605,7 @@ class WordDocumentController4 extends Controller
         $templateProcessor->setValue('URL',  $project->URL);
         $templateProcessor->setValue('DESC',  $project->description);
     }
-    public static function send_whatsapp($message = "Test")
-    {
-        $url = 'https://api.callmebot.com/whatsapp.php?phone=21629961666&apikey=2415178&text=' . urlencode($message);
-        if ($ch = curl_init($url)) {
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-            $html = curl_exec($ch);
-            $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            // echo "Output:".$html;  // you can print the output for troubleshooting
-            curl_close($ch);
-            return (int) $status;
-        } else return;
-    }
+   
     static function processDatabaseData($data) {
         $result = [];
     
@@ -337,7 +613,7 @@ class WordDocumentController4 extends Controller
             $modifiedItem = [];
     
             foreach ($item as $key => $value) {
-                $modifiedItem[$key] = htmlspecialchars($value, ENT_XML1);
+                $modifiedItem[$key] = AnnexesController::cleanStrings($value,);
             }
     
             $result[] = $modifiedItem;
@@ -350,5 +626,13 @@ class WordDocumentController4 extends Controller
 
         return $current_date;
     }
-    
+    private function setTableRowValues(Row $table, int $rowIndex, array $data)
+    {
+        // Iterate through each cell of the row and set values
+        foreach ($data as $columnName => $value) {
+            $table->setValue("${columnName}_$rowIndex", $value);
+        }
+    }
 }
+
+

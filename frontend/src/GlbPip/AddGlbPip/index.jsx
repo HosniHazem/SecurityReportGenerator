@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -14,6 +14,7 @@ import axios from "axios";
 import "./index.css";
 import { axiosInstance } from "../../axios/axiosInstance";
 import toast from "react-hot-toast";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function AddGlbPip() {
   const [formData, setFormData] = useState({
@@ -23,7 +24,7 @@ export default function AddGlbPip() {
     adresse_mail_secondaire: "",
     tel: "",
   });
-
+  const [customerId, setCustomerId] = useState();
   const initialFormData = {
     Nom: "",
     Titre: "",
@@ -34,7 +35,26 @@ export default function AddGlbPip() {
 
   const [telError, setTelError] = useState(false);
   const [emailError, setEmailError] = useState(false);
+  const { id } = useParams();
+  const navigate = useNavigate();
 
+  const [project, setProject] = useState();
+  console.log("projectId is", id);
+
+  useEffect(() => {
+    axiosInstance
+      .get(`/Project/${id}/show`)
+      .then((response) => {
+        if (response.status === 200) {
+          setProject(response.data.Project);
+        
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, []);
+  // console.log("project", project.customer_id);
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -72,19 +92,22 @@ export default function AddGlbPip() {
     }
 
     try {
-      const response = await axiosInstance.post("/add-glbPip", formData);
+      const response = await axiosInstance.post("/add-glbPip", {
+        ...formData,
+        customer_id: project.customer_id,
+      });
       console.log(response.data);
       setFormData(initialFormData);
       setTelError(false);
       setEmailError(false);
-      if(response.data.success){
+      if (response.data.success) {
         toast.success(response.data.message);
-      }
-      else {
+        navigate("/dashboard")
+      } else {
         toast.error(response.data.message);
       }
     } catch (error) {
-      toast.error("error")
+      toast.error("error");
     }
   };
 
@@ -161,9 +184,7 @@ export default function AddGlbPip() {
                   name="adresse_mail_primaire"
                   value={formData.adresse_mail_primaire}
                   onChange={handleChange}
-                  helperText={
-                    emailError ? "Entrer un email valide" : ""
-                  }
+                  helperText={emailError ? "Entrer un email valide" : ""}
                   error={emailError}
                 />
               </TableCell>

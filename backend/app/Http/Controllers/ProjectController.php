@@ -93,13 +93,13 @@ class ProjectController extends Controller
         $item =Project::find($id);
 
         if($item){
-            $item->Nom=$req->Nom;
-            $item->URL=$req->URL;
-            $item->Description=$req->Description;
-            $item->QualityChecked=$req->QualityChecked;
-            $item->QualityCheckedDateTime=$req->QualityCheckedDateTime;
-            $item->QualityCheckedMessage=$req->QualityCheckedMessage;
-            $item->Preuve=$req->Preuve;
+           if(isset($req->Nom)) $item->Nom=$req->Nom;
+           if(isset($req->URL))  $item->URL=$req->URL;
+           if(isset($req->Description)) $item->Description=$req->Description;
+           if(isset($req->QualityChecked)) $item->QualityChecked=$req->QualityChecked;
+           if(isset($req->QualityCheckedDateTime)) $item->QualityCheckedDateTime=$req->QualityCheckedDateTime;
+           if(isset($req->QualityCheckedMessage)) $item->QualityCheckedMessage=$req->QualityCheckedMessage;
+           if(isset($req->Preuve)) $item->Preuve=$req->Preuve;
         $item->update();
         return response()->json(['message'=>'done','status' => 200]);
                 }

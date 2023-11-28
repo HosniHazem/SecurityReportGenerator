@@ -14,11 +14,12 @@ import {
 } from "@mui/material";
 import { axiosInstance } from "../../axios/axiosInstance";
 import toast from "react-hot-toast";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function AddAuditPreviousAudit() {
   const [formData, setFormData] = useState({
     Project_name: "",
-    ID_Projet: 1,
+    // ID_Projet: 1,
     ProjetNumero: "",
     Action: "",
     ActionNumero: "",
@@ -30,7 +31,10 @@ export default function AddAuditPreviousAudit() {
   });
   const [actionNumeroError,setActionNumeroError]=useState(false);
   const [projectNumeroError,setProjectNumeroError]=useState(false);
+  const {id}=useParams();
+  const navigate=useNavigate();
 
+  const projectID=id;
   const validateactionNumero=(number)=>{
     const posistiveNumberRegex=/^0*?[1-9]\d*$/;
     return posistiveNumberRegex.test(number);
@@ -77,10 +81,12 @@ export default function AddAuditPreviousAudit() {
     try {
       const response = await axiosInstance.post(
         "/add-audit-previous-audits",
-        formData
+        { ...formData, ID_Projet: 1, projectID }
       );
+      
       if (response.data.success) {
         toast.success(response.data.message);
+        navigate("/dashboard")
       } else {
         toast.error(response.data.message);
       }
@@ -102,9 +108,9 @@ export default function AddAuditPreviousAudit() {
                   <span style={{ fontSize: "11pt" }}>Nom de Projet</span>
                 </b>
               </TableCell>
-              <TableCell style={{ width: "14.2857%" }}>
+              {/* <TableCell style={{ width: "14.2857%" }}>
                 Type de Projet
-              </TableCell>
+              </TableCell> */}
               <TableCell style={{ width: "14.2857%" }}>
                 Numéro de Projet
               </TableCell>
@@ -134,7 +140,7 @@ export default function AddAuditPreviousAudit() {
                   onChange={handleInputChange}
                 />
               </TableCell>
-              <TableCell style={{ width: "14.2857%" }}>
+              {/* <TableCell style={{ width: "14.2857%" }}>
               <Select
                   name="ID_Projet"
                   variant="outlined"
@@ -145,7 +151,7 @@ export default function AddAuditPreviousAudit() {
                   <MenuItem value={2}>Mise en place de PCA</MenuItem>
                   <MenuItem value={3}>Audit réglementaire</MenuItem>
                 </Select>
-              </TableCell>
+              </TableCell> */}
               <TableCell style={{ width: "14.2857%" }}>
                 <TextField
                   name="ProjetNumero"

@@ -28,7 +28,6 @@ class AuditPreviousAuditController extends Controller
             'TauxRealisation' => 'required|string',
             'Evaluation' => 'required|string',
             'projectID' => 'required|integer|exists:projects,id', // Ensure projectID exists in the projects table
-            'ID_Projet' => 'required|integer|exists:glb_projects,ID',
         ]);
 
         if ($validator->fails()) {
@@ -38,13 +37,7 @@ class AuditPreviousAuditController extends Controller
             ]);
         }
 
-        $existingAuditPrevious = AuditPreviousAudit::where('ProjetNumero', $request->input('ProjetNumero'))
-            ->orWhere('Project_name', $request->input('Project_name'))
-            ->first();
-
-        if ($existingAuditPrevious) {
-            return response()->json(['message' => 'A project with the same number or name already exists!', 'success' => false]);
-        }
+       
 
         $projectID = $request->input('projectID');
         $project = Project::find($projectID);
@@ -64,7 +57,6 @@ class AuditPreviousAuditController extends Controller
         $auditPreviousAudit->TauxRealisation = $request->input('TauxRealisation');
         $auditPreviousAudit->Evaluation = $request->input('Evaluation');
         $auditPreviousAudit->projectID = $projectID; // Associate the project ID
-        $auditPreviousAudit->ID_Projet = $request->input('ID_Projet'); // Set ID_Projet
 
         $auditPreviousAudit->save();
 

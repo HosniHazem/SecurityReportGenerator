@@ -24,6 +24,7 @@ use App\Http\Controllers\GlbPipController;
 use App\Http\Controllers\SowController;
 use App\Http\Controllers\AuditPreviousAuditController;
 use App\Http\Controllers\ImageController;
+use App\Http\Controllers\RmAnswerController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -48,17 +49,17 @@ Route::post('/QualityCheck', [AnnexesController::class,'QualityCheck']);
 Route::post('/generateExcelDocument', [AnnexesController::class,'generateExcelDocument']);
 Route::get('/translatePlugins', [AnnexesController::class,'translateAllPlugins']);
 Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompliance']);
-    Route::get('/test2', [TestController::class,'get'])->middleware('web');
+    Route::get('/test2', [TestController::class,'get']);
     Route::get('/test', [TestController::class,'get2'])->middleware('web');
 
     Route::get('/get_vm', [VmController::class,'index']);
     Route::post('/generate-word-document', [WordDocumentController::class,'generateWordDocument']);
     Route::post('/generate-annexe', [WordDocumentController2::class,'generateWordDocument']);
-    Route::post('/generate-ansi', [WordDocumentController4::class,'generateWordDocument']);
+    // Route::post('/generate-ansi', [WordDocumentController4::class,'generateWordDocument']);
     Route::post('/getAnnexes', [AnnexesController::class,'getAnnexes']);
     Route::get('/getAnnexes', [AnnexesController::class,'getAnnexes']);
     Route::get('/generate-concat', [concatenateDocxFiles::class,'mergeDocxFiles']);
-
+    Route::get('/generate-ansi/{customerId}', [WordDocumentController4::class,'generateWordDocument']);
 ///nessus1
     Route::post('/getScan', [NassusController::class,'GetAll']);
     Route::Post('/ExportAll', [NassusController::class,'ExportAll']);
@@ -117,3 +118,12 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
 
     Route::Post('/Uploadfile', [ImageController::class, 'uploadimage']);
 
+    Route::get('Customer/getProjectByCustomerId/{customerId}',[CustomerController::class,'getProjectByCustomerId']);
+    
+    //test
+    Route::get('/download-file/{filename}', [WordDocumentController4::class,'downloadFile']);
+
+    Route::post('/create-iteration', [RmAnswerController::class, 'CreateIteration']);
+
+    Route::get('/get-all-questions', [RmAnswerController::class, 'getAllQuestions']);
+    Route::post('/answer-a-question', [RmAnswerController::class, 'associateResponseWithQuestion']);
