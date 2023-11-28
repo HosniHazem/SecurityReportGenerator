@@ -15,11 +15,11 @@ export default function AnsiReport() {
         const response = await axiosInstance.get(`/Project/${id}/show`);
         if (response.status === 200) {
           setProject(response.data.Project);
-          setLoading(true); // Set loading to false once data is fetched
+          setLoading(false); // Set loading to false once data is fetched
 
           // Additional request using the customer_id
           if (response.data.Project && response.data.Project.customer_id) {
-            setLoading(false);
+
             window.location.href = `http://webapp.smartskills.tn/AppGenerator/backend/api/generate-ansi/${response.data.Project.customer_id}`;
           }
         }
@@ -36,11 +36,11 @@ export default function AnsiReport() {
   }, [id, project]);
 
   return (
-    <Space direction="vertical" style={{ width: '100%', textAlign: 'center' }}>
+    <Space direction="vertical" style={{ width: '1000%', textAlign: 'center' }}>
       {loading ? (
         <Spin size="large" />
       ) : (
-        <div>index</div>
+        <div>Loaading ...</div>
       )}
     </Space>
   );
