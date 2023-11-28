@@ -118,6 +118,9 @@ class ProjectController extends Controller
 
         if($item){
             $item->QualityChecked=$req->QualityChecked;
+            $item->Nom=$item->Nom;
+            $item->URL->$item->URL;
+            $item->Description->$item->Description;
             $item->QualityCheckedDateTime=$req->QualityCheckedDateTime;
             $item->QualityCheckedMessage=$req->QualityCheckedMessage;
             $item->Preuve=$req->Preuve;

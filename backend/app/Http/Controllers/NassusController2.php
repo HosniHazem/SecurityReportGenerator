@@ -60,6 +60,7 @@ class NassusController2 extends Controller
 
     public function getPluginsFromAllServers(Request $request)
     {
+        set_time_limit(50000);
         $allvm = VmController::index();
         $onlineVMs = [];
         $data = $allvm->getData();
@@ -71,18 +72,23 @@ class NassusController2 extends Controller
 
         $prj = $request->prj_id;
 
+
         foreach ($onlineVMs as $vm) {
             $needed = Vm::where('IP_Host', explode(":", $vm->ip))->first();
-            self::getPlugins($needed, $prj);
+          $stats =  self::getPlugins($needed, $prj);
+          AnnexesController::sendMessage($stats['name']."[Report] has ". $stats['nb_pl']."number of succesfull".$stats['nb_s']."number of problems".$stats['nb_p']);
+
         }
 
-        return response()->json(['error' => 'done', 'status' => 200]);
+        return response()->json(['message' => 'done', 'status' => 200]);
     }
 
 public static function getPlugins ($ip,$prj_id)
 {
     AnnexesController::sendMessage("[Nessus_Plugins] Used Server: ". $ip);
-
+    $s=0;
+    $p=0;
+    $Stats = [];
                 $ApiKeys = $ip->Auth;
                 // Get plugin IDs not present in the local database
                 $statment = "SELECT DISTINCT `Plugin ID` AS PluginID FROM vuln WHERE `Plugin ID` NOT IN (SELECT DISTINCT id FROM plugins)";
@@ -92,11 +98,11 @@ public static function getPlugins ($ip,$prj_id)
                 }
                 $pluginIds =  DB::select($statment);
 
-
+                $Stats['nb_pl']=count($pluginIds);
 
                 foreach ($pluginIds as $plugin) {
                 $pid = $plugin->PluginID;
-                AnnexesController::sendMessage("[Nessus_Plugins]IPD: ". $pid);
+                AnnexesController::sendMessage("$ip->Name.[Nessus_Plugins]IPD: ". $pid);
                 // Get information about the plugin from Nessus
                 $response = Http::withOptions([
                     'verify' => false,
@@ -107,6 +113,7 @@ public static function getPlugins ($ip,$prj_id)
                 $responseData = json_decode($response->body(), true);
                 if(isset($responseData['attributes']))
                 {
+                    $p++;
                     $attributes = $responseData['attributes'];
 
                     // making a one json file
@@ -168,11 +175,16 @@ public static function getPlugins ($ip,$prj_id)
             {
 
                 AnnexesController::sendMessage($ip->Name."[Nessus_Plugins_Problem] ". $pid ." Plugin was not found in nessus in the project with id ".$prj_id);
+                $p++;
             }
                 // Save the model
 
 
 }
+$Stats['nb_s']=$s;
+$Stats['nb_p']=$p;
+$Stats['name']=$ip->Name;
+return $Stats;
 }
     private function verifyRequiredFields($jsonData,$fields)
     {

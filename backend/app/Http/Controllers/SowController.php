@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Sow;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class SowController extends Controller
 {
@@ -77,33 +78,36 @@ class SowController extends Controller
         $rs = $req->rs;
         $pc = $req->pc;
         $project_id = $req->project_id;
-     $all = [$srv,$apps,$rs,$pc];
-     $fields = ["IP_Host","Type","Nom","field3","field4","field5","URL","dev_by","Number_users"];
+        $all = [$srv, $apps, $rs, $pc];
+        $fields = ["Projet", "IP_Host", "Type", "Nom", "field3", "field4", "field5", "dev_by", "Number_users"];
+        $sql = "INSERT IGNORE INTO sow (`" . implode("`,`", $fields) . "`) VALUES ";
+        $values = [];
 
-     foreach ($all as $it) {
-        foreach ($it as $i){
-            $item =new Sow();
-        foreach ($fields as $field) {
+        foreach ($all as $it) {
+            foreach ($it as $i) {
+                $itemValues = [];
+                foreach ($fields as $field) {
+                    if (isset($i[$field])) {
 
-            if (isset($i[$field]))
-            {
-
-        $item[$field]=$i[$field];
-    }
-}
-        $item->Projet=$project_id;
-        $existingItem = Sow::where('IP_Host', $item->IP_Host)->first();
-            if ($existingItem) {
-                continue; // Skip the save operation and continue to the next iteration
+                        $itemValues[] = isset($i[$field]) ? $i[$field] : null;
+                    }
+                     else if($field==="Projet"){
+                        $itemValues[] = $project_id;
+                    }
+                    else {
+                        $itemValues[] = null;
+                    }
+                }
+                $values[] = "('" . implode("','", $itemValues) . "')";
             }
+        }
 
-            $item->save();
+        $sql .= implode(",", $values);
+
+        DB::statement($sql);
+
+        return response()->json(['message' => 'done', 'status' => 200]);
     }
-}
-        return response()->json(['message'=>'done','status' => 200]);
-
-    }
-
 
     public function update(Request $req,$id)
     {

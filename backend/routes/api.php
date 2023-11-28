@@ -36,12 +36,14 @@ use App\Http\Controllers\ImageController;
 */
 
 
+Route::get('/removeBadCharsFromDB', [AnnexesController::class,'removeBadCharsFromDB']);
 Route::get('/executeCronJobs', [AnnexesController::class,'executeCronJobs']);
 Route::get('/setAsExternal', [AnnexesController::class,'setAsExternal']);
 Route::get('/cleanDescCompliance', [AnnexesController::class,'cleanDescCompliance']);
 Route::get('/removeSpaceHOST_IP', [AnnexesController::class,'removeSpaceHOST_IP']);
 Route::get('/markAsOutOfScope', [AnnexesController::class,'markAsOutOfScope']);
-Route::get('/getPluginsFromAllServers', [NassusController2::class,'getPluginsFromAllServers']);
+Route::get('/getPluginsFromAllServers', [AnnexesController::class,'getPluginsFromAllServers']);
+//Route::get('/getPluginsFromAllServers', [NassusController2::class,'getPluginsFromAllServers']);
 Route::post('/QualityCheck', [AnnexesController::class,'QualityCheck']);
 Route::post('/generateExcelDocument', [AnnexesController::class,'generateExcelDocument']);
 Route::get('/translatePlugins', [AnnexesController::class,'translateAllPlugins']);

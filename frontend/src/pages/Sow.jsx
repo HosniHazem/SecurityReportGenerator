@@ -60,7 +60,7 @@ function SOW() {
 const subnet = getSubnetIpRange(item.IP_Host);
 subnet.map((ip)=>{
     const jsonObject = {
-        Nom : item.Nom,
+      Nom: item.Nom ? item.Nom : null,
         IP_Host: ip,
         Type : "PC"
       };
@@ -93,6 +93,7 @@ function removeFromPcsubnetArray(pcsubnetArray, ipHostToRemove) {
     pcsubnetArray = removeFromPcsubnetArray(pcsubnetArray, rs.IP_Host);
   });
 
+
   setServeurInput(srvArray);
   setRSInput(rsArray);
   setAppsInput(appsArray);
@@ -120,7 +121,7 @@ const imported = () => {
     parsedData.rs = r_sInput;
     parsedData.project_id = id;
 console.log(parsedData);
-/*    axios.post('http://webapp.ssk.lc/AppGenerator/backend/api/Sow/import',parsedData)
+  axios.post('http://webapp.ssk.lc/AppGenerator/backend/api/Sow/import',parsedData)
   .then((response) => {
     if(response.data.status===200){
       swal("Imported","Successfully");
@@ -133,7 +134,7 @@ console.log(parsedData);
     // Handle error
     console.error('Error sending data:', error);
     swal("Error","Problem while importing");
-  })   */
+  })   
 }
 const getSubnetIpRange = (cidr) => {
 
@@ -161,7 +162,7 @@ const getSubnetIpRange = (cidr) => {
   }
   return subnets;
 }else {
-  return [ip]
+  return [ ip ]
 }
   
 

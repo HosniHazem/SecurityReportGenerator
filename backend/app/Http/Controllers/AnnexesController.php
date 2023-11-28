@@ -17,6 +17,8 @@ use Knp\Snappy\Image as SnappyImage; // Alias for Knp\Snappy Image class
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Models\Plugins;
+use App\Models\Vm;
 use vendor\seblucas\tbszip;
 use clsTbsZip;
 use ZipArchive;
@@ -42,8 +44,8 @@ $GLOBALS['listOfAgesOfVulnsMX']= [];
 );
 class AnnexesController extends Controller
 {
-    public static   $AnnexesTitles = array("","Serveurs","Solutions Réseaux et Infra", "Bases des données", "Postes de travail",  "Actifs externes", "Applications", "Solutions VOIP", "Solutions MAILS", "Autres Actifs Hors SoW");
-    public static   $AnnexesLetters = array("","B","C", "D", "E",  "F", "G", "H", "I", "J");
+    public static   $AnnexesTitles = array("","Serveurs","Solutions Réseaux et Infra", "Bases des données", "Postes de travail",  "Actifs externes", "Applications", "Solutions VOIP", "Solutions MAILS", "Autres Actifs Hors SoW","Commutateurs", "Firewall");
+    public static   $AnnexesLetters = array("","B","C", "D", "E",  "F", "G", "H", "I", "J", "K", "L");
     public static $currentAnnex=0;
     public static function QualityCheck(Request $req)
     {
@@ -66,7 +68,7 @@ class AnnexesController extends Controller
             SELECT "Solution embeded in Description ", concat (count(*), "/", (SELECT count(*) FROM vuln WHERE Risk in ("FAILED" , "PASSED") AND  `ID_Projet` = ?)), "/cleanDescCompliance" FROM vuln WHERE POSITION(Solution IN Description)>0  AND   Risk in ("FAILED" , "PASSED") AND  `ID_Projet` = ? ;
             HERE21,
             <<< HERE3
-            SELECT Concat (sow.Type," ( ",count(DISTINCT Host) ," hosts ) ") As "Type", CONCAT( count(*), " vulns (Moy par hote: ", ROUND( count(*)/ count(DISTINCT Host))," vulns ) ") ,'no Link' FROM `vuln` LEFT Join sow on sow.IP_Host=Host WHERE ID_Projet = ? GROUP BY sow.Type;
+            SELECT Concat (sow.Type," ( ",count(DISTINCT Host) ," hosts ) ") As "Type", CONCAT( count(*), " vulns (Moy par hote: ", ROUND( count(*)/ count(DISTINCT Host))," vulns ) ") ,'no Link' FROM `vuln` LEFT Join sow on sow.IP_Host=Host  WHERE ID_Projet = ? and sow.Projet=? GROUP BY sow.Type;
             HERE3,
             <<< HERE4
             SELECT Concat (sow.Type," non encore scannee") As "Type", GROUP_CONCAT(DISTINCT IP_Host SEPARATOR '  ;  ' )  ,'Danger !!!' FROM `sow` WHERE Type<>'PC' AND `Projet`= ?  AND IP_Host not in (SELECT DISTINCT Host FROM vuln WHERE ID_Projet=?)  order by sow.Type;
@@ -93,6 +95,7 @@ class AnnexesController extends Controller
     );
     /* */
         //$listOfCombinedItems()
+        self::sendMessage("Starting Quality check for: ".$req->project_id . "\n Time now:". date("Y-m-d H:i:s"));
         $qualityChecher=[];
         $qualityChecher[0] = array("Item" , "Valeur", "link");
         $i=0;
@@ -115,6 +118,7 @@ class AnnexesController extends Controller
                 }
             }
         }
+        self::sendMessage("-----<Finishing Quality check for: ".$req->project_id . "\n Time now:". date("Y-m-d H:i:s"));
        // return $qualityChecher;
         //$qualityChecher = array ( array("A", "B", "C", "link"),  array("A", "B", "C", "link"),  array("A", "B", "C", "link"));
         return response()->json(['QC' => $qualityChecher, 'status' => 200]);
@@ -208,6 +212,7 @@ class AnnexesController extends Controller
 
         public static function setVulnPatchValues($prjID, $templateProcessor, $isitAnnexeA  )
     {
+        set_time_limit(50000);
         $listOfAgesOfVulnsxxxx = [""=>0, "0 - 7 days"=>0,        "7 - 30 days"=>0,        "30 - 60 days"=>0,        "60 - 180 days"=>0,        "180 - 365 days"=>0,        "365 - 730 days"=>0,        "730 days +"=>0];
         include("sqlRequests.php");
 
@@ -489,7 +494,7 @@ public function mergeFiles($filesName, $newName)
 
 public function generateAnnexes (Request $request, $AnnexA)
 {
-
+    set_time_limit(50000);
     $annex_id =  $request->annex_id;
     array_unshift($annex_id , '9');
     //  var_dump(get_object_vars($request)); exit;
@@ -518,9 +523,11 @@ public function generateAnnexes (Request $request, $AnnexA)
         $customer =Customer::find($project->customer_id);
 
           $returnedArray [] = $prj_id;
+          //print_r($annex_id);exit;
           foreach($annex_id as $Annex)
           {
               $iteration=0;
+            //  print_r(self::$AnnexesLetters);
               $returnedArray[$prj_id][]=self::$AnnexesLetters[$Annex];
               self::$currentAnnex=$Annex;
 
@@ -572,7 +579,7 @@ public function generateAnnexes (Request $request, $AnnexA)
             }
         }
         $templateProcessor->setValues($GLOBALS['allStats']);
-        $nbrHost=  DB::select("SELECT count(*) as Nbr FROM sow WHERE  sow.Projet=? ", [$prj_id, $prj_id])[0];
+        $nbrHost=  DB::select("SELECT count(*) as Nbr FROM sow WHERE  sow.Projet=? ", [$prj_id])[0];
         $totalStats = array($GLOBALS['allStats']['TLT_Hosts_CR'],$GLOBALS['allStats']['TLT_Hosts_HI'],$GLOBALS['allStats']['TLT_Hosts_MD'],$GLOBALS['allStats']['TLT_Hosts_LW'] );
 
         $templateProcessor->setImageValue('V_Global', public_path('images/'. self::getPourcentage($totalStats,$nbrHost->Nbr).".png"));
@@ -654,7 +661,7 @@ if ($zip->open($zipFilePath, ZipArchive::CREATE) === true) {
    }
 
    $zip->close();
-   AnnexesController::sendMessage($zipFileName ." Ready");
+   AnnexesController::sendMessage("http://webapp.ssk.lc/AppGenerator/backend/public/storage/annexes/".$zipFileName ." Ready");
    // Download the zip archive
    return response()->download($zipFilePath)->deleteFileAfterSend(false);
 }
@@ -786,6 +793,7 @@ return response()->json(['message'=>'done','status' => 200]);
 
 public static function setAsExternal(Request $req)
 {
+    set_time_limit(50000);
     $prj_id=$req->prj_id;
 
     $re = DB::update("UPDATE sow SET Type='Ext' WHERE IP_Host ='".$req->fieldsValue."' AND  Projet=? ", [$prj_id]);
@@ -794,6 +802,7 @@ public static function setAsExternal(Request $req)
 
 public static function cleanDescCompliance(Request $req)
 {
+    set_time_limit(50000);
     $sql = "UPDATE IGNORE `vuln` SET `Description`=REPLACE (REPLACE (`Description`, Solution, ''), 'Solution:', '') WHERE Risk in ('FAILED' , 'PASSED')";
     if(isset($req->prj_id)) $sql.=" and `ID_Projet`=".$req->prj_id;
     //$re = DB::update("UPDATE sow SET ?='?' WHERE  ?=?;", [$req->attrName, $req->attrValue,$req->idFiledName, $req->idFieldValue]);
@@ -802,7 +811,7 @@ public static function cleanDescCompliance(Request $req)
 }
 public static function removeSpaceHOST_IP(Request $req)
 {
-
+    set_time_limit(50000);
     //$re = DB::update("UPDATE sow SET ?='?' WHERE  ?=?;", [$req->attrName, $req->attrValue,$req->idFiledName, $req->idFieldValue]);
     $re = DB::update("UPDATE sow SET `IP_Host`=REGEXP_REPLACE(`IP_Host`, '[^0-9a-zA-Z\.]', '') ");
 
@@ -810,7 +819,7 @@ public static function removeSpaceHOST_IP(Request $req)
 }
 public static function markAsOutOfScope(Request $req)
 {
-
+    set_time_limit(50000);
     $listOfHostsOutOfScope= explode(",",$req->fieldsValue);
     $sqlreq = "INSERT IGNORE  INTO sow (`Projet`, `Type`,  `IP_Host`) Values ";
     foreach( $listOfHostsOutOfScope as $host)
@@ -828,6 +837,7 @@ public static function markAsOutOfScope(Request $req)
 
 public static function executeCronJobs(Request $req)
 {
+    set_time_limit(50000);
     self::sendMessage("[Starting Cron Job\n Time now:". date("Y-m-d H:i:s"));
    self::removeSpaceHOST_IP($req);
    self::cleanDescCompliance($req);
@@ -838,5 +848,149 @@ public static function executeCronJobs(Request $req)
    self::sendMessage("[Finishing Cron Job\n Time now:". date("Y-m-d H:i:s"));
     return true;
 }
+
+public static function removeBadCharsFromDB(Request $req)
+{
+
+    set_time_limit(50000);
+
+
+    $condition="";
+    if(isset($req->prj_id)) $condition = " and ID_Projet=".$req->prj_id;
+    $sql = "SELECT  `id`, `Plugin Output` AS pluginOutPut, `description`  FROM  vuln WHERE  1=1 ".$condition;
+
+   $allVuns =  DB::select($sql);
+
+   $i=0;
+
+   foreach($allVuns as $vuln)
+   {
+
+      $re = DB::update("Update IGNORE vuln set `Plugin Output` = ?, `description` = ?  WHERE id=?" ,[self::cleanStrings($vuln->pluginOutPut),self::cleanStrings($vuln->description),$vuln->id]);
+      $i++;
+    }
+}
+public function getPluginsFromAllServers(Request $request)
+{
+    set_time_limit(50000);
+    $allvm = VmController::index();
+    $data = $allvm->getData();
+    foreach ($data->Vm as $vm) {
+        if ($vm->answer === 'Online') {
+            $needed = Vm::where('IP_Host', explode(":", $vm->ip))->first();
+            $stats =  self::getPlugins($needed,  $request->prj_id);
+            AnnexesController::sendMessage($stats['name']."[Report] has ". $stats['nb_pl']."number of succesfull".$stats['nb_s']."number of problems".$stats['nb_p']);
+        }
+    }
+
+    return response()->json(['message' => 'done', 'status' => 200]);
+}
+
+public static function getPlugins ($ip,$prj_id)
+{
+    AnnexesController::sendMessage("[Nessus_Plugins] Used Server: ". $ip);
+    $s=0;
+    $p=0;
+    $Stats = [];
+
+            // Get plugin IDs not present in the local database
+            $statment = "SELECT DISTINCT `Plugin ID` AS PluginID FROM vuln WHERE `Plugin ID` NOT IN (SELECT DISTINCT id FROM plugins)";
+
+            if (isset($prj_id)) {
+                $statment .= " AND `ID_Projet` = " . $prj_id;
+            }
+            $pluginIds =  DB::select($statment);
+
+            $Stats['nb_pl']=count($pluginIds);
+            AnnexesController::sendMessage("[Nessus_Plugins] Number of Plugins missed:".count($pluginIds));
+
+            foreach ($pluginIds as $plugin) {
+                $pid = $plugin->PluginID;
+                $getRequest = "https://{$ip->IP_Host}:{$ip->Port}/plugins/plugin/{$pid}";
+                AnnexesController::sendMessage("$ip->Name.[Nessus_Plugins] Request: ". $getRequest);
+                    // Get information about the plugin from Nessus
+                    $response = Http::withOptions([
+                        'verify' => false,
+                    ])->withHeaders([
+                      //  'X-ApiKeys' => str_replace(",",";",$ip->Auth),
+                      'X-ApiKeys' => "accessKey=fe5104bf002f5e565586ad823c9b30c53a956d7eb06defcb3271db21eecf817d; secretKey=ca2e6823b69f46b2c7676a04a83829ac6971abfe8afcc9ac5c4da36a6ffccd58",
+                    ])->get($getRequest);
+
+                 $responseData = json_decode($response->body(), true);
+                if(isset($responseData['attributes']))
+                 {
+                    $p++;
+                    $attributes = $responseData['attributes'];
+
+                    // making a one json file
+                    $Finale_data = [];
+                    $Finale_data["id"] = $responseData['id'];
+                    $Finale_data["name"] = $responseData['name'];
+                    $Finale_data["family_name"] = $responseData['family_name'];
+
+                    foreach ($attributes as $attribute) {
+                        $Finale_data[$attribute['attribute_name']] = $attribute['attribute_value'];
+                    }
+
+
+                     $item = new Plugins();
+
+                    // Define a list of attributes to map
+                    $attributesToMap = [
+                        'id',
+                        'fname',
+                        'name',
+                        'plugin_name',
+                        'description',
+                        'solution',
+                        'script_version',
+                        'script_copyright',
+                        'cvss3_vector',
+                        'cvss_score_source',
+                        'cvss_temporal_vector',
+                        'exploit_framework_core',
+                        'exploit_framework_metasploit',
+                        'exploit_framework_canvas',
+                        'risk_factor',
+                        'cvss_temporal_score',
+                        'plugin_publication_date',
+                        'metasploit_name',
+                        'exploited_by_malware',
+                        'cvss3_base_score',
+                        'cvss_vector',
+                        'plugin_type',
+                        'synopsis',
+                        'see_also',
+                        'exploit_available',
+                        'cvss_base_score',
+                        'stig_severity',
+                        'age_of_vuln',
+                        'cvssV3_impactScore',
+                        'exploit_code_maturity',
+                        'family_name',
+                    ];
+
+                    foreach ($attributesToMap as $attribute) {
+                        if (isset($Finale_data[$attribute])) {
+                            $item->{$attribute} = $Finale_data[$attribute];
+                        }
+                    }
+                    $item->save();
+                }
+                else
+                {
+
+                    AnnexesController::sendMessage($ip->Name."[Nessus_Plugins_Problem] ". $pid ." Plugin was not found in nessus in the project with id ".$prj_id);
+                    $p++;
+                }
+            // Save the model
+
+
+            }
+    $Stats['nb_s']=$s;
+    $Stats['nb_p']=$p;
+    $Stats['name']=$ip->Name;
+    return $Stats;
+    }
 
 }
