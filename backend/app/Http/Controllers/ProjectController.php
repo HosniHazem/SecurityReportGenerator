@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Project;
+use App\Models\RmIteration;
+use App\Models\MehariVersion;
+
+
 use Illuminate\Support\Facades\Validator;
 
 class ProjectController extends Controller
@@ -63,7 +67,9 @@ class ProjectController extends Controller
         $validator = Validator::make($req->all(), [
             'Nom' => 'required',
             'URL' => 'required',
-            'Description' => 'required'
+            'Description' => 'required',
+            'iterationKey'=>'required',
+            'methodVersion'=>'required'
         ]);
 
         if ($validator->fails()) {
@@ -71,18 +77,53 @@ class ProjectController extends Controller
                 'status' => 422,
                 'validate_err' => $validator->getMessageBag(),
             ]);
-        } else {
+        } 
+        $methodVersion = $req->input('methodVersion');
+
+        $existingMethodVersion = MehariVersion::where('Version', $methodVersion)->first();
+
+        if($existingMethodVersion){
+
+        //we create the project firstly
         $item =new Project();
         $item->Nom=$req->Nom;
         $item->URL=$req->URL;
         $item->Description=$req->Description;
         $item->year=$req->year;
         $item->customer_id=$req->customer_id;
-
+        $item->iterationKey=$req->iterationKey;
         $item->save();
-        return response()->json(['message'=>'done','status' => 200]);
+        //let's create iteration
 
-    }
+        $rmIteration=new RmIteration;
+        $rmIteration->ID=$req->iterationKey;
+        $rmIteration->MehariVersion=$methodVersion;
+        $rmIteration->customerID=$req->customer_id;
+        $rmIteration['Date création']=date("Y-m-d");
+        $rmIteration->save();
+
+        return response()->json([
+            'message' => 'Project and RmIteration created successfully',
+            'project' => $item,
+            'rmIteration' => $rmIteration,
+            'success'=>true,
+        ]);
+
+
+
+        } else {
+
+            return response()->json([
+                'message' => 'MehariVersion not found',
+                'success' => false,
+            ]);
+        }
+
+
+
+        
+
+    
     }
     public function update(Request $req,$id)
     {
@@ -146,5 +187,8 @@ class ProjectController extends Controller
                 return response()->json(['message'=>'not deleted'], 404);
                 }
     }
+
+   
+    
 }
 
