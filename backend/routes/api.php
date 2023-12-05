@@ -127,3 +127,6 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
 
     Route::get('/get-all-questions', [RmAnswerController::class, 'getAllQuestions']);
     Route::post('/answer-a-question', [RmAnswerController::class, 'associateResponseWithQuestion']);
+
+
+    Route::get('/Insert-Into-Answers/{c}', [WordDocumentController4::class,'getAnswersFromWebsiteServer']);

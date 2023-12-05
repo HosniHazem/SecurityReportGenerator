@@ -28,6 +28,7 @@ use Barryvdh\DomPDF\Facade as PDFDom;
 use Dompdf\Dompdf;
 
 
+
 class WordDocumentController4 extends Controller
 {
 
@@ -101,6 +102,31 @@ class WordDocumentController4 extends Controller
         rm_answers.ID_Question ASC;
 HERE10;
 
+        $sqlVuln = "SELECT
+
+        rm_questions.QuestionID AS Vuln_ref,
+        rm_questions.Vulnérabilité AS Vuln_desc,
+        rm_questions.`plan d'action` AS Vuln_recom,
+        standards_controls.Controle_ID,
+        rm_questions.`ISO 27002:2022` as Vuln_si,
+        rm_answers.Pertinence,
+        rm_answers.Answer
+        FROM
+        rm_questions
+        JOIN
+        standards_controls ON standards_controls.Controle_ID = rm_questions.`ISO 27002:2022`
+        LEFT JOIN
+        rm_answers ON rm_answers.ID_Question = rm_questions.QuestionID
+        LEFT JOIN
+        rm_iteration ON rm_answers.ID_ITERATION = rm_iteration.id
+        WHERE
+        rm_answers.Pertinence = 4
+        AND rm_answers.Answer = 0
+        AND rm_iteration.CustomerID = ?
+        AND rm_answers.ID_ITERATION = rm_iteration.id
+        ORDER BY
+        rm_questions.QuestionID ASC;";
+
 
         //sql for  Siege Description
         $sqlApplication = "SELECT
@@ -163,7 +189,7 @@ HERE10;
 
 
         //sql for prev audit
-            $sqlPrevAudit = "SELECT Project_name as ProjectName,`Action` as Action, `ActionNumero` as ActionNumero,`ProjetNumero` as projNum ,`Criticite` as Criticite ,`Chargee_action` as chargeaction,`ChargeHJ` as charge,`TauxRealisation` as tauxrealisation,`Evaluation` as Evaluation FROM audit_previousaudits_ap AS ap JOIN projects ON ap.projectID = projects.id JOIN customers ON projects.customer_id = customers.id WHERE customers.id = ? Order by `ProjetNumero`,`ActionNumero`";
+        $sqlPrevAudit = "SELECT Project_name as ProjectName,`Action` as Action, `ActionNumero` as ActionNumero,`ProjetNumero` as projNum ,`Criticite` as Criticite ,`Chargee_action` as chargeaction,`ChargeHJ` as charge,`TauxRealisation` as tauxrealisation,`Evaluation` as Evaluation FROM audit_previousaudits_ap AS ap JOIN projects ON ap.projectID = projects.id JOIN customers ON projects.customer_id = customers.id WHERE customers.id = ? Order by `ProjetNumero`,`ActionNumero`";
 
 
         $sqlYear= 'SELECT `year` from `projects`WHERE `customer_id`=?';
@@ -197,9 +223,23 @@ HERE10;
         //current year 
         $currentYear = date('Y');
         $templateProcessor->setValue('year', $year);
-
          
 
+        // Part 9.2
+        $vuln=DB::select($sqlVuln,[$customerId]);
+        $vulnArray=self::processDatabaseData($vuln);
+        $vulnArrayLength = count($vulnArray);
+
+         $templateProcessor->cloneRowAndSetValues('RowNumber',$vulnArray);
+
+        //Part 11.1
+      
+        self::processPA_chapter11(5, "3", $templateProcessor);
+        self::processPA_chapter11(6, "3", $templateProcessor);
+        self::processPA_chapter11(7, "3", $templateProcessor);
+        self::processPA_chapter11(8, "3", $templateProcessor);
+
+ 
 
         
         //today's date
@@ -211,7 +251,7 @@ HERE10;
         $domainArray= self::processDatabaseData($domain);
         $templateProcessor->cloneRowAndSetValues('Domain', $domainArray);
 
-
+        
         //table prev audit 
         //to do:Merge Cells
         
@@ -608,12 +648,18 @@ for ($x = 0; $x <count($prevAuditArray)+1; $x++) {
    
     static function processDatabaseData($data) {
         $result = [];
+        $priorities = ["", "Très Urgent", "Urgent", "Normal"];
     
         foreach ($data as $item) {
             $modifiedItem = [];
     
             foreach ($item as $key => $value) {
-                $modifiedItem[$key] = AnnexesController::cleanStrings($value,);
+                    if($key=="priorité")  
+                    {
+                        $modifiedItem[$key] = $priorities[$value];
+                        $modifiedItem["Planification"] = "Fin de ".($value+2023);
+                    }
+                    else $modifiedItem[$key] = AnnexesController::cleanStrings($value,);
             }
     
             $result[] = $modifiedItem;
@@ -633,6 +679,66 @@ for ($x = 0; $x <count($prevAuditArray)+1; $x++) {
             $table->setValue("${columnName}_$rowIndex", $value);
         }
     }
+
+
+    public function getAnswersFromWebsiteServer($c)
+    {
+        $url = "https://smartskills.com.tn/wqkjsdhvj76vhbnc565ds/generateCsv.php?c=$c&e=qkljsdfqd25154dQDSFSDFQdv45q2dfqfDCX";
+
+$response = Http::get($url);
+ 
+ file_put_contents(
+    storage_path('csv.csv') ,    $response->getBody());
+    // DB::statement("DELETE FROM rm_answers WHERE ID_ITERATION='$c'");
+        $loadData = "LOAD DATA INFILE '".str_replace('/', '\\\\', str_replace('\\', '\\\\',storage_path('csv.csv')))."' IGNORE
+        INTO TABLE rm_answers
+        FIELDS TERMINATED BY ','
+        ENCLOSED BY '\"'
+        OPTIONALLY ENCLOSED BY '\"'
+        LINES TERMINATED BY '\n'
+        (`ID_Question`, `Answer`, `Commentaire`, `ID_ITERATION`, `Pertinence`);
+    ";
+    echo $loadData;
+    // Execute the database statement
+    DB::statement($loadData);
+
+     
+    }
+
+    static function processPA_chapter11($num, $iteration, $templateProcessor)
+{
+    $sqlPA= "SELECT
+     ROW_NUMBER() OVER () AS AP_".$num."_numero,
+    rm_questions.`plan d'action` AS AP_$num,
+    rm_questions.`priorité` as priorité,
+    rm_questions.Responsable as Responsable,
+    rm_questions.ChargeHJ as ChargeHJ
+    FROM
+    rm_questions
+    JOIN
+    standards_controls ON standards_controls.Controle_ID = rm_questions.`ISO 27002:2022`
+    LEFT JOIN
+    rm_answers ON rm_answers.ID_Question = rm_questions.QuestionID
+    LEFT JOIN
+    rm_iteration ON rm_answers.ID_ITERATION = rm_iteration.id
+    WHERE
+    rm_answers.Pertinence in(3, 4)
+    AND rm_answers.Answer = 0
+    AND rm_iteration.ID = '3'
+    AND standards_controls.clause=$num
+    ORDER BY
+    standards_controls.Controle_ID  ASC;";
+     $vuln=DB::select($sqlPA);
+     $vulnArray=self::processDatabaseData($vuln);
+     $vulnArrayLength = count($vulnArray);
+
+      $templateProcessor->cloneRowAndSetValues('AP_'.$num,$vulnArray);
+
 }
+    
+    }
+    
+    
+
 
 

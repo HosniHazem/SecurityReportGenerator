@@ -107,7 +107,10 @@ const Dashboard = () => {
     }
   };
   
-  
+  const handleNavigateToRmQuesion=(c)=>{
+    window.location.href=`http://localhost/BlueHost/rmquestions.php?c=${c}&k=qdsg54SFDbfdQSd`
+
+  }
   
 
 
@@ -118,7 +121,7 @@ const Dashboard = () => {
     {
       field: "Nom",
       headerName: "Nom",
-      width: 100,
+      width: 80,
       renderCell: (params) => {
         return params.row.Nom;
       },
@@ -145,9 +148,10 @@ const Dashboard = () => {
     {
       field: "ProjectDetails",
       headerName: "Project Details",
-      width: 250,
+      width: 350,
       renderCell: (params) => {
         const id = params.row.id;
+        const nom=params.row.Nom;
         return (
           <div className="cellAction">
             <Link to={`/add-glb-pip/${id}`} style={{ textDecoration: "none" }}>
@@ -162,6 +166,7 @@ const Dashboard = () => {
             <Link to={`/add-audit-previous-audit/${id}`} style={{ textDecoration: "none" }}>
               <div className="Pick2">PrevAudit</div>
             </Link>
+            <div className="Pick2" onClick={() => handleNavigateToRmQuesion(nom)}>Questions</div>
           </div>
         );
       },
@@ -169,7 +174,7 @@ const Dashboard = () => {
     {
       field: "Export",
       headerName: "Export",
-      width: 300,
+      width: 250,
       renderCell: (params) => {
         const id = params.row.id;
         const name = params.row.Nom;
@@ -198,18 +203,7 @@ const Dashboard = () => {
             >
                Annexe
             </div>
-            {/* <div
-              className={`EButton ${
-                params.row.QualityChecked === 0 ? "disabled" : ""
-              }`}
-              onClick={(e) => {
-                if (params.row.QualityChecked !== 0) {
-                  Export3(name, id, e);
-                }
-              }}
-            >
-              ANSI
-            </div> */}
+            
             <div>
             <Link to={`/ansi-report/${id}`} style={{ textDecoration: "none" }}>
               <Button> Ansi </Button>
@@ -517,7 +511,7 @@ const Dashboard = () => {
         ) : (
           <div>
              <DataGrid
-             style={{width:"90%"}}
+             style={{width:"100%"}}
             className="datagrid"
             rows={Project}
             columns={userColumns}
