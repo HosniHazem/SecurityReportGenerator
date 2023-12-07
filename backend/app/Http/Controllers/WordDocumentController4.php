@@ -228,16 +228,21 @@ HERE10;
         // Part 9.2
         $vuln=DB::select($sqlVuln,[$customerId]);
         $vulnArray=self::processDatabaseData($vuln);
+        if(!empty($vulnArray)){
+            $templateProcessor->cloneRowAndSetValues('RowNumber',$vulnArray);
+
+        }
+            
+
         $vulnArrayLength = count($vulnArray);
 
-         $templateProcessor->cloneRowAndSetValues('RowNumber',$vulnArray);
 
         //Part 11.1
       
-        self::processPA_chapter11(5, "3", $templateProcessor);
-        self::processPA_chapter11(6, "3", $templateProcessor);
-        self::processPA_chapter11(7, "3", $templateProcessor);
-        self::processPA_chapter11(8, "3", $templateProcessor);
+        // self::processPA_chapter11(5, "3", $templateProcessor);
+        // self::processPA_chapter11(6, "3", $templateProcessor);
+        // self::processPA_chapter11(7, "3", $templateProcessor);
+        // self::processPA_chapter11(8, "3", $templateProcessor);
 
  
 
@@ -257,56 +262,64 @@ HERE10;
         
         $prevAudit = DB::select($sqlPrevAudit, [$customerId]);
         $prevAuditArray = self::processDatabaseData($prevAudit);
-
-        $prevAuditArrayLength=count($prevAuditArray);
-        //get number of projects 
-        $uniqueProjects = [];
-
-        foreach ($prevAuditArray as $entry) {
-            $projectName = $entry['ProjectName'];
-            if (!in_array($projectName, $uniqueProjects)) {
-                $uniqueProjects[] = $projectName;
+        if (!empty($prevAuditArray)){
+            $prevAuditArrayLength=count($prevAuditArray);
+            //get number of projects 
+            $uniqueProjects = [];
+            foreach ($prevAuditArray as $entry) {
+                $projectName = $entry['ProjectName'];
+                if (!in_array($projectName, $uniqueProjects)) {
+                    $uniqueProjects[] = $projectName;
+                }
             }
+            $numberOfProjects = count($uniqueProjects);
+
+            $maxProjNum = self::getMaxProjNum($prevAuditArray);
+            $organizedData = [];
+            foreach ($prevAuditArray as $entry) {
+                $projectName = $entry['ProjectName'];
+                if (!isset($organizedData[$projectName])) {
+                    $organizedData[$projectName] = [];
+                }
+                $organizedData[$projectName][] = [
+                    'Action' => $entry['Action'],
+                    'ActionNumero' => $entry['ActionNumero'],
+                    'Criticite' => $entry['Criticite'],
+                    'chargeaction' => $entry['chargeaction'],
+                    'charge' => $entry['charge'],
+                    'tauxrealisation' => $entry['tauxrealisation'],
+                    'Evaluation' => $entry['Evaluation'],
+                    'projNum'=>$entry['projNum'],
+                ];
+            }
+            
+
+            $flattenedData = [];
+            foreach ($organizedData as $projectName => $entries) {
+                foreach ($entries as $entry) {
+                    $flattenedData[] = $entry;
+                }
+            }
+            $templateProcessor->cloneRowAndSetValues('ProjectName', $flattenedData);
+            
+            for ($x = 0; $x <count($prevAuditArray)+1; $x++) {
+            
+                if (isset($prevAuditArray[$x]['ProjectName'])) {
+                    $projectName = $prevAuditArray[$x]['ProjectName'];
+                    $templateProcessor->setValue( "ProjectName#" .$x+1, $projectName);
+                } else {
+                    error_log("Warning: 'ProjectName' key not found in entry at index $x");
+                }
+            }
+
+
         }
+       
+
+       
         
-        $numberOfProjects = count($uniqueProjects);
-
-        $maxProjNum = self::getMaxProjNum($prevAuditArray);
-        $organizedData = [];
-        foreach ($prevAuditArray as $entry) {
-            $projectName = $entry['ProjectName'];
-            if (!isset($organizedData[$projectName])) {
-                $organizedData[$projectName] = [];
-            }
-            $organizedData[$projectName][] = [
-                'Action' => $entry['Action'],
-                'ActionNumero' => $entry['ActionNumero'],
-                'Criticite' => $entry['Criticite'],
-                'chargeaction' => $entry['chargeaction'],
-                'charge' => $entry['charge'],
-                'tauxrealisation' => $entry['tauxrealisation'],
-                'Evaluation' => $entry['Evaluation'],
-                'projNum'=>$entry['projNum'],
-            ];
-        }
-
-                $flattenedData = [];
-foreach ($organizedData as $projectName => $entries) {
-    foreach ($entries as $entry) {
-        $flattenedData[] = $entry;
-    }
-}
-$templateProcessor->cloneRowAndSetValues('ProjectName', $flattenedData);
-
-for ($x = 0; $x <count($prevAuditArray)+1; $x++) {
-
-    if (isset($prevAuditArray[$x]['ProjectName'])) {
-        $projectName = $prevAuditArray[$x]['ProjectName'];
-        $templateProcessor->setValue( "ProjectName#" .$x+1, $projectName);
-    } else {
-        error_log("Warning: 'ProjectName' key not found in entry at index $x");
-    }
-}
+       
+               
 
 
 
@@ -345,8 +358,10 @@ for ($x = 0; $x <count($prevAuditArray)+1; $x++) {
         $imagePath = $allImagesPath . DIRECTORY_SEPARATOR . $networkDesignValue;
         
         
-        
-        $templateProcessor->setImageValue('NetworkDesign', ['path' => $imagePath, 'width' => 500]);
+        if ($networkDesignValue!="pas de network Design"){
+            $templateProcessor->setImageValue('NetworkDesign', ['path' => $imagePath, 'width' => 500]);
+
+        }
         //table:Postes de travail
         $posteTravail=DB::select($sqlPosteTravail, [$customerId]);
         $posteTravailArray= self::processDatabaseData($posteTravail);
@@ -421,11 +436,18 @@ for ($x = 0; $x <count($prevAuditArray)+1; $x++) {
             $templateProcessor->setValue('mailadress', $mailAddress);
             $templateProcessor->setValue('DescriptionCompany', $description);
             
-            $organigramePath=$allImagesPath. DIRECTORY_SEPARATOR . $organigrame;
             $logoPath=$allImagesPath. DIRECTORY_SEPARATOR . $Logo;
 
-
-           $templateProcessor->setImageValue('organigrame:800:800', array('path'=>$organigramePath));
+            if ($organigrame != "organigramme non disponible") {
+                $organigramePath = $allImagesPath . DIRECTORY_SEPARATOR . $organigrame;
+            
+                
+                if (!empty($organigramePath)) {
+                    $templateProcessor->setImageValue('organigrame:800:800', array('path' => $organigramePath));
+                }
+            }
+            
+            
            $templateProcessor->setImageValue('icon', array('path'=>$logoPath));
 
         } else {
@@ -704,6 +726,14 @@ $response = Http::get($url);
 
      
     }
+
+static function populateTemplate($templateProcessor, $rowPlaceholder, $dataArray){
+    if (!empty($dataArray)) {
+        $templateProcessor->cloneRowAndSetValues($rowPlaceholder, $dataArray);
+    }
+}
+
+
 
     static function processPA_chapter11($num, $iteration, $templateProcessor)
 {
