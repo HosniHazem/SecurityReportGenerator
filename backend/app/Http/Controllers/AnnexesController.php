@@ -661,7 +661,7 @@ if ($zip->open($zipFilePath, ZipArchive::CREATE) === true) {
    }
 
    $zip->close();
-   AnnexesController::sendMessage("http://webapp.ssk.lc/AppGenerator/backend/public/storage/annexes/".$zipFileName ." Ready");
+   AnnexesController::sendMessage("http://webapp.smartskills.tn/AppGenerator/backend/public/storage/annexes/".$zipFileName ." Ready");
    // Download the zip archive
    return response()->download($zipFilePath)->deleteFileAfterSend(false);
 }

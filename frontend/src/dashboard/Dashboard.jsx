@@ -166,7 +166,9 @@ const Dashboard = () => {
             <Link to={`/add-audit-previous-audit/${id}`} style={{ textDecoration: "none" }}>
               <div className="Pick2">PrevAudit</div>
             </Link>
-            <div className="Pick2" onClick={() => handleNavigateToRmQuesion(nom)}>Questions</div>
+            <Link to={`/anomalie/${id}`} style={{ textDecoration: "none" }}>
+              <div className="Pick2">Anomalie</div>
+            </Link>
           </div>
         );
       },

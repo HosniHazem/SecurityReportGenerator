@@ -21,6 +21,7 @@ import AddAuditPreviousAudit from "./AuditPreviousAudit/AddAuditPreviousAudit";
 import ViewAuditPRevious from "./AuditPreviousAudit/ViewAuditPreviousAudit";
 import ModifyAuditPreviousAudit from "./AuditPreviousAudit/ModifyAuditPreviousAudit";
 import AnsiReport from "./AnsiReport";
+import Anomalie from "./Anomalie";
 
 function App() {
   return (
@@ -51,6 +52,7 @@ function App() {
         <Route path="/all-audit-previous-audit" element={<ViewAuditPRevious />} />
         <Route path="/all-audit-previous-audit/modify-audit-previous-audit/:id" element={< ModifyAuditPreviousAudit/>} />
         <Route path="/ansi-report/:id" element={<AnsiReport />} />
+        <Route path="/anomalie/:id" element={<Anomalie />} />
 
 
       </Routes>
