@@ -39,8 +39,9 @@ export default function Anomalie() {
               'X-Auth': "1986ad8c0a5b3df4d7028d5f3c06e936c1dec77fb40364d109ff9c6b70f27bc4a",
             },
           });
+          console.log(response.data)
     if(response.data.success){
-        toast.succes(response.data.message);
+        toast.success(response.data.message);
     }
     else {
         toast.error("wrong")

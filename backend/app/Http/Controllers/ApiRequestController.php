@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Models\Vuln;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class ApiRequestController extends Controller
 {
@@ -106,7 +107,7 @@ class ApiRequestController extends Controller
                 
 
              }
-             return response()->json(['message' => 'done', 'status' => 200,'sucess'=>true ,'data' => $results]);
+             return response()->json(['message' => 'done', 'status' => 200,'success'=>true ,'data' => $results]);
 
 
 
@@ -122,28 +123,49 @@ class ApiRequestController extends Controller
 
     public function fillWithOWasZap(){
         set_time_limit(1000000);
-
-        $id=0;
+        $id=1;
      $baseUrl = "http://acu.g6.ssk.lc:8081/JSON/alert/view/alert/?apikey=d31c2oo5sn998vpk0cpouf0i0h&id={$id}";
+     
 
-    do{
 
-        $response = Http::get($baseUrl);
-        $data = [
-            [
-                'Name' => $response['alert']['name'],
-                'Risk' => $response['alert']['risk'],
-                'Description' => $response['alert']['description'],
-                'Solution' => $response['alert']['solution'],
-                'Host' => self::parseBaseUrl($response['alert']['url']),
-                'See Also' => json_encode(self::parseBaseUrl($response['alert']['reference'])),
-            ],
-        ];
-        Vuln::insertOrIgnore($data);
+     do {
+         $response = Http::get($baseUrl)->json();
+        
+              
+     
+         $Name = $response['alert']['name'] ?? null;
+         $Risk = $response['alert']['risk'] ?? null;
+         $Description = $response['alert']['description'] ?? null;
+         $Solution = $response['alert']['solution'] ?? null;
+         $Host = self::parseBaseUrl($response['alert']['url']) ?? null;
+         $SeeAlso = json_encode(self::parseBaseUrl($response['alert']['reference'])) ?? null;
+     
+         $result = DB::table('vuln2')->insertOrIgnore([
+             'Name' => $Name,
+             'Risk' => $Risk,
+             'Description' => $Description,
+             'Solution' => $Solution,
+             'Host' => $Host,
+             'See Also' => $SeeAlso,
+         ]);
+     
+         $id++;
+     } while ($id < 1000);
+     
 
-        $id++;
-    }while ($response->status() != 400);
-    return response()->json(['message' => 'done', 'status' => 200]);
+     
+     DB::table('vuln2')
+         ->whereNotIn('id', function ($query) {
+             $query->select(DB::raw('MIN(id)'))
+                 ->from('vuln2')
+                 ->groupBy('Name', 'Risk', 'Description', 'Solution', 'Host', 'See Also');
+         })
+         ->delete();
+     
+     //
+     
+     return response()->json(['message' => 'done', 'status' => 200]);
+     
 
     }
 
