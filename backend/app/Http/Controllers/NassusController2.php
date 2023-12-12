@@ -19,7 +19,10 @@ session_start();
 
 class NassusController2 extends Controller
 {
-
+    public function __construct()
+    {
+        ini_set('memory_limit', '2560M');
+    }
     public static   $toBeCleanAndTranslatedArray = array(
         'name',
         'description',
@@ -332,7 +335,7 @@ return $Stats;
 
             $responseData = json_decode($response->body(), true);
 
-            if ($response->successful()) {
+            if ($response->successful() && $responseData["status"]!="loading") {
                 $verif = 'true';
                 AnnexesController::sendMessage($prj_id . " [Scan Ready to start response] for " . $scanName);
             } else {
@@ -350,7 +353,7 @@ return $Stats;
 
         return $verif;
     }
-    private function downloadAndSaveCSV($ip, $e, $i, $ApiKeys, $customPath)
+    private function downloadAndSaveCSV($ip, $e, $i, $ApiKeys, $customPath,$Label)
     {
         $response = Http::withOptions([
             'verify' => false,
@@ -363,12 +366,13 @@ return $Stats;
 
             if ($csvContent) {
                 $csvPath = "{$customPath}/{$e}.csv";
-                file_put_contents($csvPath, AnnexesController::cleanStrings($csvContent));
+                file_put_contents($csvPath, $csvContent);
 
                 return [
                     'name' => $e . '.csv',
                     'scan' => $e,
                     'file' => $i,
+                    'scan_name'=>$Label,
                 ];
             }
         }
@@ -381,6 +385,7 @@ return $Stats;
     $path = $csvPaths[0]['name'];
         $sc = $csvPaths[0]['scan'];
         $fi = $csvPaths[0]['file'];
+        $sn = $csvPaths[0]['scan_name'];
 
         $loadDataSQL = "LOAD DATA INFILE '{$path}' IGNORE
                         INTO TABLE vuln
@@ -389,7 +394,7 @@ return $Stats;
                         LINES TERMINATED BY '\r\n'
                         IGNORE 1 LINES
                         (`Plugin ID`, CVE, `CVSS v2.0 Base Score`, Risk, Host, Protocol, Port, Name, Synopsis, Description, Solution, `See Also`, `Plugin Output`)
-                        SET upload_id = {$createdId}, scan = {$sc}, file = {$fi}, ID_Projet = {$prj_id};";
+                        SET upload_id = {$createdId}, scan = {$sc}, file = {$fi}, scan_name = '{$sn}', ID_Projet = {$prj_id};";
 
         $sqlinjected = false;
         $iteration = 1;
@@ -476,7 +481,7 @@ return $Stats;
             set_time_limit(50000);
 
             $json = $request->all();
-            $fields = ["project_id","Label","Auth","description","selectedIp","scan"];
+            $fields = ["project_id","Label","Auth","description","selectedIp","scan","scan_name"];
             if ($this->verifyRequiredFields($json,$fields)===false ||
             !isset($json['links']['file']))
             {
@@ -492,6 +497,7 @@ return $Stats;
             $ApiKeys = $json['Auth'];;
             $i = $jsonData["file"];
             $e = $json["scan"];
+            $sn = $json["scan_name"];
             $verif = 'false';
             $maxIterations = 30;
             $csvPaths = [];
@@ -510,7 +516,7 @@ return $Stats;
 if ($verif==='true'){
                     // Download the exported CSV file
                     $customPath = 'C:\\xampp\\mysql\\data\\tactio2z_officekiller';
-                    $csvPathInfo = $this->downloadAndSaveCSV($ip, $e, $i, $ApiKeys, $customPath);
+                    $csvPathInfo = $this->downloadAndSaveCSV($ip, $e, $i, $ApiKeys, $customPath,$sn);
 
                     if ($csvPathInfo) {
                         $csvPaths[0] = $csvPathInfo;
