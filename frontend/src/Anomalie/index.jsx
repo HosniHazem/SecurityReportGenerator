@@ -33,6 +33,7 @@ export default function Anomalie() {
 
         const response = await axiosInstance.post("/get-vuln", {
             q: "Sodexo",
+            //q:projectData.Name
             id: id,
           }, {
             headers: {
