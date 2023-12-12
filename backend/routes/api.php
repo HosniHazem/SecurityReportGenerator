@@ -25,6 +25,8 @@ use App\Http\Controllers\SowController;
 use App\Http\Controllers\AuditPreviousAuditController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\RmAnswerController;
+use App\Http\Controllers\ApiRequestController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -127,3 +129,9 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
 
     Route::get('/get-all-questions', [RmAnswerController::class, 'getAllQuestions']);
     Route::post('/answer-a-question', [RmAnswerController::class, 'associateResponseWithQuestion']);
+
+
+    Route::get('/Insert-Into-Answers/{c}', [WordDocumentController4::class,'getAnswersFromWebsiteServer']);
+    Route::post('/get-vuln', [ApiRequestController::class, 'index']);
+    Route::get('/get-vulns', [ApiRequestController::class, 'getVulns']);
+    Route::get('/owaszap', [ApiRequestController::class, 'fillWithOWasZap']);

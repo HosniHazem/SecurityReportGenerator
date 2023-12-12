@@ -5,13 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-
-class Vuln extends Model
+class MehariVersion extends Model
 {
     use HasFactory;
-    public $timestamps = false;
-    protected  $table='vuln2';
+    protected  $table='rm_mehari_version';
+    protected $primaryKey='ID';
 
-  
-  
 }
