@@ -212,7 +212,8 @@ class HtmlParser extends Controller
 
 
 
-    public function parseHcl(Request $request){
+    public function parseHcl(Request $request)
+    {
         $htmlPath = $request->file('vuln');
 
         $htmlContent = file_get_contents($htmlPath);
@@ -229,23 +230,63 @@ class HtmlParser extends Controller
         libxml_use_internal_errors(false);
 
         $xpath = new DOMXPath($dom);
-        $query = "//div[@class='issueHeader']/div[@class='headerIssueType']";
+        $results = [];
 
-        $node = $xpath->query($query);
+        // Extract data using XPath and loop through elements
+        $issueNodes = $xpath->query("//div[@class='issueHeader']");
+        foreach ($issueNodes as $issueNode) {
+            $name = $xpath->query(".//div[@class='headerIssueType']/a", $issueNode)->item(0)->nodeValue;
+            $severity = $xpath->query(".//div[@class='row'][div[@class='name']='Severity:']/div[@class='value']/span", $issueNode)->item(0)->nodeValue;
+            $cvssScore = $xpath->query(".//div[@class='row'][div[@class='name']='CVSS Score:']/div[@class='value']", $issueNode)->item(0)->nodeValue;
+            $url = $xpath->query(".//div[@class='row'][div[@class='name']='URL:']/div[@class='value wordBreaker']/a", $issueNode)->item(0)->nodeValue;
 
-        $array=[];
+            $risk = $xpath->query(".//div[@class='row'][div[@class='name']='Risk:']/div[@class='value']/ul/li", $issueNode)->item(0)->nodeValue;
+            $cause = $xpath->query(".//div[@class='row'][div[@class='name']='Cause:']/div[@class='value']/ul/li", $issueNode)->item(0)->nodeValue;
+            $fix = $xpath->query(".//div[@class='row'][div[@class='name']='Fix:']/div[@class='value']/a", $issueNode)->item(0)->nodeValue;
 
-        foreach($node as $value){
+            // Store the extracted data in an array
+            $results[] = [
+                //name
+                'name' => $name,
 
-            $array[]=$value->nodeValue;
+                //risk
+                'Severity' => $severity,
+                //CVSSv3BaseScore
+                'CVSS Score' => $cvssScore,
+                //Host
+                'URL' => ApiRequestController::parseBaseUrl($url),
+                //Description
+               
+                'Description' => $risk . "and the cause is " . $cause,
+
+                //Solution
+                'Fix' => $fix,
+            ];
         }
 
+        // Output the extracted data
+        $uniqueResults = array_map('unserialize', array_unique(array_map('serialize', $results)));
 
-        return response()->json($array);
+        // Now $uniqueResults contains the unique elements based on all sub-array values
+
+        
+        // return response()->json($results['name']);
+
+        foreach ($uniqueResults as $result){
+            $vuln=new Vuln();
+            $vuln->Name=$result['name'];
+            $vuln->Risk=$result['Severity'];
+            $vuln->CVSSv3BaseScore=$result['CVSS Score'];
+            $vuln->Host=$result['URL'];
+            $vuln->Description=$result['Description'];
+            $vuln->Solution=$result['Fix'];
 
 
+            $vuln->save();
 
+        }
 
+        return response()->json("vuln saved succeffully");
 
 
     }
