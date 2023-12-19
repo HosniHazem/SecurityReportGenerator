@@ -110,7 +110,8 @@ class ApiRequestController extends Controller
                 
 
              }
-             return response()->json(['message' => 'done', 'status' => 200,'success'=>true ,'data' => $results]);
+             $resultLength=count($results);
+             return response()->json(['message' => 'done', 'status' => 200,'success'=>true ,'data' => $resultLength]);
 
 
 
@@ -167,7 +168,7 @@ class ApiRequestController extends Controller
      
      //
      
-     return response()->json(['message' => 'done', 'status' => 200]);
+     return response()->json(['message' => 'done', 'status' => 200,'success'=>true]);
      
 
     }
