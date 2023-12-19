@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { axiosInstance } from "../axios/axiosInstance";
-import { Form, Input, Button, Upload, message } from "antd";
+import { Form, Input, Button, Upload, message, Col, Row } from "antd";
 import { InboxOutlined, UploadOutlined } from "@ant-design/icons";
 import toast from "react-hot-toast";
 
@@ -84,7 +84,7 @@ export default function Anomalie() {
       formDataFile1.append("vuln", values.file1[0]?.originFileObj, "vuln.html");
       console.log(values.file1[0]?.originFileObj);
       const responseFile1 = await axiosInstance.post(
-        "/vuln-from-html",
+        `/vuln-from-html/${id}`,
         formDataFile1,
         {
           headers: {
@@ -106,7 +106,7 @@ export default function Anomalie() {
       formDataFile2.append("vuln", values.file2[0]?.originFileObj);
 
       const responseFile2 = await axiosInstance.post(
-        "/vuln-from-hcl",
+        `/vuln-from-hcl/${id}`,
         formDataFile2,
         {
           headers: {
@@ -131,7 +131,7 @@ export default function Anomalie() {
     <div style={{ width: "80%", marginLeft: "10%" }}>
       <h2>Accunetix & OWASZAP Queries</h2>
 
-      <Form onFinish={onFinish}>
+      <Form onFinish={onFinish} layout="vertical">
         <Form.Item
           label="Query"
           name="q"
@@ -141,50 +141,57 @@ export default function Anomalie() {
         </Form.Item>
 
         <h2>File Uploads</h2>
-
-        <Form.Item
-          name="file1"
-          label="HTML"
-          valuePropName="fileList"
-          getValueFromEvent={normHtmlFile}
-        >
-          <Upload
-            name="file1"
-            beforeUpload={(file) => {
-              setHtmlFile(file);
-              return false; // Returning false prevents automatic upload
-            }}
-          >
-            <Button icon={<UploadOutlined />} style={{ width: "200%" }}>
-              Upload HTML
-            </Button>
-          </Upload>
-        </Form.Item>
-
-        <Form.Item
-          name="file2"
-          label="HCL"
-          valuePropName="fileList"
-          getValueFromEvent={normHclFile}
-        >
-          <Upload
-            name="file2"
-            beforeUpload={(file) => {
-              setHclFile(file);
-              return false; // Returning false prevents automatic upload
-            }}
-          >
-            <Button icon={<UploadOutlined />} style={{ width: "140%" }}>
-              Upload HCL{" "}
-            </Button>
-          </Upload>
-        </Form.Item>
-
-        <Form.Item>
-          <Button type="primary" htmlType="submit">
-            Submit
-          </Button>
-        </Form.Item>
+        <div style={{alignContent:"center" }}>
+          <Row>
+            <Col span={8}>
+              <Form.Item
+                name="file1"
+                label="HTML"
+                valuePropName="fileList"
+                getValueFromEvent={normHtmlFile}
+              >
+                <Upload
+                  name="file1"
+                  beforeUpload={(file) => {
+                    setHtmlFile(file);
+                    return false; // Returning false prevents automatic upload
+                  }}
+                >
+                  <Button icon={<UploadOutlined />} style={{ width: "200%" }}>
+                    Upload HTML
+                  </Button>
+                </Upload>
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="file2"
+                label="HCL"
+                valuePropName="fileList"
+                getValueFromEvent={normHclFile}
+              >
+                <Upload
+                  name="file2"
+                  beforeUpload={(file) => {
+                    setHclFile(file);
+                    return false; // Returning false prevents automatic upload
+                  }}
+                >
+                  <Button icon={<UploadOutlined />}style={{ width: "200%",marginLeft:"6%" }}>
+                    Upload HCL{" "}
+                  </Button>
+                </Upload>
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item>
+                <Button type="primary" htmlType="submit" style={{ width: "100%" ,marginTop:"9%"}}>
+                  Submit
+                </Button>
+              </Form.Item>
+            </Col>
+          </Row>
+        </div>
       </Form>
     </div>
   );

@@ -11,12 +11,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 class HtmlParser extends Controller
 {
-    public function parse(Request $request)
+    public function parse(Request $request,$id)
     {
 
 
 
         $htmlPath = $request->file('vuln');
+        $projectID=$id;
 
         $htmlContent = file_get_contents($htmlPath);
 
@@ -200,6 +201,7 @@ class HtmlParser extends Controller
             } else {
                 $vuln['See Also'] = "";
             }
+            $vuln->ID_Projet=$projectID;
             $vuln->save();
             $i++;
             if ($i == 29) break;
@@ -212,9 +214,10 @@ class HtmlParser extends Controller
 
 
 
-    public function parseHcl(Request $request)
+    public function parseHcl(Request $request,$id)
     {
         $htmlPath = $request->file('vuln');
+        $projectID=$id;
 
         $htmlContent = file_get_contents($htmlPath);
 
@@ -280,6 +283,7 @@ class HtmlParser extends Controller
             $vuln->Host=$result['URL'];
             $vuln->Description=$result['Description'];
             $vuln->Solution=$result['Fix'];
+            $vuln->ID_Projet=$projectID;
 
 
             $vuln->save();

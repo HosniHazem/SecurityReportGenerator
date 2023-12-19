@@ -62,7 +62,7 @@ class ApiRequestController extends Controller
                 $it->Name=$item['vt_name'];
                 $it->Description=htmlspecialchars($item['description']);
 
-                $it->Host=htmlspecialchars($item['affects_url']);
+                $it->Host=self::parseBaseUrl(htmlspecialchars($item['affects_url']));
 
                  $it->Synopsis=htmlspecialchars($item['impact']);
                  $it->CVSSv3BaseScore= $item['cvss3'];
@@ -85,6 +85,9 @@ class ApiRequestController extends Controller
                     $riskLevel = "High";
                 } elseif ($cvssScore >= 9) {
                     $riskLevel = "Critical";
+                }
+                else {
+                    $riskLevel="Information";
                 }
                  $it->risk=$riskLevel;  //High,Medium,Low..
                 $it->Solution=htmlspecialchars($item['recommendation']);
