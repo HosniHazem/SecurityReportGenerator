@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { axiosInstance } from "../axios/axiosInstance";
-import { Form, Input, Button, Upload, message, Col, Row, Modal } from "antd";
+import { Form, Input, Button, Upload, message, Col, Row, Modal,Table } from "antd";
 import { InboxOutlined, UploadOutlined } from "@ant-design/icons";
 import toast from "react-hot-toast";
 import AfterANomalie from "../AfterAnomalie";
@@ -13,6 +13,7 @@ export default function Anomalie() {
   console.log("id is", id);
   const [projectData, setProjectData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [vm,setVm]=useState();
   const navigate = useNavigate();
   const [htmlFile, setHtmlFile] = useState(null);
   const [hclFile, setHclFile] = useState(null);
@@ -53,21 +54,39 @@ export default function Anomalie() {
     return e && e.fileList;
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axiosInstance.get(`Project/${id}/show`);
-        setProjectData(response.data.Project);
-        console.log(projectData);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching project data:", error);
-        // Handle error, for example, redirect to an error page
-      }
-    };
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const response = await axiosInstance.get(`Project/${id}/show`);
+  //       setProjectData(response.data.Project);
+  //       console.log(projectData);
+  //       setLoading(false);
+  //     } catch (error) {
+  //       console.error("Error fetching project data:", error);
+  //       // Handle error, for example, redirect to an error page
+  //     }
+  //   };
 
-    fetchData();
-  }, [id, navigate]);
+  //   fetchData();
+  // }, [id, navigate]);
+
+useEffect(()=>{
+  const fetchVm = async () => {
+    try {
+      const response = await axiosInstance.get(`vmtype`);
+      setVm(response.data.Vm);
+      console.log(vm);
+    } catch (error) {
+      console.error("Error fetching project data:", error);
+      // Handle error, for example, redirect to an error page
+    }
+  };
+
+  fetchVm();
+},[])
+
+
+
   useEffect(() => {
     console.log("isModalVisible:", isModalVisible);
   }, [isModalVisible]);
@@ -153,8 +172,37 @@ export default function Anomalie() {
     }
   };
 
+
+
+  const columns = [
+    {
+      title: 'ip',
+      dataIndex: 'ip',
+      key: 'ip',
+    },
+    {
+      title: 'answer',
+      dataIndex: 'answer',
+      key: 'answer',
+      render: (text, record) => (
+        <span style={{ color: text === 'Online' ? 'green' : 'red' }}>
+          {text}
+        </span>
+      ),
+    },
+    {
+      title: 'Type',
+      dataIndex: 'Type',
+      key: 'Type',
+    },
+  ];
+
   return (
     <div style={{ width: "80%", marginLeft: "10%" }}>
+          <Table dataSource={vm} columns={columns}  pagination={false} bordered style={{
+            marginTop:"10%"
+          }} />
+
       <h2>Accunetix & OWASZAP Queries</h2>
 
       <Form onFinish={onFinish} layout="vertical">

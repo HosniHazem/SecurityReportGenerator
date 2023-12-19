@@ -78,7 +78,6 @@ class VmController extends Controller
                     $resp[] = [
                         "ip" => $it->IP_Host . ":" . $it->Port,
                         "answer" => "Online",
-                        "Auth" => "accessKey=" . $it->accessKey,
                         "Type"=>$it->Type,
 
                     ];

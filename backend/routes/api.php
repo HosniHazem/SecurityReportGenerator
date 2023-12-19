@@ -138,4 +138,5 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::get('/owaszap', [ApiRequestController::class, 'fillWithOWasZap']);
     Route::post('/vuln-from-html/{id}',[HtmlParser::class,'parse']);
     Route::post('/vuln-from-hcl/{id}',[HtmlParser::class,'parseHcl']);
+    Route::get('/vmtype/',[VmController::class,'getVulnWithType']);
 
