@@ -209,7 +209,7 @@ class HtmlParser extends Controller
 
 
 
-        return response()->json(['message' => 'vuln names are stored succefully', 'success' => true]);
+        return response()->json(['message' => 'vuln names are stored succefully', 'success' => true,'number'=>$i]);
     }
 
 
@@ -290,7 +290,7 @@ class HtmlParser extends Controller
 
         }
 
-        return response()->json("vuln saved succeffully");
+        return response()->json(['message'=>"vuln saved succeffully",'number'=>count($uniqueResults),'success'=>true]);
 
 
     }

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { axiosInstance } from "../axios/axiosInstance";
-import { Form, Input, Button, Upload, message, Col, Row } from "antd";
+import { Form, Input, Button, Upload, message, Col, Row, Modal } from "antd";
 import { InboxOutlined, UploadOutlined } from "@ant-design/icons";
 import toast from "react-hot-toast";
+import AfterANomalie from "../AfterAnomalie";
 
 const { TextArea } = Input;
 
@@ -15,6 +16,22 @@ export default function Anomalie() {
   const navigate = useNavigate();
   const [htmlFile, setHtmlFile] = useState(null);
   const [hclFile, setHclFile] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [accuentixNumber, setAccunetixNumber] = useState(0);
+  const [invicti, setInvicti] = useState(0);
+  const [hcl, setHcl] = useState(0);
+
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleOk = () => {
+    setIsModalVisible(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
 
   const normHtmlFile = (e) => {
     if (Array.isArray(e)) {
@@ -51,33 +68,36 @@ export default function Anomalie() {
 
     fetchData();
   }, [id, navigate]);
+  useEffect(() => {
+    console.log("isModalVisible:", isModalVisible);
+  }, [isModalVisible]);
 
-  const getVulns = async () => {};
   const onFinish = async (values) => {
     console.log(values);
 
     try {
-      // const responseQuery = await axiosInstance.post(
-      //   "/get-vuln",
-      //   {
-      //     q: values.q,
-      //     id: id,
-      //   },
-      //   {
-      //     headers: {
-      //       "X-Auth":
-      //         "1986ad8c0a5b3df4d7028d5f3c06e936c1dec77fb40364d109ff9c6b70f27bc4a",
-      //     },
-      //   }
-      // );
+      const responseQuery = await axiosInstance.post(
+        "/get-vuln",
+        {
+          q: values.q,
+          id: id,
+        },
+        {
+          headers: {
+            "X-Auth":
+              "1986ad8c0a5b3df4d7028d5f3c06e936c1dec77fb40364d109ff9c6b70f27bc4a",
+          },
+        }
+      );
 
-      // console.log(responseQuery.data);
+      console.log(responseQuery.data);
 
-      // if (responseQuery.data.success) {
-      //   toast.success(responseQuery.data.message);
-      // } else {
-      //   toast.error("wrong");
-      // }
+      if (responseQuery.data.success) {
+        toast.success(responseQuery.data.message);
+        setAccunetixNumber(responseQuery.data.data);
+      } else {
+        toast.error("wrong");
+      }
 
       // Send the file1 value to the first endpoint with id
       const formDataFile1 = new FormData();
@@ -97,6 +117,7 @@ export default function Anomalie() {
 
       if (responseFile1.data.success) {
         toast.success(responseFile1.data.message);
+        setInvicti(responseFile1.data.number);
       } else {
         toast.error("wrong");
       }
@@ -119,8 +140,13 @@ export default function Anomalie() {
 
       if (responseFile2.data.success) {
         toast.success(responseFile2.data.message);
+        setHcl(responseFile2.data.number);
+        showModal();
       } else {
         toast.error("wrong");
+      }
+      if (responseFile1.data.success) {
+        console.log("smodal", isModalVisible);
       }
     } catch (error) {
       toast.error("something wrong");
@@ -135,13 +161,13 @@ export default function Anomalie() {
         <Form.Item
           label="Query"
           name="q"
-          rules={[{ required: true, message: "Please enter Form 1 field!" }]}
+          // rules={[{ required: true, message: "Please enter Form 1 field!" }]}
         >
           <TextArea rows={4} />
         </Form.Item>
 
         <h2>File Uploads</h2>
-        <div style={{alignContent:"center" }}>
+        <div style={{ alignContent: "center" }}>
           <Row>
             <Col span={8}>
               <Form.Item
@@ -177,7 +203,10 @@ export default function Anomalie() {
                     return false; // Returning false prevents automatic upload
                   }}
                 >
-                  <Button icon={<UploadOutlined />}style={{ width: "200%",marginLeft:"6%" }}>
+                  <Button
+                    icon={<UploadOutlined />}
+                    style={{ width: "200%", marginLeft: "6%" }}
+                  >
                     Upload HCL{" "}
                   </Button>
                 </Upload>
@@ -185,7 +214,11 @@ export default function Anomalie() {
             </Col>
             <Col span={8}>
               <Form.Item>
-                <Button type="primary" htmlType="submit" style={{ width: "100%" ,marginTop:"9%"}}>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  style={{ width: "100%", marginTop: "9%" }}
+                >
                   Submit
                 </Button>
               </Form.Item>
@@ -193,6 +226,18 @@ export default function Anomalie() {
           </Row>
         </div>
       </Form>
+      <Modal
+        title="Submitted Values"
+        visible={isModalVisible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+      >
+        <AfterANomalie
+          accuentixNumber={accuentixNumber}
+          invicti={invicti}
+          hcl={hcl}
+        />
+      </Modal>
     </div>
   );
 }
