@@ -125,15 +125,21 @@ class ApiRequestController extends Controller
         return response()->json($vulns);
     }
 
-    public function fillWithOWasZap(){
+    public function fillWithOWasZap(Request $request){
         set_time_limit(1000000);
-        $id=1;
-     $baseUrl = "http://acu.g6.ssk.lc:8081/JSON/alert/view/alert/?apikey=d31c2oo5sn998vpk0cpouf0i0h&id={$id}";
-     
+        $query = $request->q;
+        $projectID=$request->id;
 
+        $id=1;
+     
+        $test=0;
 
      do {
+        $baseUrl = "http://acu.g6.ssk.lc:8081/JSON/alert/view/alert/?apikey=d31c2oo5sn998vpk0cpouf0i0h&id={$id}";
+
+            
          $response = Http::get($baseUrl)->json();
+        
         
               
      
@@ -141,20 +147,25 @@ class ApiRequestController extends Controller
          $Risk = $response['alert']['risk'] ?? null;
          $Description = $response['alert']['description'] ?? null;
          $Solution = $response['alert']['solution'] ?? null;
-         $Host = self::parseBaseUrl($response['alert']['url']) ?? null;
-         $SeeAlso = json_encode(self::parseBaseUrl($response['alert']['reference'])) ?? null;
-     
+         $Host = isset($response['alert']['url']) ? self::parseBaseUrl($response['alert']['url']) : null;
+         $SeeAlso = json_encode(self::parseBaseUrl($response['alert']['reference'] ?? null)) ?? null;
+         if(strpos($Host,$query)!=false){
+            $test++;
+        
+         }   
          $result = DB::table('vuln2')->insertOrIgnore([
-             'Name' => $Name,
-             'Risk' => $Risk,
-             'Description' => $Description,
-             'Solution' => $Solution,
-             'Host' => $Host,
-             'See Also' => $SeeAlso,
-         ]);
-     
+            'Name' => $Name,
+            'Risk' => $Risk,
+            'Description' => $Description,
+            'Solution' => $Solution,
+            'Host' => $Host,
+            'See Also' => $SeeAlso,
+            'ID_Projet'=>$projectID,
+        ]);
          $id++;
-     } while ($id < 1000);
+
+        
+     } while (isset($Host));
      
 
      
@@ -166,9 +177,9 @@ class ApiRequestController extends Controller
          })
          ->delete();
      
-     //
      
-     return response()->json(['message' => 'done', 'status' => 200,'success'=>true]);
+     
+     return response()->json(['message' => 'done', 'status' => 200,'success'=>true ,'data'=>$test]);
      
 
     }

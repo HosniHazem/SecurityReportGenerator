@@ -62,8 +62,11 @@ class VmController extends Controller
     $resp = [];
 
     $response = null;
-    $item = Vm::where('Type', 'Acunetix')->get();
-    foreach ($item as $it) {
+    $item = Vm::where('Type', 'Acunetix')
+    ->orWhere('Type', 'Owaszap')
+    ->get();
+
+       foreach ($item as $it) {
         try {
             if ($it->accessKey != "") {
                 $response = Http::withOptions([
