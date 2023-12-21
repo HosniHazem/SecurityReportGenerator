@@ -17,7 +17,7 @@ class VmController extends Controller
     {
         $resp = [];
 
-        $item = Vm::where('Type', '!=', 'Acunetix')->get();
+        $item = Vm::where('Type', 'Nessus')->get();
         //   print_r($item);
         foreach ($item as $it) {
             try {

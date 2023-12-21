@@ -337,7 +337,7 @@ const Dashboard = () => {
 
     axios
       .post(
-        `http://webapp.smartskills.tn/AppGenerator/backend/api/generate-annexe3/`,
+        `http://webapp.smartskills.tn/AppGenerator/backend/api/getAnnexes/`,
         dataToSend,
         {
           responseType: "blob", // Set responseType to 'blob' to indicate binary data
@@ -368,6 +368,8 @@ const Dashboard = () => {
       })
       .catch((error) => {
         // Handle errors
+
+
         console.error("Error sending data:", error);
         swal("Problem", "Detected");
         setDownloading(false);

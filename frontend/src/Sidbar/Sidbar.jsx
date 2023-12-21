@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './sidebar.scss';
-
+// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 const sidebarNavItems = [
     {
         display: 'Dashboard',
@@ -20,6 +20,12 @@ const sidebarNavItems = [
         icon: <i className='bx bx-user'></i>,
         to: '/customer',
         section: 'customer'
+    },
+    {
+        display: 'Database Tables',
+        // icon: <FontAwesomeIcon icon="fa-solid fa-table" />,
+        to: '/tables',
+        section: 'tables'
     }
  
 ]

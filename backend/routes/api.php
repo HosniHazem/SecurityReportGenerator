@@ -26,6 +26,7 @@ use App\Http\Controllers\AuditPreviousAuditController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\RmAnswerController;
 use App\Http\Controllers\ApiRequestController;
+use App\Http\Controllers\CloneController;
 use App\Http\Controllers\HtmlParser;
 
 /*
@@ -139,4 +140,5 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::post('/vuln-from-html/{id}',[HtmlParser::class,'parse']);
     Route::post('/vuln-from-hcl/{id}',[HtmlParser::class,'parseHcl']);
     Route::get('/vmtype/',[VmController::class,'getVulnWithType']);
-
+    Route::get('/all-tables',[CloneController::class,'getTables']);
+    Route::post('/all-attributes',[CloneController::class,'getTableAttributes']);
