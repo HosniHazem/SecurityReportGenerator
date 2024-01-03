@@ -10,7 +10,7 @@ class Vuln extends Model
 {
     use HasFactory;
     public $timestamps = false;
-    protected  $table='vuln2';
+    protected  $table='vuln3';
 
   
   
