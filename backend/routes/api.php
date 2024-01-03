@@ -142,3 +142,5 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::get('/vmtype/',[VmController::class,'getVulnWithType']);
     Route::get('/all-tables',[CloneController::class,'getTables']);
     Route::post('/all-attributes',[CloneController::class,'getTableAttributes']);
+    Route::get('/modify',[CloneController::class,'Modify']);
+

@@ -521,6 +521,7 @@ public function generateAnnexes (Request $request, $AnnexA)
       {
         $project =Project::find($prj_id);
         $customer =Customer::find($project->customer_id);
+        return response()->json($customer);
 
           $returnedArray [] = $prj_id;
           //print_r($annex_id);exit;

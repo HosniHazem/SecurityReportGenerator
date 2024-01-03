@@ -58,68 +58,73 @@ class VmController extends Controller
 
 
     public function getVulnWithType()
-{
-    $resp = [];
+    {
+        $resp = [];
+    
+        $response = null;
+        $item = Vm::where('Type', 'Acunetix')
+        ->orWhere('Type', 'Owaszap')
+        ->get();
+        
+           foreach ($item as $it) {
+            try {
+                if (!empty($it->accessKey)) {
+                    $response = Http::withOptions([
+                        'verify' => false, // Disable SSL verification
+                    ])->withHeaders([
+                        'X-ApiKeys' => "accessKey=" . $it->accessKey
+                    ])->timeout(6) // Set a longer timeout for the request (in seconds)
+                        ->retry(2, 100) // Retry up to 2 times with a delay of 100 milliseconds between retries
+                        ->get("https://" . $it->IP_Host . ":" . $it->Port);
 
-    $response = null;
-    $item = Vm::where('Type', 'Acunetix')
-    ->orWhere('Type', 'Owaszap')
-    ->get();
+                    if ($response->successful()) {
+                        $resp[] = [
+                            "ip" => $it->IP_Host . ":" . $it->Port,
+                            "answer" => "Online",
+                            "Type"=>$it->Type,
+    
+                        ];
+                    } else {
+                        $resp[] = [
+                            "ip" => $it->IP_Host . ":" . $it->Port,
+                            "answer" => "Offline",
+                            "Auth" => "accessKey=" . $it->accessKey,
+                            "Type"=>$it->Type,
+                        ];
+                    }
 
-       foreach ($item as $it) {
-        try {
-            if ($it->accessKey != "") {
-                $response = Http::withOptions([
-                    'verify' => false, // Disable SSL verification
-                ])->withHeaders([
-                    'X-ApiKeys' => "accessKey=" . $it->accessKey
-                ])->timeout(1) // Set a longer timeout for the request (in seconds)
-                    ->retry(2, 100) // Retry up to 2 times with a delay of 100 milliseconds between retries
-                    ->get("https://" . $it->IP_Host . ":" . $it->Port);
-
-                if ($response->successful()) {
-                    $resp[] = [
-                        "ip" => $it->IP_Host . ":" . $it->Port,
-                        "answer" => "Online",
-                        "Type"=>$it->Type,
-
-                    ];
-                } else {
-                    $resp[] = [
-                        "ip" => $it->IP_Host . ":" . $it->Port,
-                        "answer" => "Offline",
-                        "Auth" => "accessKey=" . $it->accessKey,
-                        "Type"=>$it->Type,
-                    ];
                 }
-            } else {
-                $response = Http::withOptions([
-                    'verify' => false, // Disable SSL verification
-                ])->timeout(1) // Set a longer timeout for the request (in seconds)
-                    ->retry(2, 100) // Retry up to 2 times with a delay of 100 milliseconds between retries
-                    ->get("https://" . $it->IP_Host . ":" . $it->Port);
-                if ($response->successful()) {
-                    $resp[] = [
-                        "ip" => $it->IP_Host . ":" . $it->Port,
-                        "answer" => "Online",
-                        "Type"=>$it->Type,
+                
+                else if(empty($it->access))  {
 
-                    ];
-                } else {
-                    $resp[] = [
-                        "ip" => $it->IP_Host . ":" . $it->Port,
-                        "answer" => "Offline",
-                        "Type"=>$it->Type,
-
-                    ];
+                    $response = Http::withOptions([
+                        'verify' => false, // Disable SSL verification
+                    ])->timeout(6) // Set a longer timeout for the request (in seconds)
+                        ->retry(2, 100) // Retry up to 2 times with a delay of 100 milliseconds between retries
+                        ->get("https://" . $it->IP_Host . ":" . $it->Port);
+                    if ($response->successful()) {
+                        $resp[] = [
+                            "ip" => $it->IP_Host . ":" . $it->Port,
+                            "answer" => "Online",
+                            "Type"=>$it->Type,
+    
+                        ];
+                    } else {
+                        $resp[] = [
+                            "ip" => $it->IP_Host . ":" . $it->Port,
+                            "answer" => "Offline",
+                            "Type"=>$it->Type,
+    
+                        ];
+                    }
                 }
+
+            } catch (\Exception $e) {
+                return response()->json('something went wrong');
             }
-        } catch (\Exception $e) {
-            return response()->json('something went wrong');
         }
+    
+        return response()->json(['Vm' => $resp]);
     }
-
-    return response()->json(['Vm' => $resp]);
-}
 
 }
