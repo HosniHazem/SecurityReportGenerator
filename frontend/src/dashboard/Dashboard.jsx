@@ -337,7 +337,7 @@ const Dashboard = () => {
 
     axios
       .post(
-        `http://webapp.smartskills.tn/AppGenerator/backend/api/generate-annexe3/`,
+        `http://webapp.ssk.lc/AppGenerator/backend/api/getAnnexes`,
         dataToSend,
         {
           responseType: "blob", // Set responseType to 'blob' to indicate binary data
