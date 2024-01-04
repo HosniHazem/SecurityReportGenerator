@@ -121,8 +121,9 @@ class ApiRequestController extends Controller
 }
     }
     public function getVulns(){
-        $vulns=Vuln::All();
-        return response()->json($vulns);
+        Vuln::truncate();
+
+    return response()->json("Deleted successfully");
     }
 
     public function fillWithOWasZap(Request $request){
@@ -132,50 +133,43 @@ class ApiRequestController extends Controller
 
         $id=1;
      
-        $test=0;
+        $test=true;
 
-     do {
-        $baseUrl = "http://acu.g6.ssk.lc:8081/JSON/alert/view/alert/?apikey=d31c2oo5sn998vpk0cpouf0i0h&id={$id}";
-
-            
-         $response = Http::get($baseUrl)->json();
-        
-        
-              
-     
-         $Name = $response['alert']['name'] ?? null;
-         $Risk = $response['alert']['risk'] ?? null;
-         $Description = $response['alert']['description'] ?? null;
-         $Solution = $response['alert']['solution'] ?? null;
-         $Host = isset($response['alert']['url']) ? self::parseBaseUrl($response['alert']['url']) : null;
-         $SeeAlso = json_encode(self::parseBaseUrl($response['alert']['reference'] ?? null)) ?? null;
-         if(strpos($Host,$query)!=false){
-            $test++;
-        
-         }   
-         $result = DB::table('vuln2')->insertOrIgnore([
-            'Name' => $Name,
-            'Risk' => $Risk,
-            'Description' => $Description,
-            'Solution' => $Solution,
-            'Host' => $Host,
-            'See Also' => $SeeAlso,
-            'ID_Projet'=>$projectID,
-        ]);
-         $id++;
-
-        
-     } while (isset($Host));
+        do {
+            $baseUrl = "http://acu.g6.ssk.lc:8081/JSON/alert/view/alert/?apikey=d31c2oo5sn998vpk0cpouf0i0h&id={$id}";
+    
+            $response = Http::get($baseUrl)->json();
+    
+            $Name = $response['alert']['name'] ?? null;
+            $Risk = $response['alert']['risk'] ?? null;
+            $Description = $response['alert']['description'] ?? null;
+            $Solution = $response['alert']['solution'] ?? null;
+            $Host = isset($response['alert']['url']) ? self::parseBaseUrl($response['alert']['url']) : null;
+            $SeeAlso = json_encode(self::parseBaseUrl($response['alert']['reference'] ?? null)) ?? null;
+    
+            if (strpos($response['alert']['url'], $query) === false) {
+                $test = false;
+            }
+    
+            // Use raw SQL insert query
+            DB::statement("
+                INSERT IGNORE INTO vuln (Name, Risk, Description, Solution, Host, `See Also`, ID_Projet)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ", [$Name, $Risk, $Description, $Solution, $Host, $SeeAlso, $projectID]);
+    
+            $id++;
+            print_r($id);
+        } while ($test ||$id==100);
      
 
      
-     DB::table('vuln2')
-         ->whereNotIn('id', function ($query) {
-             $query->select(DB::raw('MIN(id)'))
-                 ->from('vuln2')
-                 ->groupBy('Name', 'Risk', 'Description', 'Solution', 'Host', 'See Also');
-         })
-         ->delete();
+    //  DB::table('vuln')
+    //      ->whereNotIn('id', function ($query) {
+    //          $query->select(DB::raw('MIN(id)'))
+    //              ->from('vuln')
+    //              ->groupBy('Name', 'Risk', 'Description', 'Solution', 'Host', 'See Also');
+    //      })
+    //      ->delete();
      
      
      

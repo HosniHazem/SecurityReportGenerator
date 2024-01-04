@@ -53,44 +53,44 @@ class AnnexesController extends Controller
 
         $sqls = array(
             <<< HERE0
-            SELECT  'Nombre de Plugins non traduit', count(DISTINCT `Plugin ID`), '/translatePlugins'  FROM vuln where ID_Projet=? and `Plugin ID` in (SELECT id FROM `plugins` WHERE `translated`<>'yes' )
+            SELECT  'Nombre de Plugins non traduit', count(DISTINCT Plugin ID), '/translatePlugins'  FROM vuln where ID_Projet=? and Plugin ID in (SELECT id FROM plugins WHERE translated<>'yes' )
             HERE0,
             <<< HERE1
-            SELECT 'Nombre de Vulns non traduit', count(DISTINCT `id`),'/translateVulns'  FROM vuln where ID_Projet = ? and Risk in ('PASSED', 'FAILED') AND  `BID` not in ('noway', 'yes' )
+            SELECT 'Nombre de Vulns non traduit', count(DISTINCT id),'/translateVulns'  FROM vuln where ID_Projet = ? and Risk in ('PASSED', 'FAILED') AND  BID not in ('noway', 'yes' )
             HERE1,
             <<< HERE111
-            SELECT 'Nombre de Vulns ignoree lors traduction', count(DISTINCT `id`),'Information'  FROM vuln where ID_Projet = ? and Risk in ('PASSED', 'FAILED') AND  `BID` ='noway'
+            SELECT 'Nombre de Vulns ignoree lors traduction', count(DISTINCT id),'Information'  FROM vuln where ID_Projet = ? and Risk in ('PASSED', 'FAILED') AND  BID ='noway'
             HERE111,
             <<< HERE2
-            SELECT 'Nombre de Plugins manquants', count(DISTINCT `Plugin ID`) , '/getPluginsFromAllServers' FROM vuln where ID_Projet = ? and `Plugin ID` not in (SELECT id FROM `plugins` )
+            SELECT 'Nombre de Plugins manquants', count(DISTINCT Plugin ID) , '/getPluginsFromAllServers' FROM vuln where ID_Projet = ? and Plugin ID not in (SELECT id FROM plugins )
             HERE2,
             <<< HERE21
-            SELECT "Solution embeded in Description ", concat (count(*), "/", (SELECT count(*) FROM vuln WHERE Risk in ("FAILED" , "PASSED") AND  `ID_Projet` = ?)), "/cleanDescCompliance" FROM vuln WHERE POSITION(Solution IN Description)>0  AND   Risk in ("FAILED" , "PASSED") AND  `ID_Projet` = ? ;
+            SELECT "Solution embeded in Description ", concat (count(*), "/", (SELECT count(*) FROM vuln WHERE Risk in ("FAILED" , "PASSED") AND  ID_Projet = ?)), "/cleanDescCompliance" FROM vuln WHERE POSITION(Solution IN Description)>0  AND   Risk in ("FAILED" , "PASSED") AND  ID_Projet = ? ;
             HERE21,
             <<< HERE3
-            SELECT Concat (sow.Type," ( ",count(DISTINCT Host) ," hosts ) ") As "Type", CONCAT( count(*), " vulns (Moy par hote: ", ROUND( count(*)/ count(DISTINCT Host))," vulns ) ") ,'no Link' FROM `vuln` LEFT Join sow on sow.IP_Host=Host  WHERE ID_Projet = ? and sow.Projet=? GROUP BY sow.Type;
+            SELECT Concat (sow.Type," ( ",count(DISTINCT Host) ," hosts ) ") As "Type", CONCAT( count(*), " vulns (Moy par hote: ", ROUND( count(*)/ count(DISTINCT Host))," vulns ) ") ,'no Link' FROM vuln LEFT Join sow on sow.IP_Host=Host  WHERE ID_Projet = ? and sow.Projet=? GROUP BY sow.Type;
             HERE3,
             <<< HERE4
-            SELECT Concat (sow.Type," non encore scannee") As "Type", GROUP_CONCAT(DISTINCT IP_Host SEPARATOR '  ;  ' )  ,'Danger !!!' FROM `sow` WHERE Type<>'PC' AND `Projet`= ?  AND IP_Host not in (SELECT DISTINCT Host FROM vuln WHERE ID_Projet=?)  order by sow.Type;
+            SELECT Concat (sow.Type," non encore scannee") As "Type", GROUP_CONCAT(DISTINCT IP_Host SEPARATOR '  ;  ' )  ,'Danger !!!' FROM sow WHERE Type<>'PC' AND Projet= ?  AND IP_Host not in (SELECT DISTINCT Host FROM vuln WHERE ID_Projet=?)  order by sow.Type;
             HERE4,
             <<< HERE5
-            SELECT "Nbr des actifs hors perimetres / Nbr Vulns", CONCAT(COUNT(DISTINCT Host),  '  /  ' , count(*))  ,'Information' FROM `vuln` WHERE Host NOT IN (SELECT DISTINCT IP_Host From sow WHERE  Projet = ? ) AND vuln.ID_Projet= ?
+            SELECT "Nbr des actifs hors perimetres / Nbr Vulns", CONCAT(COUNT(DISTINCT Host),  '  /  ' , count(*))  ,'Information' FROM vuln WHERE Host NOT IN (SELECT DISTINCT IP_Host From sow WHERE  Projet = ? ) AND vuln.ID_Projet= ?
             HERE5,
             <<< HERE6
-            SELECT "Liste des actifs hors perimetres", GROUP_CONCAT(DISTINCT Host SEPARATOR '  ,  ' )  ,'/markAsOutOfScope' FROM `vuln` WHERE Host NOT IN (SELECT DISTINCT IP_Host From sow WHERE  Projet = ? ) AND vuln.ID_Projet= ?
+            SELECT "Liste des actifs hors perimetres", GROUP_CONCAT(DISTINCT Host SEPARATOR '  ,  ' )  ,'/markAsOutOfScope' FROM vuln WHERE Host NOT IN (SELECT DISTINCT IP_Host From sow WHERE  Projet = ? ) AND vuln.ID_Projet= ?
             HERE6,
             <<< HERE7
-            SELECT "Are these Addresses Externals or internals", IP_Host ,'/setAsExternal' FROM `sow` WHERE IP_Host NOT REGEXP '^ *172\.|^ *10\.|^ *192\.' AND Type<>'Ext' AND `Projet` = ?;
+            SELECT "Are these Addresses Externals or internals", IP_Host ,'/setAsExternal' FROM sow WHERE IP_Host NOT REGEXP '^ *172\.|^ *10\.|^ *192\.' AND Type<>'Ext' AND Projet = ?;
             HERE7,
 
             <<< HERE9
-            SELECT 'IP_Host should not contain spaces', IP_Host ,'/removeSpaceHOST_IP' FROM `sow` WHERE  IP_Host LIKE '% %' AND `Projet` = ? ORDER BY Type;
+            SELECT 'IP_Host should not contain spaces', IP_Host ,'/removeSpaceHOST_IP' FROM sow WHERE  IP_Host LIKE '% %' AND Projet = ? ORDER BY Type;
             HERE9,
             <<< HERE10
-            SELECT Type, IP_Host ,'SoW (sauf PC) to be rechecked' FROM `sow` WHERE  Type<>'PC' AND `Projet` = ? ORDER BY Type;
+            SELECT Type, IP_Host ,'SoW (sauf PC) to be rechecked' FROM sow WHERE  Type<>'PC' AND Projet = ? ORDER BY Type;
             HERE10,
             <<< HERE11
-            SELECT Type, CONCAT(REGEXP_SUBSTR(`IP_Host`, '[0-9]+\.[0-9]+\.[0-9]+\.') , 'x/24') as subnet,'SoW (only PC) to be rechecked' FROM `sow` WHERE  Type='PC' AND `Projet` = ? group by subnet;
+            SELECT Type, CONCAT(REGEXP_SUBSTR(IP_Host, '[0-9]+\.[0-9]+\.[0-9]+\.') , 'x/24') as subnet,'SoW (only PC) to be rechecked' FROM sow WHERE  Type='PC' AND Projet = ? group by subnet;
             HERE11,
     );
     /* */
@@ -145,25 +145,25 @@ class AnnexesController extends Controller
             <<<HERE1
         ((select "Plugin ID" ,"Risk" ,"Type", "Host" ,"name" ,"synopsis" ,"exploited_by_malware" ,"exploit_available" ,"age_of_vuln" ,"description" ,"Plugin Output" ,"solution")
         UNION ALL
-        (select `Plugin ID` ,`Risk` ,Type,`Host` ,`plugins`.`name` ,`plugins`.`synopsis` ,`plugins`.`exploited_by_malware` ,`plugins`.`exploit_available` ,`plugins`.`age_of_vuln` ,`plugins`.`description` ,`Plugin Output` ,`plugins`.`solution` from `vuln`
-        left join `plugins` on `Plugin ID` = `plugins`.`id`
+        (select Plugin ID ,Risk ,Type,Host ,plugins.name ,plugins.synopsis ,plugins.exploited_by_malware ,plugins.exploit_available ,plugins.age_of_vuln ,plugins.description ,Plugin Output ,plugins.solution from vuln
+        LEFT JOIN plugins ON vuln.`Plugin ID` = plugins.id
         LEFT JOIN sow on vuln.Host=sow.IP_Host
-        where `upload_id` in (select `uploadanomalies`.`ID` from `uploadanomalies` where `uploadanomalies`.`ID_Projet` = ?)
+        where upload_id in (select uploadanomalies.ID from uploadanomalies where uploadanomalies.ID_Projet = ?)
         AND sow.Projet=?
         AND Risk in ('Critical', 'Medium', 'High', 'Low')
-        group by `Host`,`plugins`.`name`))
+        group by Host,plugins.name))
         INTO OUTFILE 'PLACEHOLDER2'  CHARACTER SET utf8mb4
         FIELDS ENCLOSED BY '\"' TERMINATED BY ';' ESCAPED BY '\"' LINES TERMINATED BY '\r\n'
         HERE1,
         <<<HERE2
         ((select "Plugin ID" ,"Risk" ,"Type", "Host" ,"name" ,"synopsis" ,"exploited_by_malware" ,"exploit_available" ,"age_of_vuln" ,"description" ,"Plugin Output" ,"solution")
         UNION ALL
-        (select `Plugin ID` ,`Risk` ,Type,`Host` ,`name` ,`synopsis` ,"" ,"" ,"" ,`description`  ,"" ,`solution` from `vuln`
+        (select Plugin ID ,Risk ,Type,Host ,name ,synopsis ,"" ,"" ,"" ,description  ,"" ,solution from vuln
         LEFT JOIN sow on vuln.Host=sow.IP_Host
-        where `upload_id` in (select `uploadanomalies`.`ID` from `uploadanomalies` where `uploadanomalies`.`ID_Projet` = ?)
+        where upload_id in (select uploadanomalies.ID from uploadanomalies where uploadanomalies.ID_Projet = ?)
         AND sow.Projet=?
         AND Risk not in ('Critical', 'Medium', 'High', 'Low')
-        group by `Host`,`description`))
+        group by Host,description))
         INTO OUTFILE 'PLACEHOLDER2'  CHARACTER SET utf8mb4
         FIELDS ENCLOSED BY '\"' TERMINATED BY ';' ESCAPED BY '\"' LINES TERMINATED BY '\r\n'
         HERE2
@@ -217,17 +217,17 @@ class AnnexesController extends Controller
         include("sqlRequests.php");
 
         $query = <<<HERE
-            SELECT `t`.`Risk`,`t`.`age_of_vuln`,count(*) AS nombre FROM
+            SELECT t.Risk,t.age_of_vuln,count(*) AS nombre FROM
                 (
-                    SELECT `vuln`.`Risk`,`plugins`.`age_of_vuln`,`vuln`.`Name`,count(*)  FROM vuln
-                         LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
-                        RIGHT JOIN sow ON vuln.`Host` = sow.IP_Host
+                    SELECT vuln.Risk,plugins.age_of_vuln,vuln.Name,count(*)  FROM vuln
+                    LEFT JOIN plugins ON vuln.`Plugin ID` = plugins.id
+                        RIGHT JOIN sow ON vuln.Host = sow.IP_Host
                         WHERE sow.IP_Host = vuln.Host and sow.Projet=? AND  vuln.ID_Projet=? CLAUSENUMBER1
                         CLAUSENUMBER2
-                         AND     `vuln`.`Risk` in ('Critical','High','Medium','Low')
-                        group by `vuln`.`Risk`,`plugins`.`age_of_vuln`,`vuln`.`Name`,`vuln`.`Host`
-                ) `t`
-              group by `t`.`Risk`,`t`.`age_of_vuln`;
+                         AND     vuln.Risk in ('Critical','High','Medium','Low')
+                        group by vuln.Risk,plugins.age_of_vuln,vuln.Name,vuln.Host
+                ) t
+              group by t.Risk,t.age_of_vuln;
         HERE;
 
                     if($isitAnnexeA==1)
@@ -521,7 +521,6 @@ public function generateAnnexes (Request $request, $AnnexA)
       {
         $project =Project::find($prj_id);
         $customer =Customer::find($project->customer_id);
-        return response()->json($customer);
 
           $returnedArray [] = $prj_id;
           //print_r($annex_id);exit;
@@ -549,7 +548,7 @@ public function generateAnnexes (Request $request, $AnnexA)
                          else $nbrOfRowsAddedToFile+= self::generateGlobalTableOfRows($templateProcessor,$SqlREQUEST, $prj_id,$keyToDuplicateRows[$i], $ColoredRowsArrays[$i],$RowOfColoring[$i], $prefixTLT[$i]);
                          if ($i==4) $nbrOfRowsAddedToFile+= self::generateGlobalTableOfRows($templateProcessor, str_replace("VulnDetails_", "VulnSummary_", $SqlREQUEST), $prj_id,"VulnSummary_RISK", array("PASSED", "FAILED"),"VulnSummary_RISK", $prefixTLT[$i]);
                       }
-              $outputFileName = $AnnexAPrefixFileName .'_tchRpt_Annx_' . self::$AnnexesLetters[$Annex] .$iteration."_".self::$AnnexesTitles[$Annex]."_".$customer->SN. '.docx';
+              $outputFileName = $AnnexAPrefixFileName .'tchRpt_Annx' . self::$AnnexesLetters[$Annex] .$iteration."_".self::$AnnexesTitles[$Annex]."_".$customer->SN. '.docx';
               $outputPath = public_path('storage/annexes/' . $outputFileName);
               $returnedArray[$prj_id][self::$AnnexesLetters[$Annex]][] = $nbrOfRowsAddedToFile;
               if($nbrOfRowsAddedToFile>0)
@@ -662,7 +661,7 @@ if ($zip->open($zipFilePath, ZipArchive::CREATE) === true) {
    }
 
    $zip->close();
-   AnnexesController::sendMessage("http://webapp.smartskills.tn/AppGenerator/backend/public/storage/annexes/".$zipFileName ." Ready");
+   AnnexesController::sendMessage("http://webapp.ssk.lc/AppGenerator/backend/public/storage/annexes/".$zipFileName ." Ready");
    // Download the zip archive
    return response()->download($zipFilePath)->deleteFileAfterSend(false);
 }
@@ -732,9 +731,9 @@ public static function translateAllVulnsCompliance(Request $req)
 
     $condition="";
     if(isset($req->prj_id)) $condition = "and ID_Projet=".$req->prj_id;
-    $sql = "SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  vuln WHERE Risk in ('FAILED', 'PASSED') and BID not in ('noway', 'yes' )".$condition;
+    $sql = "SELECT  id, name, description, solution,synopsis FROM  vuln WHERE Risk in ('FAILED', 'PASSED') and BID not in ('noway', 'yes' )".$condition;
    $allVuns =  DB::select($sql);
-   //$allVuns =  DB::select("SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  vuln WHERE id=138473");
+   //$allVuns =  DB::select("SELECT  id, name, description, solution,synopsis FROM  vuln WHERE id=138473");
    $i=0;
    //echo "nbr vuln for trqnslqtion".count($allVuns). $sql;
    foreach($allVuns as $vuln)
@@ -751,9 +750,9 @@ public static function translateAllVulnsCompliance(Request $req)
     ,
     $allVuns[$i]->id
     ];
-    $re = DB::update("Update IGNORE vuln set `BID` = 'noway', `name` = ? ,`solution` =?, `synopsis` =?  WHERE id=?",$inputQuery1);
-    //$re = DB::update("Update IGNORE vuln set `BID` = 'yes', `name` = '".self::translate( self::cleanStrings($allVuns[$i]->name)) ."',`description` =\"". self::translate( self::cleanStrings($allVuns[$i]->description)) ."\",`solution` ='". self::translate( self::cleanStrings($allVuns[$i]->solution)) ."',`synopsis` ='". self::translate( self::cleanStrings($allVuns[$i]->synopsis) ) ."'  WHERE id=  ".  $allVuns[$i]->id);
-    $re = DB::update("Update IGNORE vuln set `BID` = 'yes',`description` =?  WHERE id=?",$inputQuery2);
+    $re = DB::update("Update IGNORE vuln set BID = 'noway', name = ? ,solution =?, synopsis =?  WHERE id=?",$inputQuery1);
+    //$re = DB::update("Update IGNORE vuln set BID = 'yes', name = '".self::translate( self::cleanStrings($allVuns[$i]->name)) ."',description =\"". self::translate( self::cleanStrings($allVuns[$i]->description)) ."\",solution ='". self::translate( self::cleanStrings($allVuns[$i]->solution)) ."',synopsis ='". self::translate( self::cleanStrings($allVuns[$i]->synopsis) ) ."'  WHERE id=  ".  $allVuns[$i]->id);
+    $re = DB::update("Update IGNORE vuln set BID = 'yes',description =?  WHERE id=?",$inputQuery2);
 
 
     $i++;
@@ -774,7 +773,7 @@ public static function translateAllPlugins(Request $req)
     set_time_limit(50000);
     $condition="";
     if(isset($req->prj_id)) $condition = "where ID_Projet=".$req->prj_id;
-   $allPlugins =  DB::select("SELECT  `id`, `name`, `description`, `solution`,`synopsis` FROM  plugins WHERE translated not in ('noway', 'yes' ) AND id in ( SELECT DISTINCT `Plugin ID` FROM vuln ".$condition.")");
+   $allPlugins =  DB::select("SELECT  id, name, description, solution,synopsis FROM  plugins WHERE translated not in ('noway', 'yes' ) AND id in ( SELECT DISTINCT Plugin ID FROM vuln ".$condition.")");
    $i=0;
    foreach($allPlugins as $plugin)
    {
@@ -804,8 +803,8 @@ public static function setAsExternal(Request $req)
 public static function cleanDescCompliance(Request $req)
 {
     set_time_limit(50000);
-    $sql = "UPDATE IGNORE `vuln` SET `Description`=REPLACE (REPLACE (`Description`, Solution, ''), 'Solution:', '') WHERE Risk in ('FAILED' , 'PASSED')";
-    if(isset($req->prj_id)) $sql.=" and `ID_Projet`=".$req->prj_id;
+    $sql = "UPDATE IGNORE vuln SET Description=REPLACE (REPLACE (Description, Solution, ''), 'Solution:', '') WHERE Risk in ('FAILED' , 'PASSED')";
+    if(isset($req->prj_id)) $sql.=" and ID_Projet=".$req->prj_id;
     //$re = DB::update("UPDATE sow SET ?='?' WHERE  ?=?;", [$req->attrName, $req->attrValue,$req->idFiledName, $req->idFieldValue]);
     $re = DB::update($sql);
     return true;
@@ -814,7 +813,7 @@ public static function removeSpaceHOST_IP(Request $req)
 {
     set_time_limit(50000);
     //$re = DB::update("UPDATE sow SET ?='?' WHERE  ?=?;", [$req->attrName, $req->attrValue,$req->idFiledName, $req->idFieldValue]);
-    $re = DB::update("UPDATE sow SET `IP_Host`=REGEXP_REPLACE(`IP_Host`, '[^0-9a-zA-Z\.]', '') ");
+    $re = DB::update("UPDATE sow SET IP_Host=REGEXP_REPLACE(IP_Host, '[^0-9a-zA-Z\.]', '') ");
 
     return true;
 }
@@ -822,7 +821,7 @@ public static function markAsOutOfScope(Request $req)
 {
     set_time_limit(50000);
     $listOfHostsOutOfScope= explode(",",$req->fieldsValue);
-    $sqlreq = "INSERT IGNORE  INTO sow (`Projet`, `Type`,  `IP_Host`) Values ";
+    $sqlreq = "INSERT IGNORE  INTO sow (Projet, Type,  IP_Host) Values ";
     foreach( $listOfHostsOutOfScope as $host)
     {
 
@@ -858,7 +857,7 @@ public static function removeBadCharsFromDB(Request $req)
 
     $condition="";
     if(isset($req->prj_id)) $condition = " and ID_Projet=".$req->prj_id;
-    $sql = "SELECT  `id`, `Plugin Output` AS pluginOutPut, `description`  FROM  vuln WHERE  1=1 ".$condition;
+    $sql = "SELECT  id, Plugin Output AS pluginOutPut, description  FROM  vuln WHERE  1=1 ".$condition;
 
    $allVuns =  DB::select($sql);
 
@@ -867,7 +866,7 @@ public static function removeBadCharsFromDB(Request $req)
    foreach($allVuns as $vuln)
    {
 
-      $re = DB::update("Update IGNORE vuln set `Plugin Output` = ?, `description` = ?  WHERE id=?" ,[self::cleanStrings($vuln->pluginOutPut),self::cleanStrings($vuln->description),$vuln->id]);
+      $re = DB::update("Update IGNORE vuln set Plugin Output = ?, description = ?  WHERE id=?" ,[self::cleanStrings($vuln->pluginOutPut),self::cleanStrings($vuln->description),$vuln->id]);
       $i++;
     }
 }
@@ -895,10 +894,10 @@ public static function getPlugins ($ip,$prj_id)
     $Stats = [];
 
             // Get plugin IDs not present in the local database
-            $statment = "SELECT DISTINCT `Plugin ID` AS PluginID FROM vuln WHERE `Plugin ID` NOT IN (SELECT DISTINCT id FROM plugins)";
+            $statment = "SELECT DISTINCT Plugin ID AS PluginID FROM vuln WHERE Plugin ID NOT IN (SELECT DISTINCT id FROM plugins)";
 
             if (isset($prj_id)) {
-                $statment .= " AND `ID_Projet` = " . $prj_id;
+                $statment .= " AND ID_Projet = " . $prj_id;
             }
             $pluginIds =  DB::select($statment);
 

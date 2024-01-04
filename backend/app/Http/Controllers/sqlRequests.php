@@ -19,27 +19,27 @@ $DefaultQuery = array (
 
                     FROM (
                     SELECT
-                    vuln.`Host` as Hostip,
+                    vuln.Host as Hostip,
                         sow.Nom as Nom,
                         sow.field4,
-                        COUNT(IF( `exploited_by_malware` = 'true' , 1, NULL)) AS Exp_Malware,
-                        COUNT(IF(vuln.`Risk` = 'Critical' AND ( `exploit_available` = 'true' ), 1, NULL)) AS Critical_Ex,
-                        COUNT(IF(vuln.`Risk` = 'High' AND ( `exploit_available` = 'true' ), 1, NULL)) AS High_Ex,
-                        COUNT(IF(vuln.`Risk` = 'Medium' AND ( `exploit_available` = 'true' ), 1, NULL)) AS Medium_Ex,
-                        COUNT(IF(vuln.`Risk` = 'Low' AND ( `exploit_available` = 'true' ), 1, NULL)) AS Low_Ex,
-                        COUNT(IF(vuln.`Risk` = 'Critical', 1, NULL)) AS Critical,
-                        COUNT(IF(vuln.`Risk` = 'High', 1, NULL)) AS High,
-                        COUNT(IF(vuln.`Risk` = 'Medium', 1, NULL)) AS Mediu,
-                        COUNT(IF(vuln.`Risk` = 'Low', 1, NULL)) AS Low,
-                        COUNT(IF(vuln.`Risk` = 'FAILED', 1, NULL)) AS FAILED2,
-                        COUNT(IF(vuln.`Risk` = 'PASSED', 1, NULL)) AS PASSED2
+                        COUNT(IF( exploited_by_malware = 'true' , 1, NULL)) AS Exp_Malware,
+                        COUNT(IF(vuln.Risk = 'Critical' AND ( exploit_available = 'true' ), 1, NULL)) AS Critical_Ex,
+                        COUNT(IF(vuln.Risk = 'High' AND ( exploit_available = 'true' ), 1, NULL)) AS High_Ex,
+                        COUNT(IF(vuln.Risk = 'Medium' AND ( exploit_available = 'true' ), 1, NULL)) AS Medium_Ex,
+                        COUNT(IF(vuln.Risk = 'Low' AND ( exploit_available = 'true' ), 1, NULL)) AS Low_Ex,
+                        COUNT(IF(vuln.Risk = 'Critical', 1, NULL)) AS Critical,
+                        COUNT(IF(vuln.Risk = 'High', 1, NULL)) AS High,
+                        COUNT(IF(vuln.Risk = 'Medium', 1, NULL)) AS Mediu,
+                        COUNT(IF(vuln.Risk = 'Low', 1, NULL)) AS Low,
+                        COUNT(IF(vuln.Risk = 'FAILED', 1, NULL)) AS FAILED2,
+                        COUNT(IF(vuln.Risk = 'PASSED', 1, NULL)) AS PASSED2
                     FROM vuln
-                    LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
-                    LEFT JOIN sow ON vuln.`Host` = sow.IP_Host
-                        WHERE `ID_Projet`=? and sow.Projet=? CLAUSENUMBER1
+                    LEFT JOIN plugins ON vuln.`Plugin ID` = plugins.id
+                    LEFT JOIN sow ON vuln.Host = sow.IP_Host
+                        WHERE ID_Projet=? and sow.Projet=? CLAUSENUMBER1
 
                     GROUP BY
-                    `Host` ,  vuln.Name
+                    Host ,  vuln.Name
                     ) t
     CLAUSENUMBER2
     GROUP BY hostip
@@ -54,12 +54,12 @@ $DefaultQuery = array (
     IF( plugins.exploited_by_malware='true' , 'exploitable par malware', IF( plugins.exploit_available = 'true', "exploit disponible", NULL)) AS VulnSummary_Exploitability,
     REPLACE (GROUP_CONCAT(DISTINCT HOST LIMIT 3), ",", "\n") AS VulnSummary_Hosts
     FROM vuln
-    LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
-    LEFT JOIN sow ON vuln.`Host` = sow.IP_Host
-    WHERE `ID_Projet`=? and sow.Projet=? CLAUSENUMBER1
-    AND `Risk` in ('Critical', 'High', 'Medium', 'Low')
-    group by `Risk`,vuln.`Name`
-    ORDER BY  exploited_by_malware DESC, exploit_available DESC,`Risk` DESC  CLAUSENUMBER99
+    LEFT JOIN plugins ON vuln.`Plugin ID` = plugins.id
+    LEFT JOIN sow ON vuln.Host = sow.IP_Host
+    WHERE ID_Projet=? and sow.Projet=? CLAUSENUMBER1
+    AND Risk in ('Critical', 'High', 'Medium', 'Low')
+    group by Risk,vuln.Name
+    ORDER BY  exploited_by_malware DESC, exploit_available DESC,Risk DESC  CLAUSENUMBER99
     HERE1,
     2 =><<<HERE2
     SELECT
@@ -92,7 +92,7 @@ $DefaultQuery = array (
     plugins.synopsis AS VulnDetails_Synopsis_ToBeClean,
     plugins.solution AS VulnDetails_Recomendations_ToBeClean,
     plugins.see_also AS VulnDetails_ref_ToBeClean,
-    `vuln`.`Plugin Output` AS VulnDetails_PluginOutput_ToBeClean,
+    vuln.`Plugin Output` AS VulnDetails_PluginOutput_ToBeClean,
     plugins.exploit_available AS VulnDetails_available,
     plugins.exploit_framework_metasploit AS VulnDetails_Metasploit,
     plugins.exploit_framework_canvas AS VulnDetails_CANVAS,
@@ -100,17 +100,17 @@ $DefaultQuery = array (
     plugins.age_of_vuln AS VulnDetails_Age,
     plugins.exploited_by_malware AS VulnDetails_malware
     FROM vuln
-    LEFT JOIN `plugins` ON vuln.`Plugin ID` = plugins.id
-    LEFT JOIN sow ON vuln.`Host` = sow.IP_Host
-    WHERE  `ID_Projet`=? and  sow.Projet=?  AND `Risk` in ('Critical', 'High', 'Medium', 'Low') CLAUSENUMBER1
-    group by `Risk`,plugins.`Name`
-    ORDER BY  exploited_by_malware DESC, exploit_available DESC,`Risk` DESC
+    LEFT JOIN plugins ON vuln.`Plugin ID` = plugins.id
+    LEFT JOIN sow ON vuln.Host = sow.IP_Host
+    WHERE  ID_Projet=? and  sow.Projet=?  AND Risk in ('Critical', 'High', 'Medium', 'Low') CLAUSENUMBER1
+    group by Risk,plugins.Name
+    ORDER BY  exploited_by_malware DESC, exploit_available DESC,Risk DESC
     HERE3,
     4 =>  <<<HERE4
     SELECT
     ROW_NUMBER() OVER() AS VulnDetails_ID,
     vuln.Risk AS VulnDetails_RISK,
-    Substring(`Description`, 1, LEAST (300,LOCATE("[",`Description`)+8)) AS VulnDetails_Name_ToBeClean,
+    Substring(Description, 1, LEAST (300,LOCATE("[",Description)+8)) AS VulnDetails_Name_ToBeClean,
     `CVSS v3.0 Base Score`  AS VulnDetails_CVSS,
     GROUP_CONCAT(DISTINCT vuln.Host) AS VulnDetails_Hosts,
     COUNT(DISTINCT vuln.Host) AS VulnDetails_Count,
@@ -121,10 +121,10 @@ $DefaultQuery = array (
     vuln.solution AS VulnDetails_Recomendations_ToBeClean,
     vuln.`See Also` AS VulnDetails_ref_ToBeClean
     FROM vuln
-    LEFT JOIN sow ON vuln.`Host` = sow.IP_Host
-    WHERE `ID_Projet`=? and sow.Projet=? AND `Risk` in ('FAILED', 'PASSED') CLAUSENUMBER1
-    group by `Risk`,vuln.description
-    ORDER BY  `Risk` ASC  CLAUSENUMBER99
+    LEFT JOIN sow ON vuln.Host = sow.IP_Host
+    WHERE ID_Projet=? and sow.Projet=? AND Risk in ('FAILED', 'PASSED') CLAUSENUMBER1
+    group by Risk,vuln.description
+    ORDER BY  Risk ASC  CLAUSENUMBER99
     HERE4
 );
 
@@ -141,14 +141,14 @@ $ColoredRowsArrays= array (
     3=>null, 4=>null);
 $SqlQueriesMarks = array(
     "0" =>array(0=>"CLAUSENUMBER1", 1=>"CLAUSENUMBER2"),
-    "1" => array(0=>" and sow.Type='Serveur' AND vuln.Port NOT IN (SELECT `Ports_List` FROM PortsMapping)", 1=>""),
+    "1" => array(0=>" and sow.Type='Serveur' AND vuln.Port NOT IN (SELECT Ports_List FROM PortsMapping)", 1=>""),
     "2" => array(0=>" and sow.Type='R_S'", 1=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
-    "3" => array(0=>" and sow.Type='Serveur' AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='DB')", 1=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
+    "3" => array(0=>" and sow.Type='Serveur' AND 	vuln.Port IN (SELECT Ports_List FROM PortsMapping WHERE Utilisation='DB')", 1=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
     "4" => array(0=>" and sow.Type='PC'", 1=>""),
     "5" => array(0=>" and sow.Type='Ext'", 1=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
-    "6" => array(0=>" and (sow.Type='Serveur' OR sow.Type='Apps') AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='Apps')", 1=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
-    "7" => array(0=>" and sow.Type='Serveur' AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='Mail')", 1=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
-    "8" => array(0=>" and sow.Type='Serveur'  AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='Voip')", 1=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
+    "6" => array(0=>" and ( (sow.Type='Apps') OR (sow.Type='Serveur' AND 	vuln.Port IN (SELECT Ports_List FROM PortsMapping WHERE Utilisation='Apps')))", 1=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
+    "7" => array(0=>" and sow.Type='Serveur' AND 	vuln.Port IN (SELECT Ports_List FROM PortsMapping WHERE Utilisation='Mail')", 1=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
+    "8" => array(0=>" and sow.Type='Serveur'  AND 	vuln.Port IN (SELECT Ports_List FROM PortsMapping WHERE Utilisation='Voip')", 1=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
     "9" => array(0=>" and sow.Type='OutOfScope'", 1=>"", 2=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
     "10" => array(0=>" and sow.Type='Switch'", 1=>" WHERE 1=1"),
     "11" => array(0=>" and sow.Type='Firewall'", 1=>"WHERE  1=1"),
