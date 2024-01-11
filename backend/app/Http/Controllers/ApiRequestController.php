@@ -153,13 +153,13 @@ class ApiRequestController extends Controller
     
             // Use raw SQL insert query
             DB::statement("
-                INSERT IGNORE INTO vuln (Name, Risk, Description, Solution, Host, `See Also`, ID_Projet)
+                INSERT   IGNORE INTO vuln (Name, Risk, Description, Solution, Host, `See Also`, ID_Projet)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             ", [$Name, $Risk, $Description, $Solution, $Host, $SeeAlso, $projectID]);
     
             $id++;
             print_r($id);
-        } while ($test ||$id==100);
+        } while ($test==true);
      
 
      

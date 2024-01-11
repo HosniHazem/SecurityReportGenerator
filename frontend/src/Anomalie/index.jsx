@@ -5,7 +5,7 @@ import { Form, Input, Button, Upload, message, Col, Row, Modal,Table } from "ant
 import { InboxOutlined, UploadOutlined } from "@ant-design/icons";
 import toast from "react-hot-toast";
 import AfterANomalie from "../AfterAnomalie";
-
+import axios from "axios";
 const { TextArea } = Input;
 
 export default function Anomalie() {
@@ -123,7 +123,33 @@ useEffect(()=>{
       toast.error("something wrong with query");
       console.log(error);
     }
+    
+    try {
+      if (values.q) {
+
+        const responseQuery2 = await axios.post(
+          "http://webapp.smartskills.tn/AppGenerator/backend/api/owaszap",
+          {
+            q: values.q,
+            id: id,
+          },
+        );
   
+        console.log(responseQuery2.data);
+  
+        if (responseQuery2.data) {
+          toast.success(responseQuery2.data.message);
+        } else {
+          toast.error("wrong");
+        }
+      }
+    } catch (error) {
+      toast.error("something wrong with query");
+      console.log(error);
+    }
+
+
+
     try {
       // Send the file1 value to the first endpoint with id
       if (values.file1 && values.file1[0].originFileObj) {
@@ -175,13 +201,15 @@ useEffect(()=>{
         if (responseFile2.data.success) {
           toast.success(responseFile2.data.message);
           setHcl(responseFile2.data.number);
-          showModal();
         } else {
           toast.error("wrong");
         }
       } else {
         console.log("File 2 is not present. Skipping the request.");
       }
+      showModal();
+
+
     } catch (error) {
       toast.error("something wrong with file2");
       console.log(error);
