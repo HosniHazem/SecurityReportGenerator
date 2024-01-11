@@ -1,0 +1,3 @@
+//sql query to do in the next prod 
+ALTER TABLE vuln
+CHANGE COLUMN `CVSS v3.0 Base Score` `CVSSv3BaseScore` FLOAT(5,2);
