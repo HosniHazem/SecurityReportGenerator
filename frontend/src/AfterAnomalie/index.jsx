@@ -10,6 +10,7 @@ export default function AfterANomalie(props) {
       <p>Accunetix: {props.accuentixNumber}</p>
       <p>Invicti: {props.invicti}</p>
       <p>Hcl: {props.hcl}</p>
+      <p>OwaspZap :{props.owaszap} </p>
     </div>
     </div>
   );

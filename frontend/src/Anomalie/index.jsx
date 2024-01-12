@@ -21,7 +21,8 @@ export default function Anomalie() {
   const [accuentixNumber, setAccunetixNumber] = useState(0);
   const [invicti, setInvicti] = useState(0);
   const [hcl, setHcl] = useState(0);
-
+  const [owaszap,setOwaszap]=useState(0);
+  const [accessKey,setAccessKey]=useState("");
   const showModal = () => {
     setIsModalVisible(true);
   };
@@ -74,9 +75,15 @@ useEffect(()=>{
   const fetchVm = async () => {
     try {
       const response = await axiosInstance.get(`vmtype`);
+      console.log("vm resp",response.data.vm);
       setVm(response.data.Vm);
-      console.log(vm);
-    } catch (error) {
+      if (vm && vm.length > 0) {
+        console.log("accessKey:", vm[0].accessKey);
+        setAccessKey(vm[0].accessKey);
+        console.log(accessKey);
+      } else {
+        console.error("Error fetching project data: Empty or undefined vm array");
+      }    } catch (error) {
       console.error("Error fetching project data:", error);
       // Handle error, for example, redirect to an error page
     }
@@ -105,7 +112,7 @@ useEffect(()=>{
           {
             headers: {
               "X-Auth":
-                "1986ad8c0a5b3df4d7028d5f3c06e936c1dec77fb40364d109ff9c6b70f27bc4a",
+                accessKey,
             },
           }
         );
@@ -139,6 +146,7 @@ useEffect(()=>{
   
         if (responseQuery2.data) {
           toast.success(responseQuery2.data.message);
+          setOwaszap(responseQuery2.data.data);
         } else {
           toast.error("wrong");
         }
@@ -332,6 +340,7 @@ useEffect(()=>{
           accuentixNumber={accuentixNumber}
           invicti={invicti}
           hcl={hcl}
+          owaszap={owaszap}
         />
       </Modal>
     </div>
