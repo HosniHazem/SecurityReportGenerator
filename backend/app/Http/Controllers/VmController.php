@@ -82,6 +82,7 @@ class VmController extends Controller
                             "ip" => $it->IP_Host . ":" . $it->Port,
                             "answer" => "Online",
                             "Type"=>$it->Type,
+                            "accessKey"=>$it->accessKey
     
                         ];
                     } else {
@@ -107,14 +108,16 @@ class VmController extends Controller
                             "ip" => $it->IP_Host . ":" . $it->Port,
                             "answer" => "Online",
                             "Type"=>$it->Type,
-    
+                            "accessKey"=>$it->accessKey
+
                         ];
                     } else {
                         $resp[] = [
                             "ip" => $it->IP_Host . ":" . $it->Port,
                             "answer" => "Offline",
                             "Type"=>$it->Type,
-    
+                            "accessKey"=>$it->accessKey
+
                         ];
                     }
                 }
