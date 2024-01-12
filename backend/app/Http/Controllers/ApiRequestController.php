@@ -7,11 +7,17 @@ use Illuminate\Support\Facades\Http;
 use App\Models\Vuln;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use App\Models\Vm;
 
 class ApiRequestController extends Controller
 {
     public function index(Request $request)
 {
+        $item = Vm::where('Type', 'Acunetix')->first(); 
+        // return response()->json($item);
+        $xAuth=$item->accessKey;
+        $ipPort=$item->IP_Port;
+        // return response()->json($xAuth);
 
         $query = $request->q;
         $projectID=$request->id;
@@ -19,8 +25,8 @@ class ApiRequestController extends Controller
         $response = Http::withOptions([
             'verify' => false, // Disable SSL verification
         ])->withHeaders([
-            'X-Auth' => '1986ad8c0a5b3df4d7028d5f3c06e936c1dec77fb40364d109ff9c6b70f27bc4a',
-        ])->get("https://acu.g6.ssk.lc:3443/api/v1/targets?q={$query}");
+            'X-Auth' => $xAuth,
+        ])->get("https://{$ipPort}./api/v1/targets?q={$query}");
 
        
         $responseData = json_decode($response->body(), true); // true to convert it to an associative array
@@ -32,8 +38,8 @@ class ApiRequestController extends Controller
             $response2 = Http::withOptions([
                 'verify' => false, // Disable SSL verification
             ])->withHeaders([
-                'X-Auth' => '1986ad8c0a5b3df4d7028d5f3c06e936c1dec77fb40364d109ff9c6b70f27bc4a',
-            ])->get("https://acu.g6.ssk.lc:3443/api/v1/scans/{$A}/results/{$B}/vulnerabilities");
+                'X-Auth' => $xAuth,
+                ])->get("https://{$ipPort}/api/v1/scans/{$A}/results/{$B}/vulnerabilities");
             // Decode the JSON response data for the second request
 
             $responseData2 = json_decode($response2->body(), true); // true to convert it to an associative array
@@ -49,8 +55,8 @@ class ApiRequestController extends Controller
             $response3 = Http::withOptions([
                 'verify' => false, // Disable SSL verification
             ])->withHeaders([
-                'X-Auth' => '1986ad8c0a5b3df4d7028d5f3c06e936c1dec77fb40364d109ff9c6b70f27bc4a',
-            ])->get("https://acu.g6.ssk.lc:3443/api/v1/scans/{$A}/results/{$B}/vulnerabilities/{$item['vuln_id']}");
+                'X-Auth' => $xAuth,
+                ])->get("https://{$ipPort} /api/v1/scans/{$A}/results/{$B}/vulnerabilities/{$item['vuln_id']}");
 
 
             $responseData3[] = json_decode($response3->body(), true); // true to convert it to an associative array
@@ -130,13 +136,15 @@ class ApiRequestController extends Controller
         set_time_limit(1000000);
         $query = $request->q;
         $projectID=$request->id;
-
+        $item = Vm::where('Type', 'Owaszap')->first(); 
+        $accessKey=$item->accessKey;
+        // return response()->json($item);
         $id=1;
      
         $test=true;
 
         do {
-            $baseUrl = "http://acu.g6.ssk.lc:8081/JSON/alert/view/alert/?apikey=d31c2oo5sn998vpk0cpouf0i0h&id={$id}";
+            $baseUrl = "http://acu.g6.ssk.lc:8081/JSON/alert/view/alert/?apikey={$accessKey}&id={$id}";
     
             $response = Http::get($baseUrl)->json();
     
@@ -158,7 +166,6 @@ class ApiRequestController extends Controller
             ", [$Name, $Risk, $Description, $Solution, $Host, $SeeAlso, $projectID]);
     
             $id++;
-            print_r($id);
         } while ($test==true);
      
 
@@ -173,7 +180,7 @@ class ApiRequestController extends Controller
      
      
      
-     return response()->json(['message' => 'done', 'status' => 200,'success'=>true ,'data'=>$test]);
+     return response()->json(['message' => 'done', 'status' => 200,'success'=>true ,'data'=>$id]);
      
 
     }
