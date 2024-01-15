@@ -97,11 +97,11 @@ const Auth = sessionStorage.getItem('Auth');
     }
   
     console.log(dataToSend)
-    axios.post("http://webapp.smartskills.tn/AppGenerator/backend/api/getScan2",dataToSend).then((res) => {
+    axios.post("http://webapp.ssk.lc/AppGenerator/backend/api/getScan2",dataToSend).then((res) => {
       if (res.status === 200) {
         
         const filteredFolders = res.data.Folders.folders.filter(folder => folder.name.toLowerCase().includes(project_name.toLowerCase()));
-       // const filteredFolders = res.data.Folders.folders;
+        //const filteredFolders = res.data.Folders.folders;
 
         setFolders(filteredFolders);
         setScans(res.data.Folders.scans);
@@ -113,7 +113,7 @@ const Auth = sessionStorage.getItem('Auth');
   }, []);
 
   useEffect(() => {
-    axios.get("http://webapp.smartskills.tn/AppGenerator/backend/api/get_vm").then((res) => {
+    axios.get("http://webapp.ssk.lc/AppGenerator/backend/api/get_vm").then((res) => {
       if (res.status === 200) {
         setVm(res.data.Vm);
       }
@@ -201,7 +201,7 @@ const Auth = sessionStorage.getItem('Auth');
     }));
     console.log(selectedIdsJSON)
     const promises = selectedIdsJSON.map((item) => {
-      return axios.post('http://webapp.smartskills.tn/AppGenerator/backend/api/ExportOne', item)
+      return axios.post('http://webapp.ssk.lc/AppGenerator/backend/api/ExportOne', item)
         .then((response) => {
           if(response.data.error){
             Swal.fire({
@@ -218,7 +218,8 @@ const Auth = sessionStorage.getItem('Auth');
               selectedIp: selectedIp,
               Auth: Auth,
               scan: item.value,
-              links: response.data.links
+              links: response.data.links,
+              scan_name : name
             };
             console.log(parsedData);
     
@@ -239,17 +240,17 @@ const Auth = sessionStorage.getItem('Auth');
           swal(error);
         });
     });
-    let i=0;
+
 // Wait for all export promises to resolve
-Promise.all(promises)
+ Promise.all(promises)
   .then((parsedDataArray) => {
     // Access the parsedDataArray when all export requests are completed
     console.log('all parsed data here', parsedDataArray);
     // Process the import requests one by one
-    let importPromiseChain = Promise.resolve();
+     let importPromiseChain = Promise.resolve();
     parsedDataArray.forEach((item) => {
       importPromiseChain = importPromiseChain.then(() =>
-        axios.post('http://webapp.smartskills.tn/AppGenerator/backend/api/ImportOne', item)
+        axios.post('http://webapp.ssk.lc/AppGenerator/backend/api/ImportOne', item)
       ).then((response) => {
         if(response.data.error){
           Swal.fire({
@@ -289,13 +290,13 @@ Promise.all(promises)
     // Wait for all import promises to resolve
     importPromiseChain.then(() => {
       console.log('All import requests completed');
-    });
+    }); 
         // Perform any additional actions here
       })
       .catch((error) => {
         // Handle error if any of the promises fail
         console.error('Error in Promise.all:', error.message);
-      });
+      }); 
     
     
   };
