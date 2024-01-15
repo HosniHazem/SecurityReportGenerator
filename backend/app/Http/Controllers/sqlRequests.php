@@ -146,7 +146,7 @@ $SqlQueriesMarks = array(
     "3" => array(0=>" and sow.Type='Serveur' AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='DB')", 1=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
     "4" => array(0=>" and sow.Type='PC'", 1=>""),
     "5" => array(0=>" and sow.Type='Ext'", 1=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
-    "6" => array(0=>" and (sow.Type='Serveur' OR sow.Type='Apps') AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='Apps')", 1=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
+    "6" => array(0=>" and ( (sow.Type='Apps') OR (sow.Type='Serveur' AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='Apps')))", 1=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
     "7" => array(0=>" and sow.Type='Serveur' AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='Mail')", 1=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
     "8" => array(0=>" and sow.Type='Serveur'  AND 	vuln.Port IN (SELECT `Ports_List` FROM PortsMapping WHERE Utilisation='Voip')", 1=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
     "9" => array(0=>" and sow.Type='OutOfScope'", 1=>"", 2=>"WHERE (Critical, High, Mediu, Low, FAILED2, PASSED2) <>(0,0,0,0,0,0)"),
