@@ -661,7 +661,7 @@ if ($zip->open($zipFilePath, ZipArchive::CREATE) === true) {
    }
 
    $zip->close();
-   AnnexesController::sendMessage("http://webapp.smartskills.tn/AppGenerator/backend/public/storage/annexes/".$zipFileName ." Ready");
+   AnnexesController::sendMessage("http://webapp.ssk.lc/AppGenerator/backend/public/storage/annexes/".$zipFileName ." Ready");
    // Download the zip archive
    return response()->download($zipFilePath)->deleteFileAfterSend(false);
 }
@@ -813,7 +813,7 @@ public static function removeSpaceHOST_IP(Request $req)
 {
     set_time_limit(50000);
     //$re = DB::update("UPDATE sow SET ?='?' WHERE  ?=?;", [$req->attrName, $req->attrValue,$req->idFiledName, $req->idFieldValue]);
-    $re = DB::update("UPDATE sow SET `IP_Host`=REGEXP_REPLACE(`IP_Host`, '[^0-9a-zA-Z\.]', '') ");
+    $re = DB::update("UPDATE sow SET `IP_Host`=REGEXP_REPLACE(`IP_Host`, '[^0-9a-zA-Z\.]', '') WHERE Projet='".$req->prj_id."'");
 
     return true;
 }
