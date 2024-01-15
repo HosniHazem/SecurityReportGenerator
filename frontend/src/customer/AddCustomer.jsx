@@ -59,6 +59,7 @@ function AddCustom() {
   };
 
   const onFinish = async (values) => {
+    console.log("values",values)
     try {
       const formData = new FormData();
       formData.append("SN", values.SN);
@@ -66,7 +67,7 @@ function AddCustom() {
       formData.append("Description", values.Description);
       formData.append("SecteurActivité", values.SecteurActivité);
       formData.append("Categorie", values.Categorie);
-      formData.append("Site Web", values.Site_Web);
+      formData.append("Site_Web", values.Site_Web);
       formData.append("Addresse mail", values.Addresse_mail);
 
       // Append files to the form data
@@ -76,9 +77,12 @@ function AddCustom() {
         "Network_Design",
         values.Network_Design[0]?.originFileObj
       );
+// Assuming values.Logo, values.Organigramme, and values.Network_Design are arrays
+
+
 
       const response = await axios.post(
-        "http://webapp.smartskills.tn/AppGenerator/backend/api/Customer/create",
+        "http://webapp.preprod.ssk.lc/AppGenerator/backend/api/Customer/create",
         formData,
         {
           headers: {

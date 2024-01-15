@@ -68,8 +68,8 @@ class ProjectController extends Controller
             'Nom' => 'required',
             'URL' => 'required',
             'Description' => 'required',
-            'iterationKey'=>'required',
-            'methodVersion'=>'required'
+            'iterationKey' => 'required',
+            'methodVersion' => 'required'
         ]);
 
         if ($validator->fails()) {
@@ -77,54 +77,45 @@ class ProjectController extends Controller
                 'status' => 422,
                 'validate_err' => $validator->getMessageBag(),
             ]);
-        } 
+        }
+
         $methodVersion = $req->input('methodVersion');
 
         $existingMethodVersion = MehariVersion::where('Version', $methodVersion)->first();
 
-        if($existingMethodVersion){
+        if ($existingMethodVersion) {
+            // Create the project
+            $item = new Project();
+            $item->Nom = $req->Nom;
+            $item->URL = $req->URL;
+            $item->Description = $req->Description;
+            $item->year = $req->year;
+            $item->customer_id = $req->customer_id;
+            $item->save();
 
-        //we create the project firstly
-        $item =new Project();
-        $item->Nom=$req->Nom;
-        $item->URL=$req->URL;
-        $item->Description=$req->Description;
-        $item->year=$req->year;
-        $item->customer_id=$req->customer_id;
-        $item->iterationKey=$req->iterationKey;
-        $item->save();
-        //let's create iteration
+            // Create iteration
+            $rmIteration = new RmIteration;
+            $rmIteration->ID = $req->iterationKey;
+            $rmIteration->MehariVersion = $methodVersion;
+            $rmIteration->customerID = $req->customer_id;
+            $rmIteration['Date création'] = date("Y-m-d");
+            $rmIteration->save();
 
-        $rmIteration=new RmIteration;
-        $rmIteration->ID=$req->iterationKey;
-        $rmIteration->MehariVersion=$methodVersion;
-        $rmIteration->customerID=$req->customer_id;
-        $rmIteration['Date création']=date("Y-m-d");
-        $rmIteration->save();
-
-        return response()->json([
-            'message' => 'Project and RmIteration created successfully',
-            'project' => $item,
-            'rmIteration' => $rmIteration,
-            'success'=>true,
-        ]);
-
-
-
+            return response()->json([
+                'message' => 'Project and RmIteration created successfully',
+                'project' => $item,
+                'rmIteration' => $rmIteration,
+                'success' => true,
+            ]);
         } else {
-
+            // Handle the case where MehariVersion is not found
             return response()->json([
                 'message' => 'MehariVersion not found',
                 'success' => false,
             ]);
         }
-
-
-
-        
-
-    
     }
+
     public function update(Request $req,$id)
     {
 
@@ -188,7 +179,7 @@ class ProjectController extends Controller
                 }
     }
 
-   
-    
+
+
 }
 

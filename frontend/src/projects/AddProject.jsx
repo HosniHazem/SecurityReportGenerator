@@ -49,7 +49,7 @@ function AddProject() {
 
   useEffect(() => {
     axios
-      .get(`http://webapp.smartskills.tn/AppGenerator/backend/api/Customer`)
+      .get(`http://webapp.preprod.ssk.lc/AppGenerator/backend/api/Customer`)
       .then((res) => {
         if (res.status === 200) {
           setCustomer(res.data.Customer);
@@ -59,21 +59,19 @@ function AddProject() {
 
   const [error, setError] = useState([]);
 
-  const onFinish = (values) => {
+  const onFinish = async (values) => {
     console.log("values are", values);
     try {
-      const response = axios.post(
-        `http://webapp.smartskills.tn/AppGenerator/backend/api/Project/create`,
+      const response =  await axios.post(
+        `http://webapp.preprod.ssk.lc/AppGenerator/backend/api/Project/create`,
         values
       );
-
-      // if (response.data.success) {
-      //   swal("Created", "Project", "success");
-
-      //   navigate("/");
-      // } else {
-      //   swal("Error", ProjectInput.SN, "error");
-      // }
+        console.log(response.data)
+      if (response.data) {
+          navigate("/");
+      } else {
+        swal("Error", ProjectInput.SN, "error");
+      }
     } catch (error) {
       swal("sometnig went wrong");
       console.log(error);

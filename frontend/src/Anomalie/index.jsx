@@ -135,7 +135,7 @@ useEffect(()=>{
       if (values.q) {
 
         const responseQuery2 = await axios.post(
-          "http://webapp.smartskills.tn/AppGenerator/backend/api/owaszap",
+          "http://webapp.preprod.ssk.lc/AppGenerator/backend/api/owaszap",
           {
             q: values.q,
             id: id,
@@ -288,7 +288,7 @@ useEffect(()=>{
                   }}
                 >
                   <Button icon={<UploadOutlined />} style={{ width: "200%" }}>
-                    Upload HTML
+                    Upload Invicti
                   </Button>
                 </Upload>
               </Form.Item>
