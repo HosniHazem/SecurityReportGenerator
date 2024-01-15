@@ -591,10 +591,10 @@ HERE10;
         copy($sourceFile, $outputPath);
 
         // Return the copied file as a downloadable response
-        return response()->download($outputPath, $filen, ['Content-Type' => $mimeType]);
+        return response()->download($outputPath, $filename, ['Content-Type' => $mimeType]);
     } else {
         // If the file doesn't exist in the source directory, return a 404 Not Found response
-        dd("File does not exist at path: " . $outputPath);
+        dd("File does not exist at path: ");
     }
 }
 

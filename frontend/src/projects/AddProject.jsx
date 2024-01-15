@@ -10,6 +10,7 @@ import { Form, Input, Button, Select, Col, Row } from "antd";
 
 import TextField from "@mui/material/TextField";
 import "./add.css";
+import toast from "react-hot-toast";
 
 const Container = styled("div")(({ theme }) => ({
   margin: "30px",
@@ -49,7 +50,7 @@ function AddProject() {
 
   useEffect(() => {
     axios
-      .get(`http://webapp.smartskills.tn/AppGenerator/backend/api/Customer`)
+      .get(`http://webapp.preprod.ssk.lc/AppGenerator/backend/api/Customer`)
       .then((res) => {
         if (res.status === 200) {
           setCustomer(res.data.Customer);
@@ -59,21 +60,20 @@ function AddProject() {
 
   const [error, setError] = useState([]);
 
-  const onFinish = (values) => {
+  const onFinish = async (values) => {
     console.log("values are", values);
     try {
-      const response = axios.post(
-        `http://webapp.smartskills.tn/AppGenerator/backend/api/Project/create`,
+      const response =  await axios.post(
+        `http://webapp.preprod.ssk.lc/AppGenerator/backend/api/Project/create`,
         values
       );
-
-      // if (response.data.success) {
-      //   swal("Created", "Project", "success");
-
-      //   navigate("/");
-      // } else {
-      //   swal("Error", ProjectInput.SN, "error");
-      // }
+        console.log(response.data)
+      if (response.data.success===200) {
+          toast.success("projet crée")
+          navigate("/project");
+      } else {
+        swal("Error", ProjectInput.SN, "error");
+      }
     } catch (error) {
       swal("sometnig went wrong");
       console.log(error);

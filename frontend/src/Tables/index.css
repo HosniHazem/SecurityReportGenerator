@@ -1,0 +1,9 @@
+
+.ant-table-content{
+    table-layout: fixed;
+}
+.antd-table-cell{
+
+    width:20px;
+    background-color: red;
+}

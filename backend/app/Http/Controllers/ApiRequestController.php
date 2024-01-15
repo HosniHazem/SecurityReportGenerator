@@ -7,11 +7,17 @@ use Illuminate\Support\Facades\Http;
 use App\Models\Vuln;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use App\Models\Vm;
 
 class ApiRequestController extends Controller
 {
     public function index(Request $request)
 {
+        $item = Vm::where('Type', 'Acunetix')->first();
+        // return response()->json($item);
+        $xAuth=$item->accessKey;
+        $ipPort=$item->IP_Port;
+        // return response()->json($xAuth);
 
         $query = $request->q;
         $projectID=$request->id;
@@ -19,10 +25,10 @@ class ApiRequestController extends Controller
         $response = Http::withOptions([
             'verify' => false, // Disable SSL verification
         ])->withHeaders([
-            'X-Auth' => '1986ad8c0a5b3df4d7028d5f3c06e936c1dec77fb40364d109ff9c6b70f27bc4a',
-        ])->get("https://acu.g6.ssk.lc:3443/api/v1/targets?q={$query}");
+            'X-Auth' => $xAuth,
+        ])->get("https://{$ipPort}./api/v1/targets?q={$query}");
 
-       
+
         $responseData = json_decode($response->body(), true); // true to convert it to an associative array
         // Check if the 'targets' key exists in the response
         if (isset($responseData['targets'][0])) {
@@ -32,8 +38,8 @@ class ApiRequestController extends Controller
             $response2 = Http::withOptions([
                 'verify' => false, // Disable SSL verification
             ])->withHeaders([
-                'X-Auth' => '1986ad8c0a5b3df4d7028d5f3c06e936c1dec77fb40364d109ff9c6b70f27bc4a',
-            ])->get("https://acu.g6.ssk.lc:3443/api/v1/scans/{$A}/results/{$B}/vulnerabilities");
+                'X-Auth' => $xAuth,
+                ])->get("https://{$ipPort}/api/v1/scans/{$A}/results/{$B}/vulnerabilities");
             // Decode the JSON response data for the second request
 
             $responseData2 = json_decode($response2->body(), true); // true to convert it to an associative array
@@ -45,12 +51,12 @@ class ApiRequestController extends Controller
             if(isset($responseData2['vulnerabilities'])){
              foreach ($responseData2['vulnerabilities'] as $item) {
 
-                
+
             $response3 = Http::withOptions([
                 'verify' => false, // Disable SSL verification
             ])->withHeaders([
-                'X-Auth' => '1986ad8c0a5b3df4d7028d5f3c06e936c1dec77fb40364d109ff9c6b70f27bc4a',
-            ])->get("https://acu.g6.ssk.lc:3443/api/v1/scans/{$A}/results/{$B}/vulnerabilities/{$item['vuln_id']}");
+                'X-Auth' => $xAuth,
+                ])->get("https://{$ipPort} /api/v1/scans/{$A}/results/{$B}/vulnerabilities/{$item['vuln_id']}");
 
 
             $responseData3[] = json_decode($response3->body(), true); // true to convert it to an associative array
@@ -62,10 +68,10 @@ class ApiRequestController extends Controller
                 $it->Name=$item['vt_name'];
                 $it->Description=htmlspecialchars($item['description']);
 
-                $it->Host=htmlspecialchars($item['affects_url']);
+                $it->Host=self::parseBaseUrl(htmlspecialchars($item['affects_url']));
 
                  $it->Synopsis=htmlspecialchars($item['impact']);
-                 $it->CVSSv3BaseScore= $item['cvss3'];
+                 $it["CVSS v3.0 Base Score"]= $item['cvss3'];
                  // $it->score=$item['cvss_score'];
                 $cvssInput = $item['cvss3'];
 
@@ -86,6 +92,9 @@ class ApiRequestController extends Controller
                 } elseif ($cvssScore >= 9) {
                     $riskLevel = "Critical";
                 }
+                else {
+                    $riskLevel="Information";
+                }
                  $it->risk=$riskLevel;  //High,Medium,Low..
                 $it->Solution=htmlspecialchars($item['recommendation']);
                 $it->ID_Projet=$projectID;
@@ -98,16 +107,17 @@ class ApiRequestController extends Controller
                     'Description' => $it->Description,
                     'Host' => $it->Host,
                     'Synopsis' => $it->Synopsis,
-                    'CVSSv3BaseScore' => $it->CVSSv3BaseScore,
+                    'CVSS v3.0 Base Score' => $it["CVSS v3.0 Base Score"],
                     'See_Also' => $it['See Also'],
                     'Plugin_Output' => $it->Plugin_Output,
                     'risk' => $it->risk,
                     'Solution' => $it->Solution,
                 ];
-                
+
 
              }
-             return response()->json(['message' => 'done', 'status' => 200,'success'=>true ,'data' => $results]);
+             $resultLength=count($results);
+             return response()->json(['message' => 'done', 'status' => 200,'success'=>true ,'data' => $resultLength]);
 
 
 
@@ -117,62 +127,68 @@ class ApiRequestController extends Controller
 }
     }
     public function getVulns(){
-        $vulns=Vuln::All();
-        return response()->json($vulns);
+        Vuln::truncate();
+
+    return response()->json("Deleted successfully");
     }
 
-    public function fillWithOWasZap(){
+    public function fillWithOWasZap(Request $request){
         set_time_limit(1000000);
+        $query = $request->q;
+        $projectID=$request->id;
+        $item = Vm::where('Type', 'Owaszap')->first();
+        $accessKey=$item->accessKey;
+        // return response()->json($item);
         $id=1;
-     $baseUrl = "http://acu.g6.ssk.lc:8081/JSON/alert/view/alert/?apikey=d31c2oo5sn998vpk0cpouf0i0h&id={$id}";
-     
+
+        $test=true;
+
+        do {
+            $baseUrl = "http://acu.g6.ssk.lc:8081/JSON/alert/view/alert/?apikey={$accessKey}&id={$id}";
+
+            $response = Http::get($baseUrl)->json();
+
+            $Name = $response['alert']['name'] ?? null;
+            $Risk = $response['alert']['risk'] ?? null;
+            $Description = $response['alert']['description'] ?? null;
+            $Solution = $response['alert']['solution'] ?? null;
+            $Host = isset($response['alert']['url']) ? self::parseBaseUrl($response['alert']['url']) : null;
+            $SeeAlso = json_encode(self::parseBaseUrl($response['alert']['reference'] ?? null)) ?? null;
+
+            if (strpos($response['alert']['url'], $query) === false) {
+                $test = false;
+            }
+
+            // Use raw SQL insert query
+            DB::statement("
+                INSERT   IGNORE INTO vuln (Name, Risk, Description, Solution, Host, `See Also`, ID_Projet)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ", [$Name, $Risk, $Description, $Solution, $Host, $SeeAlso, $projectID]);
+
+            $id++;
+        } while ($test==true);
 
 
-     do {
-         $response = Http::get($baseUrl)->json();
-        
-              
-     
-         $Name = $response['alert']['name'] ?? null;
-         $Risk = $response['alert']['risk'] ?? null;
-         $Description = $response['alert']['description'] ?? null;
-         $Solution = $response['alert']['solution'] ?? null;
-         $Host = self::parseBaseUrl($response['alert']['url']) ?? null;
-         $SeeAlso = json_encode(self::parseBaseUrl($response['alert']['reference'])) ?? null;
-     
-         $result = DB::table('vuln2')->insertOrIgnore([
-             'Name' => $Name,
-             'Risk' => $Risk,
-             'Description' => $Description,
-             'Solution' => $Solution,
-             'Host' => $Host,
-             'See Also' => $SeeAlso,
-         ]);
-     
-         $id++;
-     } while ($id < 1000);
-     
 
-     
-     DB::table('vuln2')
-         ->whereNotIn('id', function ($query) {
-             $query->select(DB::raw('MIN(id)'))
-                 ->from('vuln2')
-                 ->groupBy('Name', 'Risk', 'Description', 'Solution', 'Host', 'See Also');
-         })
-         ->delete();
-     
-     //
-     
-     return response()->json(['message' => 'done', 'status' => 200]);
-     
+    //  DB::table('vuln')
+    //      ->whereNotIn('id', function ($query) {
+    //          $query->select(DB::raw('MIN(id)'))
+    //              ->from('vuln')
+    //              ->groupBy('Name', 'Risk', 'Description', 'Solution', 'Host', 'See Also');
+    //      })
+    //      ->delete();
+
+
+
+     return response()->json(['message' => 'done', 'status' => 200,'success'=>true ,'data'=>$id]);
+
 
     }
 
     public static function parseBaseUrl($url)
     {
         $parsedUrl = parse_url($url);
-    
+
         if ($parsedUrl && isset($parsedUrl['host'])) {
             return $parsedUrl['host'];
         } else {
