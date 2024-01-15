@@ -10,6 +10,7 @@ import { Form, Input, Button, Select, Col, Row } from "antd";
 
 import TextField from "@mui/material/TextField";
 import "./add.css";
+import toast from "react-hot-toast";
 
 const Container = styled("div")(({ theme }) => ({
   margin: "30px",
@@ -67,8 +68,9 @@ function AddProject() {
         values
       );
         console.log(response.data)
-      if (response.data) {
-          navigate("/");
+      if (response.data.success===200) {
+          toast.success("projet crée")
+          navigate("/project");
       } else {
         swal("Error", ProjectInput.SN, "error");
       }

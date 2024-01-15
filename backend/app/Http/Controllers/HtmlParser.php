@@ -40,7 +40,7 @@ class HtmlParser extends Controller
 
 
 
-        //description array 
+        //description array
         $classes = ['criticals', 'highs', 'mediums', 'lows', 'bpractices', 'infos'];
         $descriptionArray = [];
 
@@ -259,7 +259,7 @@ class HtmlParser extends Controller
                 //Host
                 'URL' => ApiRequestController::parseBaseUrl($url),
                 //Description
-               
+
                 'Description' => $risk . "and the cause is " . $cause,
 
                 //Solution
@@ -272,14 +272,14 @@ class HtmlParser extends Controller
 
         // Now $uniqueResults contains the unique elements based on all sub-array values
 
-        
+
         // return response()->json($results['name']);
 
         foreach ($uniqueResults as $result){
             $vuln=new Vuln();
             $vuln->Name=$result['name'];
             $vuln->Risk=$result['Severity'];
-            $vuln->CVSSv3BaseScore=$result['CVSS Score'];
+            $vuln["CVSS v3.0 Base Score"]=$result['CVSS Score'];
             $vuln->Host=$result['URL'];
             $vuln->Description=$result['Description'];
             $vuln->Solution=$result['Fix'];
