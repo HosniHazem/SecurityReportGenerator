@@ -32,7 +32,7 @@ function UpdateCustom() {
   const [Fich, setFich] = useState(null);
   useEffect(() => {
     axios
-      .get(`http://webapp.smartskills.tn/AppGenerator/backend/api/Customer/${id}/show`)
+      .get(`http://webapp.ssk.lc/AppGenerator/backend/api/Customer/${id}/show`)
       .then((res) => {
         if (res.data.status === 200) {
           setCustomer(res.data.Customer);
@@ -76,7 +76,7 @@ function UpdateCustom() {
       formData.append("attach", picture.attach);
       if (picture.attach) {
         axios
-          .post("http://webapp.smartskills.tn/AppGenerator/backend/api/imageProfil", formData)
+          .post("http://webapp.ssk.lc/AppGenerator/backend/api/imageProfil", formData)
           .then((res) => {
             if (res.status === 200) {
             } else if (res.status === 422) {
@@ -93,7 +93,7 @@ function UpdateCustom() {
     };
     console.log(data);
     axios
-      .put(`http://webapp.smartskills.tn/AppGenerator/backend/api/Customer/${id}/update`, data)
+      .put(`http://webapp.ssk.lc/AppGenerator/backend/api/Customer/${id}/update`, data)
       .then((res) => {
         if (res.data.status === 200) {
           swal("Created", "Customer", "success");

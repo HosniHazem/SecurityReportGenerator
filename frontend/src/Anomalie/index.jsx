@@ -76,7 +76,7 @@ const [owaszapStatus, setOwaszapStatus] = useState("");
 useEffect(()=>{
   const fetchVm = async () => {
     try {
-      const response = await axiosInstance.get(`vmtype`);
+      const response = await axiosInstance.get(`/vmtype`);
       console.log("vm resp",response.data.vm);
       setVm(response.data.Vm);
       console.log("vm",vm);
@@ -87,6 +87,7 @@ useEffect(()=>{
         setAccessKey(vm[0].accessKey);
         setAccunetixStatus(vm[0].answer);
         setOwaszapStatus(vm[1].answer);
+        console.log("accunetixStatus",vm[0].answer);
         // setAccunetixStatus("Offline")
       } else {
         console.error("Error fetching project data: Empty or undefined vm array");
@@ -280,14 +281,16 @@ useEffect(()=>{
       <h2>Accunetix & OWASZAP Queries</h2>
 
       <Form onFinish={onFinish} layout="vertical">
-   
-        <Form.Item
-          label="Query"
-          name="q"
-          // rules={[{ required: true, message: "Please enter Form 1 field!" }]}
-        >
-          <TextArea rows={4} />
-        </Form.Item>
+   {  ( vm && (vm[0].answer==="Online" || vm[1].answer==="Online")) &&  
+   <Form.Item
+   label="Query"
+   name="q"
+   // rules={[{ required: true, message: "Please enter Form 1 field!" }]}
+ >
+   <TextArea rows={4} />
+ </Form.Item> 
+   }
+       
 
         <h2>File Uploads</h2>
         <div style={{ alignContent: "center" }}>

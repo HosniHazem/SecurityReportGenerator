@@ -139,7 +139,7 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::post('/owaszap', [ApiRequestController::class, 'fillWithOWasZap']);
     Route::post('/vuln-from-html/{id}',[HtmlParser::class,'parse']);
     Route::post('/vuln-from-hcl/{id}',[HtmlParser::class,'parseHcl']);
-    Route::get('/vmtype/',[VmController::class,'getVulnWithType']);
+    Route::get('/vmtype',[VmController::class,'getAccunetixAndOwaszap']);
     Route::get('/all-tables',[CloneController::class,'getTables']);
     Route::post('/all-attributes',[CloneController::class,'getTableAttributes']);
     Route::get('/modify',[CloneController::class,'Modify']);
