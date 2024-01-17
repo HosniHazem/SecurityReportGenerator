@@ -59,16 +59,24 @@ const Dashboard = () => {
 
   useEffect(() => {
     axios
-      .get(`http://webapp.smartskills.tn/AppGenerator/backend/api/Project`)
+      .get(`http://webapp.ssk.lc/AppGenerator/backend/api/Project`)
       .then((res) => {
         if (res.status === 200) {
-          setProject(res.data.Project);
+          
+          const sortedProjects = res.data.Project.sort((a, b) => b.id - a.id);
+          setProject(sortedProjects);
         }
+      })
+      .catch((error) => {
+        // Handle error accordingly
+        console.error("Error fetching data: ", error);
       });
   }, []);
+  
+  //... rest of your component
   useEffect(() => {
     axios
-      .get(`http://webapp.smartskills.tn/AppGenerator/backend/api/get_vm`)
+      .get(`http://webapp.ssk.lc/AppGenerator/backend/api/get_vm`)
       .then((res) => {
         if (res.status === 200) {
           const inputObject = res.data.Vm;
@@ -93,7 +101,7 @@ const Dashboard = () => {
 
   const handleGenerateWordDocument = async () => {
     try {
-      await axios.get(`http://webapp.smartskills.tn/AppGenerator/backend/api/generate-ansi/1`, {
+      await axios.get(`http://webapp.ssk.lc/AppGenerator/backend/api/generate-ansi/1`, {
         
       });
   
@@ -222,7 +230,7 @@ const Dashboard = () => {
     e.preventDefault();
     await axios
       .delete(
-        `http://webapp.smartskills.tn/AppGenerator/backend/api/Project/${id}/delete`
+        `http://webapp.ssk.lc/AppGenerator/backend/api/Project/${id}/delete`
       )
       .then((res) => {
         if (res.status === 200) {
@@ -281,7 +289,7 @@ const Dashboard = () => {
 
     axios
       .post(
-        `http://webapp.smartskills.tn/AppGenerator/backend/api/generate-word-document/`,
+        `http://webapp.ssk.lc/AppGenerator/backend/api/generate-word-document/`,
         dataToSend,
         {
           responseType: "blob", // Set responseType to 'blob' to indicate binary data
@@ -368,6 +376,8 @@ const Dashboard = () => {
       })
       .catch((error) => {
         // Handle errors
+
+
         console.error("Error sending data:", error);
         swal("Problem", "Detected");
         setDownloading(false);
@@ -391,7 +401,7 @@ const Dashboard = () => {
 
     axios
       .post(
-        `http://webapp.smartskills.tn/AppGenerator/backend/api/generate-ansi`,
+        `http://webapp.ssk.lc/AppGenerator/backend/api/generate-ansi`,
         dataToSend,
         {
           responseType: "blob", // Set responseType to 'blob' to indicate binary data

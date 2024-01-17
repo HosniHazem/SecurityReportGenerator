@@ -21,7 +21,7 @@ class VmController extends Controller
         //   print_r($item);
         foreach ($item as $it) {
             try {
-                
+
                 $response = Http::withOptions([
                     'verify' => false, // Disable SSL verification
                 ])->withHeaders([
@@ -57,77 +57,51 @@ class VmController extends Controller
     }
 
 
+
     public function getVulnWithType()
-    {
-        $resp = [];
-    
-        $response = null;
-        $item = Vm::where('Type', 'Acunetix')
-        ->orWhere('Type', 'Owaszap')
+{
+    $resp = [];
+
+    $items = Vm::whereIn('Type', ['Acunetix', 'Owaszap'])
         ->get();
-        
-           foreach ($item as $it) {
-            try {
-                if (!empty($it->accessKey)) {
-                    $response = Http::withOptions([
-                        'verify' => false, // Disable SSL verification
-                    ])->withHeaders([
-                        'X-ApiKeys' => "accessKey=" . $it->accessKey
-                    ])->timeout(6) // Set a longer timeout for the request (in seconds)
-                        ->retry(2, 100) // Retry up to 2 times with a delay of 100 milliseconds between retries
-                        ->get("https://" . $it->IP_Host . ":" . $it->Port);
 
-                    if ($response->successful()) {
-                        $resp[] = [
-                            "ip" => $it->IP_Host . ":" . $it->Port,
-                            "answer" => "Online",
-                            "Type"=>$it->Type,
-                            "accessKey"=>$it->accessKey
-    
-                        ];
-                    } else {
-                        $resp[] = [
-                            "ip" => $it->IP_Host . ":" . $it->Port,
-                            "answer" => "Offline",
-                            "Auth" => "accessKey=" . $it->accessKey,
-                            "Type"=>$it->Type,
-                        ];
-                    }
-
-                }
-                
-                else if(empty($it->access))  {
-
-                    $response = Http::withOptions([
-                        'verify' => false, // Disable SSL verification
-                    ])->timeout(6) // Set a longer timeout for the request (in seconds)
-                        ->retry(2, 100) // Retry up to 2 times with a delay of 100 milliseconds between retries
-                        ->get("https://" . $it->IP_Host . ":" . $it->Port);
-                    if ($response->successful()) {
-                        $resp[] = [
-                            "ip" => $it->IP_Host . ":" . $it->Port,
-                            "answer" => "Online",
-                            "Type"=>$it->Type,
-                            "accessKey"=>$it->accessKey
-
-                        ];
-                    } else {
-                        $resp[] = [
-                            "ip" => $it->IP_Host . ":" . $it->Port,
-                            "answer" => "Offline",
-                            "Type"=>$it->Type,
-                            "accessKey"=>$it->accessKey
-
-                        ];
-                    }
-                }
-
-            } catch (\Exception $e) {
-                return response()->json('something went wrong');
+    foreach ($items as $it) {
+        try {
+            $headers = [];
+            if (!empty($it->accessKey)) {
+                $headers['X-ApiKeys'] = "accessKey=" . $it->accessKey;
             }
+
+            $response = Http::withOptions([
+                'verify' => false, // Disable SSL verification
+            ])->withHeaders($headers)
+              ->timeout(6) // Set a longer timeout for the request (in seconds)
+              ->retry(2, 100) // Retry up to 2 times with a delay of 100 milliseconds between retries
+              ->get("https://" . $it->IP_Host . ":" . $it->Port);
+
+            $status = $response->successful() ? 'Online' : 'Offline';
+
+            $resp[] = [
+                "ip" => $it->IP_Host . ":" . $it->Port,
+                "answer" => $status,
+                "Type" => $it->Type,
+                "accessKey" => $status === 'Online' ? $it->accessKey : null
+            ];
+
+        } catch (\Exception $e) {
+            // Log the exception if necessary
+            // Log::error("Error accessing {$it->IP_Host}:{$it->Port}", ["exception" => $e->getMessage()]);
+
+            $resp[] = [
+                "ip" => $it->IP_Host . ":" . $it->Port,
+                "answer" => "Offline",
+                "Type" => $it->Type,
+                "accessKey" => null
+            ];
         }
-    
-        return response()->json(['Vm' => $resp]);
     }
+
+    return response()->json(['Vm' => $resp]);
+}
 
 }

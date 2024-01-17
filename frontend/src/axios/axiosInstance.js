@@ -2,5 +2,5 @@ import axios from "axios";
 
 
  export const axiosInstance=axios.create({
-    baseURL:'http://webapp.preprod.ssk.lc/AppGenerator/backend/api'
+    baseURL:'http://webapp.ssk.lc/AppGenerator/backend/api'
 })

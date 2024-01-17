@@ -50,7 +50,7 @@ function AddProject() {
 
   useEffect(() => {
     axios
-      .get(`http://webapp.preprod.ssk.lc/AppGenerator/backend/api/Customer`)
+      .get(`http://webapp.ssk.lc/AppGenerator/backend/api/Customer`)
       .then((res) => {
         if (res.status === 200) {
           setCustomer(res.data.Customer);
@@ -64,7 +64,7 @@ function AddProject() {
     console.log("values are", values);
     try {
       const response =  await axios.post(
-        `http://webapp.preprod.ssk.lc/AppGenerator/backend/api/Project/create`,
+        `http://webapp.ssk.lc/AppGenerator/backend/api/Project/create`,
         values
       );
         console.log(response.data)

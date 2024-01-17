@@ -20,7 +20,7 @@ export default function AnsiReport() {
           // Additional request using the customer_id
           if (response.data.Project && response.data.Project.customer_id) {
 
-            window.location.href = `http://webapp.preprod.ssk.lc/AppGenerator/backend/api/generate-ansi/${response.data.Project.customer_id}`;
+            window.location.href = `http://webapp.ssk.lc/AppGenerator/backend/api/generate-ansi/${response.data.Project.customer_id}`;
           }
         }
       } catch (error) {
