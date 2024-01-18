@@ -68,7 +68,7 @@ function AddProject() {
         values
       );
         console.log(response.data)
-      if (response.data.success===200) {
+      if (response.data.status===200) {
           toast.success("projet crée")
           navigate("/project");
       } else {
@@ -112,7 +112,7 @@ function AddProject() {
 
   return (
     <Container>
-      <Form form={form} onFinish={onFinish} initialValues={initialValues} layout="vertical">
+      <Form form={form} onFinish={onFinish}  layout="vertical">
         <Row gutter={[16, 16]}>
           <Col span={12}>
             <Form.Item

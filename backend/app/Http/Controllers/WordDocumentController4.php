@@ -714,7 +714,6 @@ HERE10;
                 ( `ID_Question`, `Answer`, `Commentaire`, `ID_ITERATION`, `Pertinence`);
             ";
 
-            print_r($loadData);
 
             // Execute the database statement
             DB::statement($loadData);

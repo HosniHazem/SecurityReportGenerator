@@ -91,6 +91,7 @@ class ProjectController extends Controller
             $item->Description = $req->Description;
             $item->year = $req->year;
             $item->customer_id = $req->customer_id;
+            $item->iterationKey=$req->iterationKey;
             $item->save();
 
             // Create iteration
@@ -106,6 +107,7 @@ class ProjectController extends Controller
                 'project' => $item,
                 'rmIteration' => $rmIteration,
                 'success' => true,
+                'status'=>200
             ]);
         } else {
             // Handle the case where MehariVersion is not found
