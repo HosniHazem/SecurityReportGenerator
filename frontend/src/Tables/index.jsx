@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { axiosInstance } from '../axios/axiosInstance';
-import { Select, Table, Modal, Input, Button } from 'antd';
-import './index.css';
+import React, { useState, useEffect } from "react";
+import { axiosInstance } from "../axios/axiosInstance";
+import { Select, Table, Modal, Input, Button } from "antd";
+import "./index.css";
+import toast from "react-hot-toast";
 
 const { Option } = Select;
 
@@ -10,8 +11,10 @@ export default function TablesClone() {
   const [selectedTable, setSelectedTable] = useState(null);
   const [attributes, setAttributes] = useState(null);
   const [data, setData] = useState(null);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [selectedAttribute, setSelectedAttribute] = useState(null);
 
   useEffect(() => {
     const fetchTables = async () => {
@@ -19,7 +22,7 @@ export default function TablesClone() {
         const response = await axiosInstance.get(`all-tables`);
         setTables(response.data);
       } catch (error) {
-        console.error('Error fetching project data:', error);
+        console.error("Error fetching project data:", error);
       }
     };
 
@@ -27,20 +30,19 @@ export default function TablesClone() {
   }, []);
 
   useEffect(() => {
-    console.log('attributes are', attributes);
+    console.log("attributes are", attributes);
   }, [attributes]);
 
   const displayAttributes = async (selectedTab) => {
     try {
-      const response = await axiosInstance.post('all-attributes', {
+      const response = await axiosInstance.post("all-attributes", {
         name: selectedTab,
       });
 
       setData(response.data.data);
       setAttributes(response.data.attributes);
-
     } catch (error) {
-      console.error('Error fetching attributes data:', error);
+      console.error("Error fetching attributes data:", error);
     }
   };
 
@@ -57,9 +59,31 @@ export default function TablesClone() {
     setIsModalVisible(true);
   };
 
-  const handleModalSubmit = () => {
+  const handleModalSubmit = async () => {
     // Send the value to handleInput function
-    handleInput(inputValue);
+    const rowData = {
+      value: inputValue,
+      attributeName: selectedAttribute,
+      tableName: selectedTable,
+      rowId: selectedRow.id ? selectedRow.id : selectedRow.ID,
+    };
+
+    try {
+      const response = await axiosInstance.put("/modify", {
+        name: rowData.tableName,
+        attribute: rowData.attributeName,
+        value: rowData.value,
+        id: rowData.rowId,
+      });
+      if (response.data.success) {
+        toast.success("done");
+      } else {
+        toast.error("error 1");
+      }
+    } catch (error) {
+      toast.error("error 2");
+      console.log(error);
+    }
 
     // Close the modal
     setIsModalVisible(false);
@@ -67,7 +91,7 @@ export default function TablesClone() {
 
   const handleInput = (value) => {
     // Handle the input value, you can send it to the server or perform any other actions
-    console.log('Input value:', value);
+    console.log("Input value:", value);
   };
 
   const columns = attributes
@@ -77,11 +101,12 @@ export default function TablesClone() {
         key,
       }))
     : [];
+  console.log("columns", columns);
 
   return (
     <div>
       <Select
-        style={{ width: '100%' }}
+        style={{ width: "60%", marginBottom: "2%" }}
         placeholder="Select table"
         onChange={handleTableChange}
         value={selectedTable}
@@ -96,12 +121,24 @@ export default function TablesClone() {
       {attributes && (
         <Table
           dataSource={data}
-          columns={columns}
-          pagination={false}
+          pagination={true}
+          columns={columns.map((col) => ({
+            ...col,
+            onCell: (record) => ({
+              record,
+              dataIndex: col.dataIndex,
+              title: col.title,
+              onClick: () => {
+                console.log("record is ", record);
+                console.log("tilte", col.title);
+                setSelectedAttribute(col.title);
+              },
+            }),
+          }))}
           onRow={(record, rowIndex) => {
             return {
               onClick: () => {
-                // Open the modal when a row is clicked
+                setSelectedRow(record);
                 showModal();
               },
             };
@@ -110,7 +147,9 @@ export default function TablesClone() {
       )}
 
       <Modal
-        title="Enter Value"
+        title={`Enter new ${selectedAttribute} value for row ID ${
+          selectedRow?.id || selectedRow?.ID
+        }`}
         visible={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         footer={[
@@ -122,7 +161,7 @@ export default function TablesClone() {
         <Input
           value={inputValue}
           onChange={handleInputChange}
-          placeholder="Enter something..."
+          placeholder={`Enter new ${selectedAttribute} value...`}
         />
       </Modal>
     </div>

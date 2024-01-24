@@ -52,7 +52,7 @@ class CloneController extends Controller
         try {
             DB::statement($sqlUpdate);
     
-            return response()->json(['success' => 'Query executed successfully']);
+            return response()->json(['message' => 'Query executed successfully','success'=>true]);
         } catch (\Exception $e) {
             // Handle query execution failure
             return response()->json(['error' => $e->getMessage()]);
