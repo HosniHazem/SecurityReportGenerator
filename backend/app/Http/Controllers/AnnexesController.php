@@ -876,8 +876,10 @@ public function getPluginsFromAllServers(Request $request)
     $allvm = VmController::index();
     $data = $allvm->getData();
     foreach ($data->Vm as $vm) {
-        if ($vm->answer === 'Online') {
-            $needed = Vm::where('IP_Host', explode(":", $vm->ip))->first();
+        if (($vm->answer === 'Online') && ($vm->Type === 'Nessus')) {
+            $needed = Vm::where('IP_Host', explode(":", $vm->ip))
+            ->where('Type', 'Nessus')  // Add the condition to filter by Type
+            ->first();
             $stats =  self::getPlugins($needed,  $request->prj_id);
             AnnexesController::sendMessage($stats['name']."[Report] has ". $stats['nb_pl']."number of succesfull".$stats['nb_s']."number of problems".$stats['nb_p']);
         }
@@ -913,9 +915,9 @@ public static function getPlugins ($ip,$prj_id)
                         'verify' => false,
                     ])->withHeaders([
                       //  'X-ApiKeys' => str_replace(",",";",$ip->Auth),
-                      'X-ApiKeys' => "accessKey=fe5104bf002f5e565586ad823c9b30c53a956d7eb06defcb3271db21eecf817d; secretKey=ca2e6823b69f46b2c7676a04a83829ac6971abfe8afcc9ac5c4da36a6ffccd58",
-                    ])->get($getRequest);
-
+                       //'X-ApiKeys' => "accessKey=0ad4ef73966ac93d4a8c10f854e665008d7a07fc540f17942501535ce7077dd3; secretKey=39cb3b8050857af6cfa39640a16204d68bd493337fe3340b1cbf59dc2b6ed7e9",
+                        'X-ApiKeys' => "accesKey={$ip->accessKey}; secretKey={$ip->secretKey}"
+                      ])->get($getRequest);
                  $responseData = json_decode($response->body(), true);
                 if(isset($responseData['attributes']))
                  {

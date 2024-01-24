@@ -36,8 +36,9 @@ const Dashboard = () => {
   const [exporting, setExporting] = useState(false); // Add loading state
   const [downloading, setDownloading] = useState(false);
   const { open, setOpen } = useDialogState();
-  const selected = sessionStorage.getItem("selectedIp");
-  const [selectedIp, setSelectedIp] = useState(selected);
+
+
+
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
   
@@ -59,16 +60,17 @@ const Dashboard = () => {
 
   useEffect(() => {
     axios
-      .get(`http://webapp.smartskills.tn/AppGenerator/backend/api/Project`)
+      .get(`http://webapp.ssk.lc/AppGenerator/backend/api/Project`)
       .then((res) => {
         if (res.status === 200) {
-          setProject(res.data.Project);
+          const sortedProjects = res.data.Project.sort((a, b) => b.id - a.id);
+        setProject(sortedProjects);
         }
       });
   }, []);
   useEffect(() => {
     axios
-      .get(`http://webapp.smartskills.tn/AppGenerator/backend/api/get_vm`)
+      .get(`http://webapp.ssk.lc/AppGenerator/backend/api/get_vm`)
       .then((res) => {
         if (res.status === 200) {
           const inputObject = res.data.Vm;
@@ -77,9 +79,15 @@ const Dashboard = () => {
             ...inputObject[key],
           }));
           setVm(outputArray);
+
+
+
         }
       });
   }, []);
+  const selected = sessionStorage.getItem("selectedIp");
+  const [selectedIp, setSelectedIp] = useState(selected);
+
 
   
   const handleSelectProject = (id) => {
@@ -93,7 +101,7 @@ const Dashboard = () => {
 
   const handleGenerateWordDocument = async () => {
     try {
-      await axios.get(`http://webapp.smartskills.tn/AppGenerator/backend/api/generate-ansi/1`, {
+      await axios.get(`http://webapp.ssk.lc/AppGenerator/backend/api/generate-ansi/1`, {
         
       });
   
@@ -117,11 +125,11 @@ const Dashboard = () => {
 
 
   const userColumns = [
-    { field: "id", headerName: "ID", width: 30 },
+    { field: "id", headerName: "ID", width: 60 },
     {
       field: "Nom",
       headerName: "Nom",
-      width: 80,
+      width: 120,
       renderCell: (params) => {
         return params.row.Nom;
       },
@@ -222,7 +230,7 @@ const Dashboard = () => {
     e.preventDefault();
     await axios
       .delete(
-        `http://webapp.smartskills.tn/AppGenerator/backend/api/Project/${id}/delete`
+        `http://webapp.ssk.lc/AppGenerator/backend/api/Project/${id}/delete`
       )
       .then((res) => {
         if (res.status === 200) {
@@ -269,7 +277,13 @@ const Dashboard = () => {
     // Handle the logic for the checked button
     console.log("Checked button clicked");
   };
-
+  if (!selectedIp) {
+    const firstActiveVm = Vm.find((element) => element.answer === "Online");
+    if (firstActiveVm) {
+      console.log("happened")
+      handleSelect(firstActiveVm.ip, firstActiveVm.Auth)
+    }
+}
   const Export = (id, e) => {
     e.persist();
     setDownloading(true);
@@ -279,9 +293,11 @@ const Dashboard = () => {
     };
     setExporting(true);
 
+   
+
     axios
       .post(
-        `http://webapp.smartskills.tn/AppGenerator/backend/api/generate-word-document/`,
+        `http://webapp.ssk.lc/AppGenerator/backend/api/generate-word-document/`,
         dataToSend,
         {
           responseType: "blob", // Set responseType to 'blob' to indicate binary data
@@ -391,7 +407,7 @@ const Dashboard = () => {
 
     axios
       .post(
-        `http://webapp.smartskills.tn/AppGenerator/backend/api/generate-ansi`,
+        `http://webapp.ssk.lc/AppGenerator/backend/api/generate-ansi`,
         dataToSend,
         {
           responseType: "blob", // Set responseType to 'blob' to indicate binary data
@@ -438,7 +454,6 @@ const Dashboard = () => {
   };
 
 
-
   return (
     <div >
       <Dialog
@@ -474,6 +489,7 @@ const Dashboard = () => {
         <table style={{ borderCollapse: "collapse", width: "15%" }}>
           <thead>
             <tr>
+              <th>Name</th>
               <th>URL</th>
               <th>Status</th>
               <th>Select</th>
@@ -488,6 +504,7 @@ const Dashboard = () => {
                   backgroundColor: url.answer === "Online" ? "green" : "red",
                 }}
               >
+                <td style={cellStyle}>{url.Name}</td>
                 <td style={cellStyle}>{url.ip}</td>
                 <td style={cellStyle}>{url.answer}</td>
                 <td style={cellStyle}>

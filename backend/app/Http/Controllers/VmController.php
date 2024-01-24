@@ -33,14 +33,18 @@ class VmController extends Controller
                 if ($response->successful()) {
                     $resp[$it->IP_Host] = [
                         "ip" => $it->IP_Host . ":" . $it->Port,
+                        "Name" => $it->Name,
                         "answer" => "Online",
-                        "Auth" => "accessKey=" . $it->accessKey . ";secretKey=" . $it->secretKey
+                        "Auth" => "accessKey=" . $it->accessKey . ";secretKey=" . $it->secretKey,
+                        "Type" =>  $it->Type
                     ];
                 } else {
                     $resp[$it->IP_Host] = [
                         "ip" => $it->IP_Host . ":" . $it->Port,
                         "answer" => "Offline",
-                        "Auth" => "accessKey=" . $it->accessKey . ";secretKey=" . $it->secretKey
+                        "Name" => $it->Name,
+                        "Auth" => "accessKey=" . $it->accessKey . ";secretKey=" . $it->secretKey,
+                        "Type" =>  $it->Type
                     ];
                 }
             } catch (ConnectionException $e) {
@@ -48,7 +52,9 @@ class VmController extends Controller
                 $resp[$it->IP_Host] = [
                     "ip" => $it->IP_Host . ":" . $it->Port,
                     "answer" => "Offline",
-                    "Auth" => "accessKey=" . $it->accessKey . ";secretKey=" . $it->secretKey
+                    "Name" => $it->Name,
+                    "Auth" => "accessKey=" . $it->accessKey . ";secretKey=" . $it->secretKey,
+                    "Type" =>  $it->Type
                 ];
             }
         }
