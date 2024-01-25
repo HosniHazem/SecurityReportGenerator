@@ -252,10 +252,10 @@ return $Stats;
 
     private function updateIPHostInformation($jsonData, $responseData)
     {
+        
         $ipp = $jsonData['ip'];
         $ApiKeys = $jsonData['Auth'];
         $e = $jsonData['value'];
-
         $response = Http::withOptions([
             'verify' => false, // Disable SSL verification
         ])->withHeaders([
@@ -274,15 +274,16 @@ return $Stats;
             ])->get("https://{$ipp}/scans/{$e}/hosts/{$one}");
 
             $responseData2 = json_decode($response->body(), true);
-
+            //print_r($one);
+            
             $host_ip = $responseData2['info']['host-ip'];
             $ip = Sow::where('IP_Host', $host_ip)
-                ->where('Type', 'Serveur')
                 ->get();
-
+                
             if (!$ip->isEmpty()) {
-                $ip_n = $ip[0];
-
+                
+        foreach ($ip as $ip_n) {
+            
         // Check if 'host-fqdn' key exists in $responseData2
         if (isset($responseData2['info']['host-fqdn']) && !empty($responseData2['info']['host-fqdn'])) {
             $ip_n->Nom = $responseData2['info']['host-fqdn'];
@@ -296,6 +297,8 @@ return $Stats;
         }
 
         $ip_n->update();
+        
+    }
     }
 
     }
@@ -452,9 +455,9 @@ return $Stats;
 
         // Export scan and get response data
         $responseData = $this->exportScan($jsonData);
-
-        if ($responseData['file']) {
+        if ($responseData) {
             // Update IP host information
+
             $this->updateIPHostInformation($jsonData, $responseData);
 
             // Check the status of the exported file
