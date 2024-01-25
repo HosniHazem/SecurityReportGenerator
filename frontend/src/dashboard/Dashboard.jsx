@@ -22,7 +22,7 @@ import Nessus2 from "../Nessus2";
 import "./datatable.scss";
 import { green } from "@mui/material/colors";
 import { axiosInstance } from "../axios/axiosInstance";
-import { ButtonBase } from "@mui/material";
+import { ButtonBase, ButtonGroup } from "@mui/material";
 import toast, { Toaster } from "react-hot-toast";
 
 function useDialogState() {
@@ -113,9 +113,10 @@ const Dashboard = () => {
     }
   };
 
-  // const handleNavigateToRmQuesion = (c) => {
-  //   window.location.href = `http://localhost/BlueHost/rmquestions.php?c=${c}&k=qdsg54SFDbfdQSd`;
-  // };
+  const handleNavigateToRmQuesion = (c) => {
+    window.open(`https://smartskills.com.tn/wqkjsdhvj76vhbnc565ds/tmp/rmquestions.php?c=${c}&k=qdsg54SFDbfdQSd`, '_blank');
+};
+
 
   const handleFillQuestions = async (c) => {
     console.log('c is ',c)
@@ -200,6 +201,34 @@ const Dashboard = () => {
           </div>
         );
       },
+    },
+    {
+      field: "Navigation",
+      headerName: "Navigation",
+      width: 100,
+      renderCell:(params)=>{
+        const c=params.row.iterationKey ?params.row.iterationKey : "";
+        return (
+          <>
+          {c && c!="" &&
+          <Button onClick={() =>handleNavigateToRmQuesion(c)}>
+           OSMQ 
+          </Button>
+          
+          
+          }
+
+
+          </>
+
+
+        )
+        
+
+
+
+      }
+
     },
     {
       field: "Export",

@@ -142,5 +142,7 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::get('/vmtype',[VmController::class,'getAccunetixAndOwaszap']);
     Route::get('/all-tables',[CloneController::class,'getTables']);
     Route::post('/all-attributes',[CloneController::class,'getTableAttributes']);
-    Route::get('/modify',[CloneController::class,'Modify']);
+    Route::put('/modify',[CloneController::class,'Modify']);
+    Route::delete('/delete-row',[CloneController::class,'DeleteRow']);
+
 

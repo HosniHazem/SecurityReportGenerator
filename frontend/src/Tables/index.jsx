@@ -89,6 +89,33 @@ export default function TablesClone() {
     setIsModalVisible(false);
   };
 
+  const handleModalDelete = async () => {
+    const dataToDelete = {
+      name: selectedTable,
+      id: selectedRow.id ? selectedRow.id : selectedRow.ID,
+    };
+    console.log("values to delete ", dataToDelete);
+  
+    try {
+      const response = await axiosInstance.delete("delete-row", {
+        data: dataToDelete, // Pass the data as an object
+      });
+  
+      if (response.data.success) {
+        toast.success("Deleted successfully");
+      } else {
+        toast.error("Error deleting data");
+      }
+    } catch (error) {
+      toast.error("Error deleting data");
+      console.log(error);
+    }
+  
+    // Close the modal
+    setIsModalVisible(false);
+  };
+  
+
   const handleInput = (value) => {
     // Handle the input value, you can send it to the server or perform any other actions
     console.log("Input value:", value);
@@ -149,12 +176,20 @@ export default function TablesClone() {
       <Modal
         title={`Enter new ${selectedAttribute} value for row ID ${
           selectedRow?.id || selectedRow?.ID
-        }`}
+        } or delete the entire row`}
         visible={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         footer={[
           <Button key="submit" type="primary" onClick={handleModalSubmit}>
             Submit
+          </Button>,
+          <Button
+            key="delete"
+            type="primary"
+            onClick={handleModalDelete}
+            danger
+          >
+            Delete
           </Button>,
         ]}
       >
