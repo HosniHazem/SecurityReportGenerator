@@ -71,19 +71,27 @@ class ProjectController extends Controller
             'iterationKey' => 'required',
             'methodVersion' => 'required'
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json([
                 'status' => 422,
                 'validate_err' => $validator->getMessageBag(),
             ]);
         }
-
+    
         $methodVersion = $req->input('methodVersion');
-
+    
         $existingMethodVersion = MehariVersion::where('Version', $methodVersion)->first();
-
+    
         if ($existingMethodVersion) {
+            // Check if iterationKey already exists
+            $existingRmIteration = RmIteration::where('ID', $req->iterationKey)->first();
+    
+            if ($existingRmIteration) {
+                // Delete the existing RmIteration entry
+                $existingRmIteration->delete();
+            }
+    
             // Create the project
             $item = new Project();
             $item->Nom = $req->Nom;
@@ -91,23 +99,23 @@ class ProjectController extends Controller
             $item->Description = $req->Description;
             $item->year = $req->year;
             $item->customer_id = $req->customer_id;
-            $item->iterationKey=$req->iterationKey;
+            $item->iterationKey = $req->iterationKey;
             $item->save();
-
-            // Create iteration
+    
+            // Create new RmIteration
             $rmIteration = new RmIteration;
             $rmIteration->ID = $req->iterationKey;
             $rmIteration->MehariVersion = $methodVersion;
             $rmIteration->customerID = $req->customer_id;
             $rmIteration['Date création'] = date("Y-m-d");
             $rmIteration->save();
-
+    
             return response()->json([
                 'message' => 'Project and RmIteration created successfully',
                 'project' => $item,
                 'rmIteration' => $rmIteration,
                 'success' => true,
-                'status'=>200
+                'status' => 200
             ]);
         } else {
             // Handle the case where MehariVersion is not found
@@ -117,6 +125,7 @@ class ProjectController extends Controller
             ]);
         }
     }
+    
 
     public function update(Request $req,$id)
     {
