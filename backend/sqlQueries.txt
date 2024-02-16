@@ -10,3 +10,5 @@ UPDATE `vm` Set `accessKey`="d31c2oo5sn998vpk0cpouf0i0h" WHERE `Type` ="Owaszap"
 ALTER TABLE projects
 ADD COLUMN iterationKey VARCHAR(255);  
 
+//
+customer sites make ID auto increment

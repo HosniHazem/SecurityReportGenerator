@@ -28,6 +28,7 @@ use App\Http\Controllers\RmAnswerController;
 use App\Http\Controllers\ApiRequestController;
 use App\Http\Controllers\CloneController;
 use App\Http\Controllers\HtmlParser;
+use App\Http\Controllers\CustomerSitesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -144,5 +145,6 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::post('/all-attributes',[CloneController::class,'getTableAttributes']);
     Route::put('/modify',[CloneController::class,'Modify']);
     Route::delete('/delete-row',[CloneController::class,'DeleteRow']);
-
+    Route::post('/add-customersite', [CustomerSitesController::class, 'createCustomerSite']);
+    Route::get('all-customerSites',[CustomerSitesController::class,'index']);
 
