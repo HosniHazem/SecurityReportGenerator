@@ -25,7 +25,6 @@ return [
         'http://webapp.ssk.lc:3002',
         'https://10.0.33.58:8834',
         'http://webapp.ssk.lc:3002',
-
     ],
 
     'allowed_origins_patterns' => [],
