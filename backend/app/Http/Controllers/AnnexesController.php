@@ -71,8 +71,11 @@ class AnnexesController extends Controller
             SELECT Concat (sow.Type," ( ",count(DISTINCT Host) ," hosts ) ") As "Type", CONCAT( count(*), " vulns (Moy par hote: ", ROUND( count(*)/ count(DISTINCT Host))," vulns ) ") ,'no Link' FROM `vuln` LEFT Join sow on sow.IP_Host=Host  WHERE ID_Projet = ? and sow.Projet=? GROUP BY sow.Type;
             HERE3,
             <<< HERE4
-            SELECT Concat (sow.Type," non encore scannee") As "Type", GROUP_CONCAT(DISTINCT IP_Host SEPARATOR '  ;  ' )  ,'Danger !!!' FROM `sow` WHERE Type<>'PC' AND `Projet`= ?  AND IP_Host not in (SELECT DISTINCT Host FROM vuln WHERE ID_Projet=?)  order by sow.Type;
+            SELECT Concat (sow.Type," non encore scannee") As "Type",IP_Host   ,'Danger !!!' FROM `sow` WHERE Type<>'PC' AND `Projet`= ?  AND IP_Host not in (SELECT DISTINCT Host FROM vuln WHERE ID_Projet=?)  group by  IP_Host;
             HERE4,
+            <<< HERE41
+            SELECT "OS manquant",  concat (count(*), "/", (SELECT count(IP_Host) FROM sow WHERE `Projet`=?)) ,'/populateOSDanger' FROM `sow` WHERE (`field4` IS NULL OR LENGTH(`field4`)=0) AND `Projet`= ?;
+            HERE41,
             <<< HERE5
             SELECT "Nbr des actifs hors perimetres / Nbr Vulns", CONCAT(COUNT(DISTINCT Host),  '  /  ' , count(*))  ,'Information' FROM `vuln` WHERE Host NOT IN (SELECT DISTINCT IP_Host From sow WHERE  Projet = ? ) AND vuln.ID_Projet= ?
             HERE5,
@@ -82,16 +85,25 @@ class AnnexesController extends Controller
             <<< HERE7
             SELECT "Are these Addresses Externals or internals", IP_Host ,'/setAsExternal' FROM `sow` WHERE IP_Host NOT REGEXP '^ *172\.|^ *10\.|^ *192\.' AND Type<>'Ext' AND `Projet` = ?;
             HERE7,
-
+           
             <<< HERE9
             SELECT 'IP_Host should not contain spaces', IP_Host ,'/removeSpaceHOST_IP' FROM `sow` WHERE  IP_Host LIKE '% %' AND `Projet` = ? ORDER BY Type;
             HERE9,
             <<< HERE10
-            SELECT Type, IP_Host ,'SoW (sauf PC) to be rechecked' FROM `sow` WHERE  Type<>'PC' AND `Projet` = ? ORDER BY Type;
+            SELECT Type, CONCAT(REGEXP_SUBSTR(`IP_Host`, '[0-9]+\.[0-9]+\.[0-9]+\.') , 'x/24') as subnet,'SoW (only PC) to be rechecked' FROM `sow` WHERE  Type='PC' AND `Projet` = ? group by subnet;
             HERE10,
             <<< HERE11
-            SELECT Type, CONCAT(REGEXP_SUBSTR(`IP_Host`, '[0-9]+\.[0-9]+\.[0-9]+\.') , 'x/24') as subnet,'SoW (only PC) to be rechecked' FROM `sow` WHERE  Type='PC' AND `Projet` = ? group by subnet;
+            SELECT Type, CONCAT(REGEXP_SUBSTR(`IP_Host`, '[0-9]+\.[0-9]+\.[0-9]+\.') , 'x/24') as subnet,'SoW (only Serveurs) to be rechecked' FROM `sow` WHERE  Type='Serveur' AND `Projet` = ? group by subnet;
             HERE11,
+            <<< HERE12
+            SELECT Type, CONCAT(REGEXP_SUBSTR(`IP_Host`, '[0-9]+\.[0-9]+\.[0-9]+\.') , 'x/24') as subnet,'SoW (only Infra) to be rechecked' FROM `sow` WHERE  Type='R_S' AND `Projet` = ? group by subnet;
+            HERE12,
+            <<< HERE13
+            SELECT Type, CONCAT(REGEXP_SUBSTR(`IP_Host`, '[0-9]+\.[0-9]+\.[0-9]+\.') , 'x/24') as subnet,'SoW (only Apps) to be rechecked' FROM `sow` WHERE  Type='Apps' AND `Projet` = ? group by subnet;
+            HERE13,
+            <<< HERE14
+            SELECT Type,`IP_Host` as subnet,'SoW (only Ext) to be rechecked' FROM `sow` WHERE  Type='Ext' AND `Projet` = ? group by subnet;
+            HERE14,
     );
     /* */
         //$listOfCombinedItems()
@@ -128,10 +140,10 @@ class AnnexesController extends Controller
         $v_Global=0;
         if($ttl_hosts!=null)
         if($source[0] > 0)
-        $v_Global = 75 + round(25 * ($source[0]/$ttl_hosts));
-        elseif ($source[1] > 0) $v_Global = 50 + round(25 * ($source[1]/$ttl_hosts));
-        elseif ($source[2] > 0) $v_Global = 25 + round(25 * ($source[2]/$ttl_hosts));
-        else $v_Global = round(25 * ($source[3]/$ttl_hosts));
+        $v_Global = 75 + min(24,round(25 * ($source[0]/$ttl_hosts)));
+        elseif ($source[1] > 0) $v_Global = 50 + min(25,round(25 * ($source[1]/$ttl_hosts)));
+        elseif ($source[2] > 0) $v_Global = 25 + min(25, round(25 * ($source[2]/$ttl_hosts)));
+        else $v_Global = min(25,round(25 * ($source[3]/$ttl_hosts)));
 
         return min(99, $v_Global);
 
@@ -537,6 +549,7 @@ public function generateAnnexes (Request $request, $AnnexA)
 
                   $nbrOfRowsAddedToFile=0;
                   $templatePath = public_path($tmplate);
+                  //echo $templatePath; exit;
                   $templateProcessor = new TemplateProcessor($templatePath);
 
                 self::preparePagesDeGarde($templateProcessor, $Annex,$customer, $project );
@@ -849,6 +862,29 @@ public static function executeCronJobs(Request $req)
     return true;
 }
 
+public static function populateOSDanger(Request $req)
+{
+
+    set_time_limit(50000);
+
+   
+    if(!isset($req->prj_id)) return false;
+    $sql =<<<SQLSQL
+    Update Sow s
+    Inner join vuln v
+    On s.IP_Host = v.Host 
+    AND s.`Projet`=?
+    AND v.`ID_Projet`=?
+    AND v.Name='OS Identification' 
+    AND (s.`field4`IS NULL OR LENGTH(s.`field4`)=0)
+    SET s.`field4` = SUBSTRING_INDEX(SUBSTRING_INDEX(v.`Plugin Output`,"\n",2),'Remote operating system : ',-1)
+    SQLSQL;
+
+ DB::update($sql, [$req->prj_id, $req->prj_id]);
+ self::sendMessage("Populating OS Fields if possible for projet: " .$req->prj_id );
+ return true;
+}
+
 public static function removeBadCharsFromDB(Request $req)
 {
 
@@ -870,6 +906,9 @@ public static function removeBadCharsFromDB(Request $req)
       $i++;
     }
 }
+
+
+
 public function getPluginsFromAllServers(Request $request)
 {
     set_time_limit(50000);
@@ -881,7 +920,7 @@ public function getPluginsFromAllServers(Request $request)
             ->where('Type', 'Nessus')  // Add the condition to filter by Type
             ->first();
             $stats =  self::getPlugins($needed,  $request->prj_id);
-            AnnexesController::sendMessage($stats['name']."[Report] has ". $stats['nb_pl']."number of succesfull".$stats['nb_s']."number of problems".$stats['nb_p']);
+            AnnexesController::sendMessage($stats['name']."[Report] has ". $stats['nb_pl']." number of succesfull"." and ".$stats['nb_s']."number of problems".$stats['nb_p']);
         }
     }
 
@@ -905,7 +944,7 @@ public static function getPlugins ($ip,$prj_id)
 
             $Stats['nb_pl']=count($pluginIds);
             AnnexesController::sendMessage("[Nessus_Plugins] Number of Plugins missed:".count($pluginIds));
-
+            
             foreach ($pluginIds as $plugin) {
                 $pid = $plugin->PluginID;
                 $getRequest = "https://{$ip->IP_Host}:{$ip->Port}/plugins/plugin/{$pid}";
@@ -916,7 +955,7 @@ public static function getPlugins ($ip,$prj_id)
                     ])->withHeaders([
                       //  'X-ApiKeys' => str_replace(",",";",$ip->Auth),
                        //'X-ApiKeys' => "accessKey=0ad4ef73966ac93d4a8c10f854e665008d7a07fc540f17942501535ce7077dd3; secretKey=39cb3b8050857af6cfa39640a16204d68bd493337fe3340b1cbf59dc2b6ed7e9",
-                        'X-ApiKeys' => "accesKey={$ip->accessKey}; secretKey={$ip->secretKey}"
+                        'X-ApiKeys' => "accessKey={$ip->accessKey}; secretKey={$ip->secretKey}"
                       ])->get($getRequest);
                  $responseData = json_decode($response->body(), true);
                 if(isset($responseData['attributes']))

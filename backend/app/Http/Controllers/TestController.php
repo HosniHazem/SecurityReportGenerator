@@ -22,10 +22,80 @@ use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
 use App\CustomPhpWord\CustomPhpWord;
 use Dompdf\Dompdf;
+use Illuminate\Console\Command;
+use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+use App\Models\Vuln;
+use App\Models\Sow;
+use App\Models\Uploadanomalies;
+use App\Models\Plugins;
+use clsTbsZip;
 
 
 class TestController extends Controller
 {
+
+
+public static function updateIPHostInformation()
+   
+ {
+        
+        $ipp = "srv.g6.ssk.lc:8834";
+        $ApiKeys = "accessKey=0ad4ef73966ac93d4a8c10f854e665008d7a07fc540f17942501535ce7077dd3;secretKey=39cb3b8050857af6cfa39640a16204d68bd493337fe3340b1cbf59dc2b6ed7e9";
+        $e = 53;
+        $response = Http::withOptions([
+            'verify' => false, // Disable SSL verification
+        ])->withHeaders([
+            'X-ApiKeys' => $ApiKeys,
+        ])->get("https://{$ipp}/scans/{$e}");
+
+        $responseData = json_decode($response->body(), true);
+
+        foreach ($responseData['hosts'] as $host) {
+            $one = $host['host_id'];
+
+            $response = Http::withOptions([
+                'verify' => false, // Disable SSL verification
+            ])->withHeaders([
+                'X-ApiKeys' => $ApiKeys,
+            ])->get("https://{$ipp}/scans/{$e}/hosts/{$one}");
+
+            $responseData2 = json_decode($response->body(), true);
+            //print_r($one);
+            
+            $host_ip = $responseData2['info']['host-ip'];
+            $ip = Sow::where('IP_Host', $host_ip)
+                ->get();
+                
+            if (!$ip->isEmpty()) {
+                
+        foreach ($ip as $ip_n) {
+            
+        // Check if 'host-fqdn' key exists in $responseData2
+        if (isset($responseData2['info']['host-fqdn']) && !empty($responseData2['info']['host-fqdn'])) {
+            $ip_n->Nom = $responseData2['info']['host-fqdn'];
+        } elseif (isset($responseData2['info']['netbios-name']) && !empty($responseData2['info']['netbios-name']) && $ip_n->Nom === null) {
+            $ip_n->Nom = $responseData2['info']['netbios-name'];
+        }
+
+        // Check if 'operating-system' key exists in $responseData2
+        if (isset($responseData2['info']['operating-system'])) {
+            $ip_n->field4 = $responseData2['info']['operating-system'];
+        }
+
+        $ip_n->update();
+        
+    }
+    }
+
+    }
+    }
+
+
+
+
+
 
 public static function translate($q)
 {

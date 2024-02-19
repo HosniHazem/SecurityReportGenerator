@@ -135,7 +135,7 @@ useEffect(()=>{
       if (values.q) {
 
         const responseQuery2 = await axios.post(
-          "http://webapp.preprod.ssk.lc/AppGenerator/backend/api/owaszap",
+          "http://webapp.ssk.lc/AppGenerator/backend/api/owaszap",
           {
             q: values.q,
             id: id,

@@ -98,7 +98,7 @@ const DataTable = ({ data ,id}) => {
       formData.append("attach", picture.attach);
       if (picture.attach) {
         axios
-          .post("http://webapp.smartskills.tn/AppGenerator/backend/api/Uploadfile", formData)
+          .post("http://webapp.ssk.lc/AppGenerator/backend/api/Uploadfile", formData)
           .then((res) => {
             if (res.status === 200) {
             } else if (res.status === 422) {
@@ -116,7 +116,7 @@ const DataTable = ({ data ,id}) => {
     };
     console.log(data);
      axios
-      .put(`http://webapp.smartskills.tn/AppGenerator/backend/api/Project/${id}/update`, data)
+      .put(`http://webapp.ssk.lc/AppGenerator/backend/api/Project/${id}/update`, data)
       .then((res) => {
         if (res.data.status === 200) {
           swal("Updated", "success");
@@ -136,7 +136,7 @@ const DataTable = ({ data ,id}) => {
 
     let parsedData = {};
     parsedData.project_id = id;
-   axios.post(`http://webapp.smartskills.tn/AppGenerator/backend/api/${cellData}`,parsedData)
+   axios.post(`http://webapp.ssk.lc/AppGenerator/backend/api/${cellData}`,parsedData)
     .then((response) => {
       if(response.data.status===200){
         swal("Request","Done","Successfuly");
@@ -247,14 +247,14 @@ const DataTable = ({ data ,id}) => {
         </thead>
         <tbody>
           {data.slice(1).map((rowData, rowIndex) => (
-            <tr key={rowIndex} style={data.slice(1)[rowIndex][2] === 'Danger !!!' ? { backgroundColor: 'red', color: 'white' } : data.slice(1)[rowIndex][2] === 'Information' ? { backgroundColor: 'blue', color: 'white' } : null} >
+            <tr key={rowIndex} style={data.slice(1)[rowIndex][2].includes('Danger') ? { backgroundColor: 'red', color: 'white' } : data.slice(1)[rowIndex][2] === 'Information' ? { backgroundColor: 'blue', color: 'white' } : null} >
               {rowData.map((cellData, cellIndex) => (
               <td key={cellIndex} >
             {cellIndex >= 2 ? (
-              cellData === 'Danger !!!' ? (
+               cellData.includes('/') ? (
+                <a href={`http://webapp.ssk.lc/AppGenerator/backend/api${cellData}?prj_id=${id}&fieldsValue=${data.slice(1)[rowIndex][cellIndex-1]}`} target="_blank" rel="noopener noreferrer">{cellData}</a>
+              ) :cellData.includes('Danger') ? (
                 <div style={{ backgroundColor: 'red',color : 'white' }}>{cellData}</div>
-              ) : cellData.includes('/') ? (
-                <a href={`http://webapp.smartskills.tn/AppGenerator/backend/api${cellData}?prj_id=${id}&fieldsValue=${data.slice(1)[rowIndex][cellIndex-1]}`} target="_blank" rel="noopener noreferrer">{cellData}</a>
               ) : cellData === 'Information' ? (
                 <div style={{ backgroundColor: 'blue',color : 'white' }}>{cellData}</div>
               ) : (

@@ -82,7 +82,7 @@ function AddCustom() {
 
 
       const response = await axios.post(
-        "http://webapp.preprod.ssk.lc/AppGenerator/backend/api/Customer/create",
+        "http://webapp.ssk.lc/AppGenerator/backend/api/Customer/create",
         formData,
         {
           headers: {
