@@ -1,285 +1,370 @@
 import React, { useState, useEffect } from "react";
-import './table.css'; // Import your CSS file for styling
-import swal from 'sweetalert';
-import axios from 'axios';
-import Avatar from '@mui/material/Avatar';
-import Stack from '@mui/material/Stack';
-import FolderIcon from '@mui/icons-material/Folder';
-import { useParams , Link } from 'react-router-dom';
-import Box from '@mui/material/Box';
-import Fade from '@mui/material/Fade';
-import Button from '@mui/material/Button';
-import CircularProgress from '@mui/material/CircularProgress';
-import Typography from '@mui/material/Typography';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-import CloseIcon from '@mui/icons-material/Close';
-import useMediaQuery from '@mui/material/useMediaQuery';
-import { useTheme } from '@mui/material/styles';
-import IconButton from '@mui/material/IconButton';
-import { Span } from "../projects/Typography";
-import { styled } from "@mui/system";
-import { ValidatorForm } from "react-material-ui-form-validator";
+import { useParams, useNavigate } from "react-router-dom";
+import { axiosInstance } from "../axios/axiosInstance";
+import { Form, Input, Button, Upload, message, Col, Row, Modal,Table } from "antd";
+import { InboxOutlined, UploadOutlined } from "@ant-design/icons";
+import toast from "react-hot-toast";
+import AfterANomalie from "../AfterAnomalie";
+import axios from "axios";
+const { TextArea } = Input;
 
-
-
-
-const Container = styled("div")(({ theme }) => ({
-  margin: "30px",
-  [theme.breakpoints.down("sm")]: {
-    margin: "16px",
-  },
-  "& .breadcrumb": {
-    marginBottom: "20px",
-    [theme.breakpoints.down("sm")]: {
-      marginBottom: "16px",
-    },
-  },
-}));
-const DataTable = ({ data ,id}) => {
-  const project_name=sessionStorage.getItem('project_name');
-  const [Project, setProject] = useState([]);
-  const [Fich, setFich] = useState(null);
-  const [open, setOpen] = React.useState(false);
-  const [picture, setPicture] = useState({
-    attach: "",
-  });
-  if (!data || data.length === 0) {
-    // Handle the case where data is undefined or an empty array
-    return      <div>
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '70vh', // Optional: Set the height of the container
-      }}
-    >
-      <CircularProgress />
-      <Box
-      component="div"
-      sx={{
-        marginLeft: '8px', // Adjust the left margin as needed
-        padding: '8px', // Optional: Add padding for better visual appearance
-        color: '#1976d2', // Optional: Set text color
-      }}
-    >
-     <strong>Loading</strong>
-    </Box>
-    </Box>
-   
-  </div>;
-  }
-  const handleInput = (e) => {
-    e.persist();
-
-    setProject({ ...Project, [e.target.name]: e.target.value });
+export default function Anomalie() {
+  const { id } = useParams();
+  console.log("hello world");
+  const [projectData, setProjectData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [vm,setVm]=useState();
+  const navigate = useNavigate();
+  const [htmlFile, setHtmlFile] = useState(null);
+  const [hclFile, setHclFile] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [accuentixNumber, setAccunetixNumber] = useState(0);
+  const [invicti, setInvicti] = useState(0);
+  const [hcl, setHcl] = useState(0);
+  const [owaszap,setOwaszap]=useState(0);
+  const [accessKey,setAccessKey]=useState("");
+  const [accunetixStatus, setAccunetixStatus] = useState(""); // Assuming accunetixStatus is a string like "Online" or "Offline"
+const [owaszapStatus, setOwaszapStatus] = useState("");
+  const showModal = () => {
+    setIsModalVisible(true);
   };
 
-  const handleImage = (e) => {
-    e.preventDefault();
-    setPicture({ attach: e.target.files[0] });
-
-    setFich(e.target.files[0].name);
-  };
-  console.log(id)
-
-  const getCurrentDateTime = () => {
-    const currentDateTime = new Date();
-    return currentDateTime.toLocaleString(); // Adjust the date and time format as needed
-  };
-  const UpdateProject = (e) => {
-    e.preventDefault();
-     if (Fich != null) {
-      const formData = new FormData();
-      formData.append("attach", picture.attach);
-      if (picture.attach) {
-        axios
-          .post("http://webapp.ssk.lc/AppGenerator/backend/api/Uploadfile", formData)
-          .then((res) => {
-            if (res.status === 200) {
-            } else if (res.status === 422) {
-            }
-          });
-      }
-    } 
- 
-
-    const data = {
-      QualityCheckedMessage: Project.QualityCheckedMessage,
-      Preuve: Fich,
-      QualityChecked: 1,
-      QualityCheckedDateTime : getCurrentDateTime()
-    };
-    console.log(data);
-     axios
-      .put(`http://webapp.ssk.lc/AppGenerator/backend/api/Project/${id}/update`, data)
-      .then((res) => {
-        if (res.data.status === 200) {
-          swal("Updated", "success");
-          window.location.reload();
-        } else if (res.data.status === 404) {
-          swal("Error", Project.SN, "error");
-        } else if (res.data.status === 422) {
-          swal("All fields are mandetory", "", "error");
-          setProject({ ...Project, error_list: res.data.validate_err });
-        }
-      }); 
+  const handleOk = () => {
+    setIsModalVisible(false);
   };
 
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
 
-
-  const Action = (cellData) => {
-
-    let parsedData = {};
-    parsedData.project_id = id;
-   axios.post(`http://webapp.ssk.lc/AppGenerator/backend/api/${cellData}`,parsedData)
-    .then((response) => {
-      if(response.data.status===200){
-        swal("Request","Done","Successfuly");
-      }
+  const normHtmlFile = (e) => {
+    if (Array.isArray(e)) {
+      return e;
     }
-    ) 
+    if (e && e.fileList && e.fileList[0]) {
+      setHtmlFile(e.fileList[0].originFileObj);
+    }
+    return e && e.fileList;
   };
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-  const handleClose = () => {
-    setOpen(false);
+  const normHclFile = (e) => {
+    if (Array.isArray(e)) {
+      return e;
+    }
+    if (e && e.fileList && e.fileList[0]) {
+      setHclFile(e.fileList[0].originFileObj);
+    }
+    return e && e.fileList;
   };
 
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const response = await axiosInstance.get(`Project/${id}/show`);
+  //       setProjectData(response.data.Project);
+  //       console.log(projectData);
+  //       setLoading(false);
+  //     } catch (error) {
+  //       console.error("Error fetching project data:", error);
+  //       // Handle error, for example, redirect to an error page
+  //     }
+  //   };
 
-  // Assuming data has at least one row
-  const headers = data[0];
+  //   fetchData();
+  // }, [id, navigate]);
+
+useEffect(()=>{
+  const fetchVm = async () => {
+    try {
+      const response = await axiosInstance.get(`/vmtype`);
+      console.log("vm resp",response.data.vm);
+      setVm(response.data.Vm);
+      console.log("vm",vm);
+      console.log("vm one",vm[0]);
+        if (vm && vm.length > 0) {
+        console.log("accessKey:", vm[0].accessKey);
+        console.log("")
+        setAccessKey(vm[0].accessKey);
+        setAccunetixStatus(vm[0].answer);
+        setOwaszapStatus(vm[1].answer);
+        console.log("accunetixStatus",vm[0].answer);
+        // setAccunetixStatus("Offline")
+      } else {
+        console.error("Error fetching project data: Empty or undefined vm array");
+      }    } catch (error) {
+      console.error("Error fetching project data:", error);
+      // Handle error, for example, redirect to an error page
+    }
+  };
+
+  fetchVm();
+},[])
+
+
+
+  useEffect(() => {
+    console.log("isModalVisible:", isModalVisible);
+  }, [isModalVisible]);
+
+  const onFinish = async (values) => {
+    console.log(values);
+  
+    try {
+      if (
+        values.q &&
+        vm &&
+        vm.length > 0 &&
+        vm[0].Type === "Acunetix" &&
+        vm[0].answer === "Online"
+      )      {
+        const responseQuery = await axiosInstance.post(
+          "/get-vuln",
+          {
+            q: values.q,
+            id: id,
+          },
+          {
+            headers: {
+              "X-Auth":
+                accessKey,
+            },
+          }
+        );
+  
+        console.log(responseQuery.data);
+  
+        if (responseQuery.data.success) {
+          toast.success(responseQuery.data.message);
+          setAccunetixNumber(responseQuery.data.data);
+        } else {
+          toast.error("wrong");
+        }
+      }
+    } catch (error) {
+      toast.error("something wrong with query");
+      console.log(error);
+    }
+    
+    try {
+      if (
+        values.q &&
+        vm &&
+        vm.length > 0 &&
+        vm[0].Type === "Owaszap" &&
+        vm[0].answer === "Online"
+      ) {  
+              const responseQuery2 = await axios.post(
+          "http://webapp.ssk.lc/AppGenerator/backend/api/owaszap",
+          {
+            q: values.q,
+            id: id,
+          },
+        );
+  
+        console.log(responseQuery2.data);
+  
+        if (responseQuery2.data) {
+          toast.success(responseQuery2.data.message);
+          setOwaszap(responseQuery2.data.data);
+        } else {
+          toast.error("wrong");
+        }
+      }
+    } catch (error) {
+      toast.error("something wrong with query");
+      console.log(error);
+    }
+
+
+
+    try {
+      // Send the file1 value to the first endpoint with id
+      if (values.file1 && values.file1[0].originFileObj) {
+        const formDataFile1 = new FormData();
+        formDataFile1.append("vuln", values.file1[0]?.originFileObj, "vuln.html");
+  
+        const responseFile1 = await axiosInstance.post(
+          `/vuln-from-html/${id}`,
+          formDataFile1,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+  
+        console.log(responseFile1.data);
+  
+        if (responseFile1.data.success) {
+          toast.success(responseFile1.data.message);
+          setInvicti(responseFile1.data.number);
+        } else {
+          toast.error("wrong");
+        }
+      }
+    } catch (error) {
+      toast.error("something wrong with file1");
+      console.log(error);
+    }
+  
+    try {
+      // Send the file2 value to the second endpoint without id
+      if (values.file2 && values.file2[0]?.originFileObj) {
+        const formDataFile2 = new FormData();
+        formDataFile2.append("vuln", values.file2[0]?.originFileObj);
+    
+        const responseFile2 = await axiosInstance.post(
+          `/vuln-from-hcl/${id}`,
+          formDataFile2,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+    
+        console.log(responseFile2.data);
+    
+        if (responseFile2.data.success) {
+          toast.success(responseFile2.data.message);
+          setHcl(responseFile2.data.number);
+        } else {
+          toast.error("wrong");
+        }
+      } else {
+        console.log("File 2 is not present. Skipping the request.");
+      }
+      showModal();
+
+
+    } catch (error) {
+      toast.error("something wrong with file2");
+      console.log(error);
+    }
+    
+    
+  };
+  
+  
+
+
+
+  const columns = [
+    {
+      title: 'ip',
+      dataIndex: 'ip',
+      key: 'ip',
+    },
+    {
+      title: 'answer',
+      dataIndex: 'answer',
+      key: 'answer',
+      render: (text, record) => (
+        <span style={{ color: text === 'Online' ? 'green' : 'red' }}>
+          {text}
+        </span>
+      ),
+    },
+    {
+      title: 'Type',
+      dataIndex: 'Type',
+      key: 'Type',
+    },
+  ];
 
   return (
-    <div className="table-container">
-       <div className='project'>
-       <Dialog open={open} onClose={handleClose} maxWidth={"sm"} fullWidth={"false"}  >
-<DialogTitle>QA Feedback</DialogTitle>
-<IconButton
-          aria-label="close"
-          onClick={handleClose}
-          sx={{
-            position: 'absolute',
-            right: 8,
-            top: 8,
-            color: (theme) => theme.palette.grey[500],
-          }}
-        >
-          <CloseIcon />
-        </IconButton>
+    <div style={{ width: "80%", marginLeft: "10%" }}>
+          <Table dataSource={vm} columns={columns}  pagination={false} bordered style={{
+            marginTop:"10%"
+          }} />
 
-        <DialogContent >
+      <h2>Accunetix & OWASZAP Queries</h2>
 
-    <Container>
-      <div className="Container">
-        <ValidatorForm
-          onSubmit={UpdateProject}
-          onError={() => null}
-          encType="multipart/form-data"
-        >
-        
-        <label htmlFor="exampleFormControlInput1" className="item">
-            QualityCheckedMessage :
-          </label>
-          <textarea
-                    name="QualityCheckedMessage"
-                    onChange={handleInput}
-                    className="form-control"
-                    htmlFor="exampleFormControlInput1"
-                    value={Project.QualityCheckedMessage}
-                  />
-
-          <div className="item"></div>
-          <Button className="upload" variant="contained" component="label">
-            Upload File
-            <input type="file" name="attach" onChange={handleImage} hidden />
-          </Button>
-
-          <div className="item">{Fich}</div>
-          <div className="item"></div>
-          <Button
-            type="submit"
-            className="button5"
-          >
-            <Span sx={{ pl: 1, textTransform: "capitalize" }}>Update</Span>
-          </Button>
-          <Button
-
-            className="button5"
-          >
-            <Span sx={{ pl: 1, textTransform: "capitalize" }}>Cancel</Span>
-          </Button>
-        </ValidatorForm>
-      </div>
-    </Container>
-
-        
+      <Form onFinish={onFinish} layout="vertical">
+   {  ( vm && (vm[0].answer==="Online" || vm[1].answer==="Online")) &&  
+   <Form.Item
+   label="Query"
+   name="q"
+   // rules={[{ required: true, message: "Please enter Form 1 field!" }]}
+ >
+   <TextArea rows={4} />
+ </Form.Item> 
+   }
        
-          
-        </DialogContent>
-     
-   
-</Dialog>
 
-       <Stack direction="row" spacing={2}>
-      <Avatar>
-        <FolderIcon />  
-      </Avatar>
-      
-      <h3>Project Name:</h3>
-      <span>{project_name}</span>
-   
-      </Stack>
-      </div>
-      <table className="data-table">
-        <thead>
-          <tr>
-            {headers.map((header, index) => (
-              <th key={index}>{header}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.slice(1).map((rowData, rowIndex) => (
-            <tr key={rowIndex} style={data.slice(1)[rowIndex][2] === 'Danger !!!' ? { backgroundColor: 'red', color: 'white' } : data.slice(1)[rowIndex][2] === 'Information' ? { backgroundColor: 'blue', color: 'white' } : null} >
-              {rowData.map((cellData, cellIndex) => (
-              <td key={cellIndex} >
-            {cellIndex >= 2 ? (
-              cellData === 'Danger !!!' ? (
-                <div style={{ backgroundColor: 'red',color : 'white' }}>{cellData}</div>
-              ) : cellData.includes('/') ? (
-                <a href={`http://webapp.ssk.lc/AppGenerator/backend/api${cellData}?prj_id=${id}&fieldsValue=${data.slice(1)[rowIndex][cellIndex-1]}`} target="_blank" rel="noopener noreferrer">{cellData}</a>
-              ) : cellData === 'Information' ? (
-                <div style={{ backgroundColor: 'blue',color : 'white' }}>{cellData}</div>
-              ) : (
-                cellData
-              )
-            ) : (
-              cellData
-            )}
-          </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {
-        data ?
-        <div>
-        <Link to={`/`} style={{ textDecoration: "none" }}>
-      <button className='button3'>Back</button>
-          </Link>
-          <button className='button4' onClick={()=>handleClickOpen()}>QA  Validation</button>
-          </div> : null
-      }
+        <h2>File Uploads</h2>
+        <div style={{ alignContent: "center" }}>
+          <Row>
+            <Col span={8}>
+              <Form.Item
+                name="file1"
+                label="Invicti"
+                valuePropName="fileList"
+                getValueFromEvent={normHtmlFile}
+              >
+                <Upload
+                  name="file1"
+                  beforeUpload={(file) => {
+                    setHtmlFile(file);
+                    return false; // Returning false prevents automatic upload
+                  }}
+                >
+                  <Button icon={<UploadOutlined />} style={{ width: "200%" }}>
+                    Upload Invicti
+                  </Button>
+                </Upload>
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="file2"
+                label="HCL"
+                valuePropName="fileList"
+                getValueFromEvent={normHclFile}
+              >
+                <Upload
+                  name="file2"
+                  beforeUpload={(file) => {
+                    setHclFile(file);
+                    return false; // Returning false prevents automatic upload
+                  }}
+                >
+                  <Button
+                    icon={<UploadOutlined />}
+                    style={{ width: "200%", marginLeft: "6%" }}
+                  >
+                    Upload HCL{" "}
+                  </Button>
+                </Upload>
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  style={{ width: "100%", marginTop: "9%" }}
+                >
+                  Submit
+                </Button>
+              </Form.Item>
+            </Col>
+          </Row>
+        </div>
+      </Form>
+      <Modal
+        title="Submitted Values"
+        visible={isModalVisible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+      >
+        <AfterANomalie
+          accuentixNumber={accuentixNumber}
+          invicti={invicti}
+          hcl={hcl}
+          owaszap={owaszap}
+        />
+      </Modal>
     </div>
   );
-};
-
-export default DataTable;
+}
