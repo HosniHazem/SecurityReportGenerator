@@ -10,7 +10,7 @@ const { TextArea } = Input;
 
 export default function Anomalie() {
   const { id } = useParams();
-  console.log("id is", id);
+  console.log("hello world");
   const [projectData, setProjectData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [vm,setVm]=useState();
@@ -23,6 +23,8 @@ export default function Anomalie() {
   const [hcl, setHcl] = useState(0);
   const [owaszap,setOwaszap]=useState(0);
   const [accessKey,setAccessKey]=useState("");
+  const [accunetixStatus, setAccunetixStatus] = useState(""); // Assuming accunetixStatus is a string like "Online" or "Offline"
+const [owaszapStatus, setOwaszapStatus] = useState("");
   const showModal = () => {
     setIsModalVisible(true);
   };
@@ -74,13 +76,19 @@ export default function Anomalie() {
 useEffect(()=>{
   const fetchVm = async () => {
     try {
-      const response = await axiosInstance.get(`vmtype`);
+      const response = await axiosInstance.get(`/vmtype`);
       console.log("vm resp",response.data.vm);
       setVm(response.data.Vm);
-      if (vm && vm.length > 0) {
+      console.log("vm",vm);
+      console.log("vm one",vm[0]);
+        if (vm && vm.length > 0) {
         console.log("accessKey:", vm[0].accessKey);
+        console.log("")
         setAccessKey(vm[0].accessKey);
-        console.log(accessKey);
+        setAccunetixStatus(vm[0].answer);
+        setOwaszapStatus(vm[1].answer);
+        console.log("accunetixStatus",vm[0].answer);
+        // setAccunetixStatus("Offline")
       } else {
         console.error("Error fetching project data: Empty or undefined vm array");
       }    } catch (error) {
@@ -102,7 +110,13 @@ useEffect(()=>{
     console.log(values);
   
     try {
-      if (values.q) {
+      if (
+        values.q &&
+        vm &&
+        vm.length > 0 &&
+        vm[0].Type === "Acunetix" &&
+        vm[0].answer === "Online"
+      )      {
         const responseQuery = await axiosInstance.post(
           "/get-vuln",
           {
@@ -132,9 +146,14 @@ useEffect(()=>{
     }
     
     try {
-      if (values.q) {
-
-        const responseQuery2 = await axios.post(
+      if (
+        values.q &&
+        vm &&
+        vm.length > 0 &&
+        vm[0].Type === "Owaszap" &&
+        vm[0].answer === "Online"
+      ) {  
+              const responseQuery2 = await axios.post(
           "http://webapp.ssk.lc/AppGenerator/backend/api/owaszap",
           {
             q: values.q,
@@ -262,13 +281,16 @@ useEffect(()=>{
       <h2>Accunetix & OWASZAP Queries</h2>
 
       <Form onFinish={onFinish} layout="vertical">
-        <Form.Item
-          label="Query"
-          name="q"
-          // rules={[{ required: true, message: "Please enter Form 1 field!" }]}
-        >
-          <TextArea rows={4} />
-        </Form.Item>
+   {  ( vm && (vm[0].answer==="Online" || vm[1].answer==="Online")) &&  
+   <Form.Item
+   label="Query"
+   name="q"
+   // rules={[{ required: true, message: "Please enter Form 1 field!" }]}
+ >
+   <TextArea rows={4} />
+ </Form.Item> 
+   }
+       
 
         <h2>File Uploads</h2>
         <div style={{ alignContent: "center" }}>
