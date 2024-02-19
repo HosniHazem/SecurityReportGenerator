@@ -18,7 +18,7 @@ class ApiRequestController extends Controller
         $xAuth=$item->accessKey;
         $ipPort=$item->IP_Port;
         // return response()->json($xAuth);
-
+        $score="CVSS v3.0 Base Score";
         $query = $request->q;
         $projectID=$request->id;
 
@@ -71,7 +71,7 @@ class ApiRequestController extends Controller
                 $it->Host=self::parseBaseUrl(htmlspecialchars($item['affects_url']));
 
                  $it->Synopsis=htmlspecialchars($item['impact']);
-                 $it["CVSS v3.0 Base Score"]= $item['cvss3'];
+                 $it->CVSSv3BaseScore= $item['cvss3'];
                  // $it->score=$item['cvss_score'];
                 $cvssInput = $item['cvss3'];
 
@@ -107,7 +107,7 @@ class ApiRequestController extends Controller
                     'Description' => $it->Description,
                     'Host' => $it->Host,
                     'Synopsis' => $it->Synopsis,
-                    'CVSS v3.0 Base Score' => $it["CVSS v3.0 Base Score"],
+                    `CVSS v3.0 Base Score` => $it["CVSS v3.0 Base Score"],
                     'See_Also' => $it['See Also'],
                     'Plugin_Output' => $it->Plugin_Output,
                     'risk' => $it->risk,
@@ -155,8 +155,13 @@ class ApiRequestController extends Controller
             $Host = isset($response['alert']['url']) ? self::parseBaseUrl($response['alert']['url']) : null;
             $SeeAlso = json_encode(self::parseBaseUrl($response['alert']['reference'] ?? null)) ?? null;
 
-            if (strpos($response['alert']['url'], $query) === false) {
-                $test = false;
+            if(isset($response['alert']['url'])){
+                if (strpos($response['alert']['url'], $query) === false) {
+                    $test = false;
+                }
+            }
+            else {
+                return response()->json(["owaszap returns nothing",'success'=>true]);
             }
 
             // Use raw SQL insert query
@@ -213,6 +218,19 @@ class ApiRequestController extends Controller
 
         // Output the final result
         echo $output;
+    }
+
+     static function getRiskLevelFromScore($cvssScore) {
+        if ($cvssScore >= 0.1 && $cvssScore <= 3.9) {
+            return "Low";
+        } elseif ($cvssScore >= 4 && $cvssScore <= 6.9) {
+            return "Medium";
+        } elseif ($cvssScore >= 7 && $cvssScore <= 8.9) {
+            return "High";
+        } elseif ($cvssScore >= 9) {
+            return "Critical";
+        }
+        return "Information";
     }
 
 }

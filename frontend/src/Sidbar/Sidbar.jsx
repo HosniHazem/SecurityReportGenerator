@@ -21,12 +21,12 @@ const sidebarNavItems = [
         to: '/customer',
         section: 'customer'
     },
-    {
-        display: 'Database Tables',
-        // icon: <FontAwesomeIcon icon="fa-solid fa-table" />,
-        to: '/tables',
-        section: 'tables'
-    }
+    // {
+    //     display: 'Database Tables',
+    //     // icon: <FontAwesomeIcon icon="fa-solid fa-table" />,
+    //     to: '/tables',
+    //     section: 'tables'
+    // }
  
 ]
 
@@ -54,8 +54,10 @@ const Sidebar = () => {
 
     return <div className='sidebar'>
         <div className="sidebar__logo">
-             Web App 2
+             Web App 2 
         </div>
+        <p className="version">V0.80</p>
+
         <div ref={sidebarRef} className="sidebar__menu">
             <div
                 ref={indicatorRef}

@@ -28,6 +28,7 @@ use App\Http\Controllers\RmAnswerController;
 use App\Http\Controllers\ApiRequestController;
 use App\Http\Controllers\CloneController;
 use App\Http\Controllers\HtmlParser;
+use App\Http\Controllers\CustomerSitesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -141,8 +142,11 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::post('/owaszap', [ApiRequestController::class, 'fillWithOWasZap']);
     Route::post('/vuln-from-html/{id}',[HtmlParser::class,'parse']);
     Route::post('/vuln-from-hcl/{id}',[HtmlParser::class,'parseHcl']);
-    Route::get('/vmtype/',[VmController::class,'getVulnWithType']);
+    Route::get('/vmtype',[VmController::class,'getAccunetixAndOwaszap']);
     Route::get('/all-tables',[CloneController::class,'getTables']);
     Route::post('/all-attributes',[CloneController::class,'getTableAttributes']);
-    Route::get('/modify',[CloneController::class,'Modify']);
+    Route::put('/modify',[CloneController::class,'Modify']);
+    Route::delete('/delete-row',[CloneController::class,'DeleteRow']);
+    Route::post('/add-customersite', [CustomerSitesController::class, 'createCustomerSite']);
+    Route::get('all-customerSites',[CustomerSitesController::class,'index']);
 

@@ -38,7 +38,7 @@ class WordDocumentController4 extends Controller
     public function generateWordDocument($customerId)
     {
 
-      
+
         set_time_limit(1000);
         //query for  customers table 
         $sqlCustomers = 'SELECT 
@@ -74,11 +74,11 @@ class WordDocumentController4 extends Controller
         ri.CustomerId =?
     GROUP BY
         rpd.ID, rpd.Processus_domaine;';
-    
 
 
 
-    $sql =  <<<HERE10
+
+        $sql =  <<<HERE10
     SELECT
         rm_answers.ID_Question,
         standards_controls.Controle_ID,
@@ -143,7 +143,7 @@ HERE10;
         `projects` p ON a.`Projet` = p.`id`
     WHERE
         (a.`Type` = 'Apps' OR a.`Type` = 'Ext') AND p.`customer_id` = ?";
-            //sql for "serveurs par plateforme"
+        //sql for "serveurs par plateforme"
         $sqlServers = "SELECT
         a.`Nom` AS Srv_Name,
         a.`IP_Host` AS Srv_IP,
@@ -172,16 +172,16 @@ HERE10;
         `projects` p ON a.`Projet` = p.`id`
     WHERE
         a.`Type` = 'R_S' AND p.`customer_id` = ?";
-            //sql for postes de travail
+        //sql for postes de travail
         $sqlPosteTravail = "SELECT sow.field4 AS PC_SE, COUNT(sow.field4) AS PC_Number FROM sow JOIN projects ON sow.Projet = projects.id JOIN customers ON projects.customer_id = customers.id WHERE sow.`Type` LIKE 'PC' AND customers.id = ?";
-                //sql for network Design Image
-        $sqlNetworkDesign="SELECT `Network_Design` FROM `customers` WHERE id=?";
+        //sql for network Design Image
+        $sqlNetworkDesign = "SELECT `Network_Design` FROM `customers` WHERE id=?";
         //sql for audit tools
-        $sqlAuditTools="SELECT `Tool_name` as tool ,`Version` tool_version,`License` as tool_license,`Feature` as tool_features,`Composante_SI` as tool_sow FROM `Audit_Tools` ORDER BY `Composante_SI`;";
+        $sqlAuditTools = "SELECT `Tool_name` as tool ,`Version` tool_version,`License` as tool_license,`Feature` as tool_features,`Composante_SI` as tool_sow FROM `Audit_Tools` ORDER BY `Composante_SI`;";
         //sql for "equipe de projet"
-        $sqlProjectTeam="SELECT `Nom` as SPOC_Tech_Name ,`Titre` as SPOC_Tech_Title,`Adresse mail primaire` as SPOC_Tech_email ,`Adresse mail secondaire`,`Tél` as SPOC_Tech_Tel FROM `glb_pip` WHERE `Cusotmer_ID`=?";
+        $sqlProjectTeam = "SELECT `Nom` as SPOC_Tech_Name ,`Titre` as SPOC_Tech_Title,`Adresse mail primaire` as SPOC_Tech_email ,`Adresse mail secondaire`,`Tél` as SPOC_Tech_Tel FROM `glb_pip` WHERE `Cusotmer_ID`=?";
 
-       
+
         //sql for domain table 
         $sqlDomain = <<<HERE10
         SELECT `Clause_name` AS Domain, `controle_name` AS Mesures, ROUND( SUM(5 * `rm_questions`.`P` * rm_answers.Answer) / SUM(`rm_questions`.`P`), 1 ) AS Value FROM `standards_controls` LEFT JOIN `rm_questions` ON `standards_controls`.`ID` = `rm_questions`.`ID_control` LEFT JOIN `rm_answers` ON `rm_answers`.`ID_Question` = `rm_questions`.`QuestionID` LEFT JOIN `rm_iteration` ON `rm_iteration`.`ID` = `rm_answers`.`ID_ITERATION` WHERE `rm_iteration`.`CustomerID` = ? GROUP BY `Clause`, `controle` ORDER BY `Clause`, `controle` ASC;
@@ -192,78 +192,73 @@ HERE10;
         $sqlPrevAudit = "SELECT Project_name as ProjectName,`Action` as Action, `ActionNumero` as ActionNumero,`ProjetNumero` as projNum ,`Criticite` as Criticite ,`Chargee_action` as chargeaction,`ChargeHJ` as charge,`TauxRealisation` as tauxrealisation,`Evaluation` as Evaluation FROM audit_previousaudits_ap AS ap JOIN projects ON ap.projectID = projects.id JOIN customers ON projects.customer_id = customers.id WHERE customers.id = ? Order by `ProjetNumero`,`ActionNumero`";
 
 
-        $sqlYear= 'SELECT `year` from `projects`WHERE `customer_id`=?';
-       
+        $sqlYear = 'SELECT `year` from `projects`WHERE `customer_id`=?';
+
         $templatePath = public_path("0.docx");
 
-        $templateProcessor = new TemplateProcessor($templatePath);  
+        $templateProcessor = new TemplateProcessor($templatePath);
 
         $allImagesPath = public_path('images/uploads');
 
         $outputFileName = 'ansi-2023.docx';
-        
+
         $outputPath = public_path('' . $outputFileName);
 
         //Year of customer
-        $yearResult = DB::select($sqlYear,[$customerId]);
-        if(!empty($yearResult)){
-            $yearRow=$yearResult[0];
-            $year=$yearRow->year;
-            if(isset($year)){
-                
+        $yearResult = DB::select($sqlYear, [$customerId]);
+        if (!empty($yearResult)) {
+            $yearRow = $yearResult[0];
+            $year = $yearRow->year;
+            if (isset($year)) {
             }
             $templateProcessor->setValue('Y', $year);
-
-        }
-        else {
+        } else {
             $templateProcessor->setValue('Y', "2023");
-
         }
 
         //current year 
         $currentYear = date('Y');
         $templateProcessor->setValue('year', $year);
-         
+
 
         // Part 9.2
-        $vuln=DB::select($sqlVuln,[$customerId]);
-        $vulnArray=self::processDatabaseData($vuln);
-        if(!empty($vulnArray)){
-            $templateProcessor->cloneRowAndSetValues('RowNumber',$vulnArray);
-
+        $vuln = DB::select($sqlVuln, [$customerId]);
+        $vulnArray = self::processDatabaseData($vuln);
+        if (!empty($vulnArray)) {
+            $templateProcessor->cloneRowAndSetValues('RowNumber', $vulnArray);
         }
-            
+
 
         $vulnArrayLength = count($vulnArray);
 
 
         //Part 11.1
-      
+
         // self::processPA_chapter11(5, "3", $templateProcessor);
         // self::processPA_chapter11(6, "3", $templateProcessor);
         // self::processPA_chapter11(7, "3", $templateProcessor);
         // self::processPA_chapter11(8, "3", $templateProcessor);
 
- 
 
-        
+
+
         //today's date
-        $today=self::currentDate();
-        $templateProcessor->setValue('today',$today);
+        $today = self::currentDate();
+        $templateProcessor->setValue('today', $today);
 
         //table "domaine"
-        $domain= DB::select($sqlDomain,[$customerId]);
-        $domainArray= self::processDatabaseData($domain);
+        $domain = DB::select($sqlDomain, [$customerId]);
+        $domainArray = self::processDatabaseData($domain);
         $templateProcessor->cloneRowAndSetValues('Domain', $domainArray);
 
-        
+
         //table prev audit 
         //to do:Merge Cells
-        
+
         $prevAudit = DB::select($sqlPrevAudit, [$customerId]);
         $prevAuditArray = self::processDatabaseData($prevAudit);
-        if (!empty($prevAuditArray)){
-            $prevAuditArrayLength=count($prevAuditArray);
+        if (!empty($prevAuditArray)) {
+            $prevAuditArrayLength = count($prevAuditArray);
             //get number of projects 
             $uniqueProjects = [];
             foreach ($prevAuditArray as $entry) {
@@ -289,10 +284,10 @@ HERE10;
                     'charge' => $entry['charge'],
                     'tauxrealisation' => $entry['tauxrealisation'],
                     'Evaluation' => $entry['Evaluation'],
-                    'projNum'=>$entry['projNum'],
+                    'projNum' => $entry['projNum'],
                 ];
             }
-            
+
 
             $flattenedData = [];
             foreach ($organizedData as $projectName => $entries) {
@@ -301,36 +296,34 @@ HERE10;
                 }
             }
             $templateProcessor->cloneRowAndSetValues('ProjectName', $flattenedData);
-            
-            for ($x = 0; $x <count($prevAuditArray)+1; $x++) {
-            
+
+            for ($x = 0; $x < count($prevAuditArray) + 1; $x++) {
+
                 if (isset($prevAuditArray[$x]['ProjectName'])) {
                     $projectName = $prevAuditArray[$x]['ProjectName'];
-                    $templateProcessor->setValue( "ProjectName#" .$x+1, $projectName);
+                    $templateProcessor->setValue("ProjectName#" . $x + 1, $projectName);
                 } else {
                     error_log("Warning: 'ProjectName' key not found in entry at index $x");
                 }
             }
-
-
         }
-       
-
-       
-        
-       
-               
 
 
 
 
-        
-
-        
-        
 
 
-        
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -354,22 +347,21 @@ HERE10;
 
         $networkDesignRow = $networkDesign[0] ?? null;
         $networkDesignValue = $networkDesignRow->Network_Design ?? "pas de network Design";
-        
-        $imagePath = $allImagesPath . DIRECTORY_SEPARATOR . $networkDesignValue;
-        
-        
-        if ($networkDesignValue!="pas de network Design"){
-            $templateProcessor->setImageValue('NetworkDesign', ['path' => $imagePath, 'width' => 500]);
 
+        $imagePath = $allImagesPath . DIRECTORY_SEPARATOR . $networkDesignValue;
+
+
+        if ($networkDesignValue != "pas de network Design") {
+            $templateProcessor->setImageValue('NetworkDesign', ['path' => $imagePath, 'width' => 500]);
         }
         //table:Postes de travail
-        $posteTravail=DB::select($sqlPosteTravail, [$customerId]);
-        $posteTravailArray= self::processDatabaseData($posteTravail);
+        $posteTravail = DB::select($sqlPosteTravail, [$customerId]);
+        $posteTravailArray = self::processDatabaseData($posteTravail);
         $templateProcessor->cloneRowAndSetValues('PC_SE', $posteTravailArray);
 
         //table:Infrastucture Réseau et sécurité 
-        $Infrastructure=DB::select($sqlInfrastructure, [$customerId]);
-        $InfrastructureArray= self::processDatabaseData($Infrastructure);
+        $Infrastructure = DB::select($sqlInfrastructure, [$customerId]);
+        $InfrastructureArray = self::processDatabaseData($Infrastructure);
         $templateProcessor->cloneRowAndSetValues('Infra_Nature', $InfrastructureArray);
 
 
@@ -377,13 +369,13 @@ HERE10;
         //Table:serveur par plateforme
         $servers = DB::select($sqlServers, [$customerId]);
         $serverArray = self::processDatabaseData($servers);
-         $templateProcessor->cloneRowAndSetValues('Srv_Name', $serverArray);
+        $templateProcessor->cloneRowAndSetValues('Srv_Name', $serverArray);
 
 
         //description du siege (Applications):
 
         $application = DB::select($sqlApplication, [$customerId]);
-        $applicationArray = self::processDatabaseData($application );
+        $applicationArray = self::processDatabaseData($application);
         $templateProcessor->cloneRowAndSetValues('App_Name', $applicationArray);
 
 
@@ -414,7 +406,7 @@ HERE10;
         if (!empty($Customers)) {
             $firstRow = $Customers[0];
             $SN = $firstRow->SN;
-             AnnexesController::sendMessage("Starting Generating Report for ".$SN . "\n Time now:". date("Y-m-d H:i:s"));
+            AnnexesController::sendMessage("Starting Generating Report for " . $SN . "\n Time now:" . date("Y-m-d H:i:s"));
 
             $LN = $firstRow->LN;
             $typeCompany = $firstRow->leType;
@@ -425,7 +417,7 @@ HERE10;
             $mailAddress = $firstRow->Adresse_mail;
             $description = $firstRow->Description;
             $organigrame = $firstRow->Organigramme ? $firstRow->Organigramme : " organigramme non disponible";
-            $Logo=$firstRow->Logo ? $firstRow->Logo :" Logo non dispo";
+            $Logo = $firstRow->Logo ? $firstRow->Logo : " Logo non dispo";
 
             $templateProcessor->setValue('SN', $SN);
             $templateProcessor->setValue('LN', $LN);
@@ -435,26 +427,25 @@ HERE10;
             $templateProcessor->setValue('siteweb', $siteWeb);
             $templateProcessor->setValue('mailadress', $mailAddress);
             $templateProcessor->setValue('DescriptionCompany', $description);
-            
-            $logoPath=$allImagesPath. DIRECTORY_SEPARATOR . $Logo;
+
+            $logoPath = $allImagesPath . DIRECTORY_SEPARATOR . $Logo;
 
             if ($organigrame != "organigramme non disponible") {
                 $organigramePath = $allImagesPath . DIRECTORY_SEPARATOR . $organigrame;
-            
-                
+
+
                 if (!empty($organigramePath)) {
                     $templateProcessor->setImageValue('organigrame:800:800', array('path' => $organigramePath));
                 }
             }
-            
-            
-           $templateProcessor->setImageValue('icon', array('path'=>$logoPath));
 
+
+            $templateProcessor->setImageValue('icon', array('path' => $logoPath));
         } else {
             return response()->json("no customer with this id exists ");
         }
 
-        $AllRows =  DB::select($sql,[$customerId]);
+        $AllRows =  DB::select($sql, [$customerId]);
         $allRowsAsArray = [];
         foreach ($AllRows as $row) {
 
@@ -465,20 +456,20 @@ HERE10;
                 //  echo $row->Answer."aaaaaaaaaaaaaaaa";
             }
         }
-        
+
         foreach ($allRowsAsArray as $ClauseId => $rowData) {
             foreach ($rowData as $ControlID => $cellData) {
                 // Call the setOneRowControl function for Best Practices
                 self::setOneRowControl($templateProcessor, $ClauseId, $ControlID, $cellData, 1, "_BestPractice#");
-        
+
                 // Call the setOneRowControl function for Vulnerabilities
                 self::setOneRowControl($templateProcessor, $ClauseId, $ControlID, $cellData, 0, "_Vuln#");
-        
+
                 // Check if both Best Practices and Vulnerabilities are empty
-               
+
             }
         }
-        
+
         for ($clause = 5; $clause <= 8; $clause++) {
             for ($control = 1; $control <= 40; $control++) {
                 // Replace Best Practice placeholder
@@ -487,7 +478,7 @@ HERE10;
                 if (!empty($bestPracticeVariables)) {
                     $templateProcessor->setValue($bestPracticePlaceholder, '');
                 }
-        
+
                 // Replace Vulnerability placeholder
                 $vulnPlaceholder = $clause . "_Vuln#" . $control;
                 $vulnVariables = $templateProcessor->getVariables($vulnPlaceholder);
@@ -496,19 +487,19 @@ HERE10;
                 }
             }
         }
-        
-        
-            
 
-        
+
+
+
+
         // return $allRowsAsArray;
 
 
         $templateProcessor->saveAs($outputPath);
-        AnnexesController::sendMessage("Finishing Generating Report for ".$SN . "\n Time now:". date("Y-m-d H:i:s"));
+        AnnexesController::sendMessage("Finishing Generating Report for " . $SN . "\n Time now:" . date("Y-m-d H:i:s"));
 
         // $pdfContent = self::ConvertPDF($outputPath);
-        
+
         // if ($pdfContent) {
         //     return response($pdfContent)
         //         ->header('Content-Type', 'application/pdf')
@@ -521,84 +512,84 @@ HERE10;
 
         // Set the Content-Disposition header to force download with a specific filename
         header('Content-Disposition: attachment;filename="ansi-2023.docx"');
-        
+
         // Set the Content-Length header
         header('Content-Length: ' . filesize($outputPath));
-        
+
         // Clear the output buffer
         ob_clean();
-        
+
         // Read the file and output it to the browser
         readfile($outputPath);
 
-// Read the file and output it to the browser
-        
-            
+        // Read the file and output it to the browser
+
+
     }
 
     static function getMaxProjNum($prevAuditArray)
-{
-    $maxProjNum = isset($prevAuditArray[0]['projNum']) ? $prevAuditArray[0]['projNum'] : null;
+    {
+        $maxProjNum = isset($prevAuditArray[0]['projNum']) ? $prevAuditArray[0]['projNum'] : null;
 
-    foreach ($prevAuditArray as $item) {
-        if (isset($item['projNum']) && $item['projNum'] > $maxProjNum) {
-            $maxProjNum = $item['projNum'];
+        foreach ($prevAuditArray as $item) {
+            if (isset($item['projNum']) && $item['projNum'] > $maxProjNum) {
+                $maxProjNum = $item['projNum'];
+            }
         }
+
+        return $maxProjNum;
     }
 
-    return $maxProjNum;
-}
 
+    // function setOneRowProject($templateProcessor, $project) {
+    //     // Extract project data
+    //     $projectName = $project['ProjectName'];
+    //     $actionNumero = $project['ActionNumero'];
+    //     $projNum = $project['projNum'];
+    //     $criticite = $project['Criticite'];
+    //     $chargeAction = $project['chargeaction'];
+    //     $charge = $project['charge'];
+    //     $tauxRealisation = $project['tauxrealisation'];
+    //     $evaluation = $project['Evaluation'];
 
-// function setOneRowProject($templateProcessor, $project) {
-//     // Extract project data
-//     $projectName = $project['ProjectName'];
-//     $actionNumero = $project['ActionNumero'];
-//     $projNum = $project['projNum'];
-//     $criticite = $project['Criticite'];
-//     $chargeAction = $project['chargeaction'];
-//     $charge = $project['charge'];
-//     $tauxRealisation = $project['tauxrealisation'];
-//     $evaluation = $project['Evaluation'];
-
-//     // Call setOneRowControl function for each project
-//     self::setOneRowControl($templateProcessor, $projectName, $actionNumero, $projNum, $criticite, $chargeAction, $charge, $tauxRealisation, $evaluation);
-// }
+    //     // Call setOneRowControl function for each project
+    //     self::setOneRowControl($templateProcessor, $projectName, $actionNumero, $projNum, $criticite, $chargeAction, $charge, $tauxRealisation, $evaluation);
+    // }
 
 
 
     //to test downloadble ifle
     public function downloadFile(Request $request, $filename)
-{
-    // Define the source directory path where you want to check for the file
-    $sourcePath = 'C:\xampp\htdocs\AppGenerator\backend\public';
+    {
+        // Define the source directory path where you want to check for the file
+        $sourcePath = 'C:\xampp\htdocs\AppGenerator\backend\public';
 
-    // Combine the source directory path with the requested filename to check for existence
-    $sourceFile = $sourcePath . '/' . $filename;
+        // Combine the source directory path with the requested filename to check for existence
+        $sourceFile = $sourcePath . '/' . $filename;
 
-    // Check if the file exists in the source directory
-    if (file_exists($sourceFile)) {
-        // Define the destination directory path where you want to save the downloaded file
-        $destinationPath = 'C:\xampp\htdocs\AppGenerator\backend\public\downloads';
+        // Check if the file exists in the source directory
+        if (file_exists($sourceFile)) {
+            // Define the destination directory path where you want to save the downloaded file
+            $destinationPath = 'C:\xampp\htdocs\AppGenerator\backend\public\downloads';
 
-        // Combine the destination directory path with the requested filename
-        $outputPath = $destinationPath . '/' . $filename;
+            // Combine the destination directory path with the requested filename
+            $outputPath = $destinationPath . '/' . $filename;
 
-        // Determine the file's MIME type
-        $mimeType = mime_content_type($sourceFile);
+            // Determine the file's MIME type
+            $mimeType = mime_content_type($sourceFile);
 
-        // Copy the file from the source directory to the destination directory
-        copy($sourceFile, $outputPath);
+            // Copy the file from the source directory to the destination directory
+            copy($sourceFile, $outputPath);
 
-        // Return the copied file as a downloadable response
-        return response()->download($outputPath, $filename, ['Content-Type' => $mimeType]);
-    } else {
-        // If the file doesn't exist in the source directory, return a 404 Not Found response
-        dd("File does not exist at path: ");
+            // Return the copied file as a downloadable response
+            return response()->download($outputPath, $filename, ['Content-Type' => $mimeType]);
+        } else {
+            // If the file doesn't exist in the source directory, return a 404 Not Found response
+            dd("File does not exist at path: ");
+        }
     }
-}
 
-   
+
 
 
     static function setOneRowControl($templateProcessor, $ClauseId, $ControlID, $cellData, $type, $typeTag)
@@ -627,35 +618,35 @@ HERE10;
             $templateProcessor->cloneRowAndSetValues($ClauseId . $typeTag . $ControlID, []);
         }
     }
-    
+
     public static function ConvertPDF($inputPath)
-{
-    $docxFilePath = $inputPath;
+    {
+        $docxFilePath = $inputPath;
 
-    // Load the DOCX file
-    $phpWord = IOFactory::load($docxFilePath);
+        // Load the DOCX file
+        $phpWord = IOFactory::load($docxFilePath);
 
-    // Save the DOCX content as HTML
-    $tempHtmlFile = tempnam(sys_get_temp_dir(), 'docx_to_pdf');
-    $phpWord->save($tempHtmlFile, 'HTML');
+        // Save the DOCX content as HTML
+        $tempHtmlFile = tempnam(sys_get_temp_dir(), 'docx_to_pdf');
+        $phpWord->save($tempHtmlFile, 'HTML');
 
-    // Convert HTML to PDF
-    $dompdf = new Dompdf();
-    $dompdf->loadHtml(file_get_contents($tempHtmlFile));
-    $dompdf->setPaper('A4', 'portrait');
-    $dompdf->render();
+        // Convert HTML to PDF
+        $dompdf = new Dompdf();
+        $dompdf->loadHtml(file_get_contents($tempHtmlFile));
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
 
-    // Clean up temporary files
-    unlink($tempHtmlFile);
+        // Clean up temporary files
+        unlink($tempHtmlFile);
 
-    // Return the PDF content as response
-    return $dompdf->output();
-}
+        // Return the PDF content as response
+        return $dompdf->output();
+    }
 
     static function preparePagesDeGarde($templateProcessor,  $customer, $project)
     {
 
-    
+
         /*      $imageData = file_get_contents($customer->Logo);
     $localImagePath = public_path('images/'.basename($customer->Logo)); // Specify the local path to save the image
     file_put_contents($localImagePath, $imageData);
@@ -667,78 +658,87 @@ HERE10;
         $templateProcessor->setValue('URL',  $project->URL);
         $templateProcessor->setValue('DESC',  $project->description);
     }
-   
-    static function processDatabaseData($data) {
+
+    static function processDatabaseData($data)
+    {
         $result = [];
         $priorities = ["", "Très Urgent", "Urgent", "Normal"];
-    
+
         foreach ($data as $item) {
             $modifiedItem = [];
-    
+
             foreach ($item as $key => $value) {
-                    if($key=="priorité")  
-                    {
-                        $modifiedItem[$key] = $priorities[$value];
-                        $modifiedItem["Planification"] = "Fin de ".($value+2023);
-                    }
-                    else $modifiedItem[$key] = AnnexesController::cleanStrings($value,);
+                if ($key == "priorité") {
+                    $modifiedItem[$key] = $priorities[$value];
+                    $modifiedItem["Planification"] = "Fin de " . ($value + 2023);
+                } else $modifiedItem[$key] = AnnexesController::cleanStrings($value,);
             }
-    
+
             $result[] = $modifiedItem;
         }
-    
+
         return $result;
     }
-    static function currentDate(){
-        $current_date = date('Y-m-d'); 
+    static function currentDate()
+    {
+        $current_date = date('Y-m-d');
 
         return $current_date;
     }
-    private function setTableRowValues(Row $table, int $rowIndex, array $data)
-    {
-        // Iterate through each cell of the row and set values
-        foreach ($data as $columnName => $value) {
-            $table->setValue("${columnName}_$rowIndex", $value);
-        }
-    }
+    // private function setTableRowValues(Row $table, int $rowIndex, array $data)
+    // {
+    //     // Iterate through each cell of the row and set values
+    //     foreach ($data as $columnName => $value) {
+    //         $table->setValue("${columnName}_$rowIndex", $value);
+    //     }
+    // }
 
 
     public function getAnswersFromWebsiteServer($c)
     {
         $url = "https://smartskills.com.tn/wqkjsdhvj76vhbnc565ds/generateCsv.php?c=$c&e=qkljsdfqd25154dQDSFSDFQdv45q2dfqfDCX";
 
-$response = Http::get($url);
- 
- file_put_contents(
-    storage_path('csv.csv') ,    $response->getBody());
-    // DB::statement("DELETE FROM rm_answers WHERE ID_ITERATION='$c'");
-        $loadData = "LOAD DATA INFILE '".str_replace('/', '\\\\', str_replace('\\', '\\\\',storage_path('csv.csv')))."' IGNORE
-        INTO TABLE rm_answers
-        FIELDS TERMINATED BY ','
-        ENCLOSED BY '\"'
-        OPTIONALLY ENCLOSED BY '\"'
-        LINES TERMINATED BY '\n'
-        (`ID_Question`, `Answer`, `Commentaire`, `ID_ITERATION`, `Pertinence`);
-    ";
-    echo $loadData;
-    // Execute the database statement
-    DB::statement($loadData);
+        $response = Http::get($url);
+        $content = $response->body();
 
-     
+    
+        // Save the modified content to a new file
+        file_put_contents(storage_path('csv.csv'), $content);
+        try {
+            // Load data into the database
+            $loadData = "LOAD DATA   INFILE '" . str_replace('/', '\\\\', str_replace('\\', '\\\\', storage_path('csv.csv'))) . "' IGNORE
+                INTO TABLE rm_answers
+                FIELDS TERMINATED BY ','
+                ENCLOSED BY '\"'
+                LINES TERMINATED BY '\n'
+                ( `ID_Question`, `Answer`, `Commentaire`, `ID_ITERATION`, `Pertinence`);
+            ";
+
+
+            // Execute the database statement
+            DB::statement($loadData);
+
+            return response()->json(['message' => 'CSV file stored with success', 'success' => true]);
+        } catch (\Throwable $th) {
+            // Log or handle the exception
+            return response()->json(['message' => 'Error: ' . $th->getMessage(), 'success' => false]);
+        }
     }
 
-static function populateTemplate($templateProcessor, $rowPlaceholder, $dataArray){
-    if (!empty($dataArray)) {
-        $templateProcessor->cloneRowAndSetValues($rowPlaceholder, $dataArray);
+
+    static function populateTemplate($templateProcessor, $rowPlaceholder, $dataArray)
+    {
+        if (!empty($dataArray)) {
+            $templateProcessor->cloneRowAndSetValues($rowPlaceholder, $dataArray);
+        }
     }
-}
 
 
 
     static function processPA_chapter11($num, $iteration, $templateProcessor)
-{
-    $sqlPA= "SELECT
-     ROW_NUMBER() OVER () AS AP_".$num."_numero,
+    {
+        $sqlPA = "SELECT
+     ROW_NUMBER() OVER () AS AP_" . $num . "_numero,
     rm_questions.`plan d'action` AS AP_$num,
     rm_questions.`priorité` as priorité,
     rm_questions.Responsable as Responsable,
@@ -758,17 +758,10 @@ static function populateTemplate($templateProcessor, $rowPlaceholder, $dataArray
     AND standards_controls.clause=$num
     ORDER BY
     standards_controls.Controle_ID  ASC;";
-     $vuln=DB::select($sqlPA);
-     $vulnArray=self::processDatabaseData($vuln);
-     $vulnArrayLength = count($vulnArray);
+        $vuln = DB::select($sqlPA);
+        $vulnArray = self::processDatabaseData($vuln);
+        $vulnArrayLength = count($vulnArray);
 
-      $templateProcessor->cloneRowAndSetValues('AP_'.$num,$vulnArray);
-
-}
-    
+        $templateProcessor->cloneRowAndSetValues('AP_' . $num, $vulnArray);
     }
-    
-    
-
-
-
+}

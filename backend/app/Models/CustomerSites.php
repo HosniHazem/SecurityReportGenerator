@@ -10,8 +10,9 @@ class CustomerSites extends Model
     use HasFactory;
     protected  $table='customer_sites';
     protected $primaryKey='ID';
-    public function customer()
-    {
-        return $this->belongsTo(Customer::class, 'Cusotmer_ID');
-    }
+    public $timestamps = false;
+
+    // protected $fillable = ['Numero_site', 'Structure', 'Lieu', 'Customer_ID'];
+ 
+
 }

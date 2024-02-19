@@ -46,19 +46,72 @@ class CloneController extends Controller
 
 
         $sqlUpdate = 'UPDATE ' . $tableName . ' SET ' . $attribute . ' = \'' . $value . '\' WHERE ' . $primaryKey . ' = \'' . $id  . '\'';
-        
+        print_r($sqlUpdate);
         
         
         try {
             DB::statement($sqlUpdate);
     
-            return response()->json(['success' => 'Query executed successfully']);
+            return response()->json(['message' => 'Query executed successfully','success'=>true]);
         } catch (\Exception $e) {
             // Handle query execution failure
             return response()->json(['error' => $e->getMessage()]);
         }
 
     }
+
+
+
+    public function DeleteRow(Request $request)
+    {
+        $tableName = $request->name;
+        $id = $request->id;
+    
+        DB::beginTransaction();
+    
+        try {
+            $childTables = DB::select("
+                SELECT table_name
+                FROM information_schema.key_column_usage
+                WHERE referenced_table_name = ?
+            ", [$tableName]);
+    
+            foreach ($childTables as $childTable) {
+                $childTableName = $childTable->table_name;
+                $primaryKey = DB::selectOne("
+                    SELECT column_name
+                    FROM information_schema.key_column_usage
+                    WHERE table_name = ?
+                        AND referenced_table_name = ?
+                ", [$childTableName, $tableName])->column_name;
+    
+                $sqlDeleteChild = "DELETE FROM $childTableName WHERE $primaryKey = ?";
+                DB::statement($sqlDeleteChild, [$id]);
+            }
+    
+            $primaryKey = DB::selectOne("
+                SELECT column_name
+                FROM information_schema.key_column_usage
+                WHERE table_name = ?
+                    AND referenced_table_name IS NULL
+            ", [$tableName])->column_name;
+    
+            $sqlDeleteParent = "DELETE FROM $tableName WHERE $primaryKey = ?";
+            DB::statement($sqlDeleteParent, [$id]);
+    
+            DB::commit();
+    
+            return response()->json(['message' => 'Query executed successfully', 'success' => true]);
+        } catch (\Exception $e) {
+            // Rollback the transaction in case of an error
+            DB::rollBack();
+    
+            // Handle query execution failure
+            return response()->json(['error' => $e->getMessage()]);
+        }
+    }
+    
+
 
 
 

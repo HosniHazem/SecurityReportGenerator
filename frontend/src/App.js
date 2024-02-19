@@ -24,6 +24,7 @@ import AnsiReport from "./AnsiReport";
 import Anomalie from "./Anomalie";
 import AfterANomalie from "./AfterAnomalie";
 import TablesClone from "./Tables";
+import CreateCustomerSite from "./CustomerSites";
 
 function App() {
   return (
@@ -56,6 +57,8 @@ function App() {
         <Route path="/ansi-report/:id" element={<AnsiReport />} />
         <Route path="/anomalie/:id" element={<Anomalie />} />
         <Route path="/tables" element={<TablesClone />} />
+        <Route path="/sites/:id" element={<CreateCustomerSite />} />
+
 
       </Routes>
     </BrowserRouter>

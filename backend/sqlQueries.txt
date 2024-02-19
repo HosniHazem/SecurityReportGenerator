@@ -2,3 +2,13 @@
 ALTER TABLE vuln
 CHANGE COLUMN `CVSS v3.0 Base Score` `CVSSv3BaseScore` FLOAT(5,2);
 UPDATE `vm` Set `accessKey`="d31c2oo5sn998vpk0cpouf0i0h" WHERE `Type` ="Owaszap";
+
+
+
+//
+
+ALTER TABLE projects
+ADD COLUMN iterationKey VARCHAR(255);  
+
+//
+customer sites make ID auto increment
