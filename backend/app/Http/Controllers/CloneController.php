@@ -46,7 +46,7 @@ class CloneController extends Controller
 
 
         $sqlUpdate = 'UPDATE ' . $tableName . ' SET ' . $attribute . ' = \'' . $value . '\' WHERE ' . $primaryKey . ' = \'' . $id  . '\'';
-        
+        print_r($sqlUpdate);
         
         
         try {

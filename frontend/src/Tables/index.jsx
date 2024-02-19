@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { axiosInstance } from "../axios/axiosInstance";
-import { Select, Table, Modal, Input, Button } from "antd";
+import { Select, Table, Input, Button } from "antd";
 import "./index.css";
 import toast from "react-hot-toast";
 
@@ -11,8 +11,6 @@ export default function TablesClone() {
   const [selectedTable, setSelectedTable] = useState(null);
   const [attributes, setAttributes] = useState(null);
   const [data, setData] = useState(null);
-  const [inputValue, setInputValue] = useState("");
-  const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const [selectedAttribute, setSelectedAttribute] = useState(null);
 
@@ -51,84 +49,98 @@ export default function TablesClone() {
     displayAttributes(value);
   };
 
-  const handleInputChange = (e) => {
-    setInputValue(e.target.value);
-  };
-
-  const showModal = () => {
-    setIsModalVisible(true);
-  };
-
-  const handleModalSubmit = async () => {
-    // Send the value to handleInput function
-    const rowData = {
-      value: inputValue,
-      attributeName: selectedAttribute,
-      tableName: selectedTable,
-      rowId: selectedRow.id ? selectedRow.id : selectedRow.ID,
-    };
-
+  const handleInputUpdate = async (record, dataIndex, inputValue) => {
+    const updatedData = data.map((row) => {
+      const primaryKey = Object.keys(row).find((key) => key.toLowerCase() === 'id');
+      
+      if (row[primaryKey] === record[primaryKey]) {
+        return { ...row, [dataIndex]: inputValue };
+      } else {
+        return row;
+      }
+    });
+  
+    // Update data state
+    setData(updatedData);
+  
+    // Send the updated value to the server
     try {
       const response = await axiosInstance.put("/modify", {
-        name: rowData.tableName,
-        attribute: rowData.attributeName,
-        value: rowData.value,
-        id: rowData.rowId,
+        name: selectedTable,
+        attribute: dataIndex,
+        value: inputValue,
+        id: record.id,
       });
-      if (response.data.success) {
-        toast.success("done");
-      } else {
-        toast.error("error 1");
-      }
+  
+      // if (response.data.success) {
+      //   toast.success("Value updated successfully");
+      // } else {
+      //   toast.error("Error updating value");
+      // }
     } catch (error) {
-      toast.error("error 2");
+      toast.error("Error updating value");
       console.log(error);
     }
-
-    // Close the modal
-    setIsModalVisible(false);
   };
+  
 
-  const handleModalDelete = async () => {
+  const handleDelete = async (id) => {
     const dataToDelete = {
       name: selectedTable,
-      id: selectedRow.id ? selectedRow.id : selectedRow.ID,
+      id:id
     };
-    console.log("values to delete ", dataToDelete);
-  
     try {
+      console.log("id is",id)
+    console.log("selected table is",selectedTable
+    )
+
       const response = await axiosInstance.delete("delete-row", {
-        data: dataToDelete, // Pass the data as an object
+        data:dataToDelete
       });
   
       if (response.data.success) {
         toast.success("Deleted successfully");
+        setData((prevData) => prevData.filter((row) => row.id !== id && row.ID !== id));
+
+
       } else {
-        toast.error("Error deleting data");
+        toast.error("Error deleting data 1");
       }
     } catch (error) {
       toast.error("Error deleting data");
       console.log(error);
     }
   
-    // Close the modal
-    setIsModalVisible(false);
   };
-  
 
-  const handleInput = (value) => {
-    // Handle the input value, you can send it to the server or perform any other actions
-    console.log("Input value:", value);
-  };
 
   const columns = attributes
-    ? attributes.map((key) => ({
+  ? [
+      ...attributes.map((key) => ({
         title: key,
         dataIndex: key,
         key,
-      }))
-    : [];
-  console.log("columns", columns);
+        render: (text, record) => (
+          <EditableCell
+            record={record}
+            dataIndex={key}
+            value={text}
+            handleUpdate={handleInputUpdate}
+          />
+        ),
+      })),
+      {
+        title: 'Action',
+        key: 'operation',
+        fixed: 'right',
+        width: 100,
+        render: (text, record) => (
+
+          <a onClick={() => handleDelete(record.id || record.ID)}>Delete</a>
+        ),
+      },
+    ]
+  : [];
 
   return (
     <div>
@@ -149,56 +161,77 @@ export default function TablesClone() {
         <Table
           dataSource={data}
           pagination={true}
-          columns={columns.map((col) => ({
-            ...col,
-            onCell: (record) => ({
-              record,
-              dataIndex: col.dataIndex,
-              title: col.title,
-              onClick: () => {
-                console.log("record is ", record);
-                console.log("tilte", col.title);
-                setSelectedAttribute(col.title);
-              },
-            }),
-          }))}
+          columns={columns}
           onRow={(record, rowIndex) => {
             return {
               onClick: () => {
                 setSelectedRow(record);
-                showModal();
+                setSelectedAttribute(columns[0].dataIndex); // Assuming the first attribute is used for selection
               },
             };
           }}
         />
       )}
-
-      <Modal
-        title={`Enter new ${selectedAttribute} value for row ID ${
-          selectedRow?.id || selectedRow?.ID
-        } or delete the entire row`}
-        visible={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
-        footer={[
-          <Button key="submit" type="primary" onClick={handleModalSubmit}>
-            Submit
-          </Button>,
-          <Button
-            key="delete"
-            type="primary"
-            onClick={handleModalDelete}
-            danger
-          >
-            Delete
-          </Button>,
-        ]}
-      >
-        <Input
-          value={inputValue}
-          onChange={handleInputChange}
-          placeholder={`Enter new ${selectedAttribute} value...`}
-        />
-      </Modal>
     </div>
   );
 }
+
+const EditableCell = ({ value, record, dataIndex, handleUpdate }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [inputValue, setInputValue] = useState(value); // Initialize inputValue with the current value
+
+  const toggleEdit = () => {
+    // Skip editing if dataIndex is 'id' or 'ID'
+    if (dataIndex.toLowerCase() === 'id') {
+      return;
+    }
+
+    setIsEditing(!isEditing); // Toggle between true and false
+    setInputValue(value); // Set input to the current value, even if it's an empty string
+  };
+
+  const handleInputChange = (e) => {
+    setInputValue(e.target.value);
+  };
+
+  const handleInputConfirm = () => {
+    if (isEditing) {
+      setIsEditing(false);
+      // Only call update if value has changed
+      if (inputValue !== value) {
+        handleUpdate(record, dataIndex, inputValue);
+      }
+    }
+  };
+
+  useEffect(() => {
+    // When isEditing becomes false, reset the inputValue
+    // This handles the case when editing is canceled
+    if (!isEditing) {
+      setInputValue(value);
+    }
+  }, [isEditing, value]);
+
+  return (
+    <div>
+      {isEditing ? (
+        <Input
+          value={inputValue}
+          autoFocus // Automatically focus the input when editing starts
+          onChange={handleInputChange}
+          onBlur={handleInputConfirm}
+          onPressEnter={handleInputConfirm}
+        />
+      ) : (
+        <div onClick={toggleEdit} style={{ cursor: 'pointer' }}>
+          {value !== undefined && value !== null ? value : <span style={{ visibility: 'hidden' }}>empty</span>}
+        </div>
+      )}
+    </div>
+  );
+};
+
+
+
+
+
