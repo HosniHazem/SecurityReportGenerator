@@ -114,7 +114,7 @@ const Dashboard = () => {
   };
 
   const handleNavigateToRmQuesion = (c) => {
-    window.open(`https://smartskills.com.tn/wqkjsdhvj76vhbnc565ds/tmp/rmquestions.php?c=${c}&k=qdsg54SFDbfdQSd`, '_blank');
+    window.open(`https://smartskills.com.tn/wqkjsdhvj76vhbnc565ds/rmquestions.php?c=${c}&k=qdsg54SFDbfdQSd`, '_blank');
 };
 
 

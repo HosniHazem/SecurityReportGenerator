@@ -56,7 +56,7 @@ class CustomerSitesController extends Controller
             $customerSite->save();
     
             // Return a response or redirect as needed
-            return response()->json(['message' => 'Customer site created successfully'], 201);
+            return response()->json(['message' => 'Customer site created successfully' ,'success'=>true]);
         }
         
 
