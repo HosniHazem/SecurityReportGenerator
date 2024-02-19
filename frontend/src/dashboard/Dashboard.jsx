@@ -22,7 +22,8 @@ import Nessus2 from "../Nessus2";
 import "./datatable.scss";
 import { green } from "@mui/material/colors";
 import { axiosInstance } from "../axios/axiosInstance";
-import { ButtonBase } from "@mui/material";
+import { ButtonBase, ButtonGroup } from "@mui/material";
+import toast, { Toaster } from "react-hot-toast";
 
 function useDialogState() {
   const [open, setOpen] = React.useState(false);
@@ -31,18 +32,16 @@ function useDialogState() {
 const Dashboard = () => {
   const navigate = useNavigate();
   const [Project, setProject] = useState([]);
-  const [singleProject,setSinlgeProject]=useState();
+  const [singleProject, setSinlgeProject] = useState();
   const [Vm, setVm] = useState([]);
   const [exporting, setExporting] = useState(false); // Add loading state
   const [downloading, setDownloading] = useState(false);
   const { open, setOpen } = useDialogState();
-
-
-
+  const selected = sessionStorage.getItem("selectedIp");
+  const [selectedIp, setSelectedIp] = useState(selected);
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
-  
-  
+
   // }, []);
   // useEffect(() => {
   //   axiosInstance
@@ -50,7 +49,7 @@ const Dashboard = () => {
   //     .then((response) => {
   //       if (response.status === 200) {
   //         setProject(response.data.Project);
-        
+
   //       }
   //     })
   //     .catch((error) => {
@@ -64,10 +63,17 @@ const Dashboard = () => {
       .then((res) => {
         if (res.status === 200) {
           const sortedProjects = res.data.Project.sort((a, b) => b.id - a.id);
-        setProject(sortedProjects);
+          setProject(sortedProjects);
         }
+      })
+      .catch((error) => {
+        // Handle error accordingly
+        console.error("Error fetching data: ", error);
       });
   }, []);
+  console.log(Project);
+
+  //... rest of your component
   useEffect(() => {
     axios
       .get(`http://webapp.ssk.lc/AppGenerator/backend/api/get_vm`)
@@ -79,57 +85,65 @@ const Dashboard = () => {
             ...inputObject[key],
           }));
           setVm(outputArray);
-
-
-
         }
       });
   }, []);
-  const selected = sessionStorage.getItem("selectedIp");
-  const [selectedIp, setSelectedIp] = useState(selected);
 
-
-  
   const handleSelectProject = (id) => {
     // Remove the previously selected project ID
     localStorage.removeItem("selectedProjectId");
-  
+
     // Set the new selected project ID
     localStorage.setItem("selectedProjectId", id);
-  
   };
 
   const handleGenerateWordDocument = async () => {
     try {
-      await axios.get(`http://webapp.ssk.lc/AppGenerator/backend/api/generate-ansi/1`, {
-        
-      });
-  
+      await axios.get(
+        `http://webapp.ssk.lc/AppGenerator/backend/api/generate-ansi/1`,
+        {}
+      );
+
       console.log("Request sent successfully");
       // Optionally, show a success message here
-  
     } catch (error) {
       // Handle errors or show an error message
       console.error("Error generating ANSI document:", error);
       // swal("Error", "An error occurred while generating ANSI document", "error");
     }
   };
-  
-  const handleNavigateToRmQuesion=(c)=>{
-    window.location.href=`http://localhost/BlueHost/rmquestions.php?c=${c}&k=qdsg54SFDbfdQSd`
 
-  }
-  
+  const handleNavigateToRmQuesion = (c) => {
+    window.open(`https://smartskills.com.tn/wqkjsdhvj76vhbnc565ds/rmquestions.php?c=${c}&k=qdsg54SFDbfdQSd`, '_blank');
+};
 
 
+  const handleFillQuestions = async (c) => {
+    console.log('c is ',c)
+    try {
+      const response = await axiosInstance(`/Insert-Into-Answers/${c}`);
+      console.log(response.data);
+      if(response.data.success){
+        toast.success(response.data.message);
 
+      }
+
+
+
+
+    } catch (error) {
+
+      toast.error(error);
+
+    }
+  };
 
   const userColumns = [
-    { field: "id", headerName: "ID", width: 60 },
+    { field: "id", headerName: "ID", width: 30 },
     {
       field: "Nom",
       headerName: "Nom",
-      width: 120,
+      width: 80,
       renderCell: (params) => {
         return params.row.Nom;
       },
@@ -156,10 +170,11 @@ const Dashboard = () => {
     {
       field: "ProjectDetails",
       headerName: "Project Details",
-      width: 350,
+      width: 450,
       renderCell: (params) => {
         const id = params.row.id;
-        const nom=params.row.Nom;
+        const nom = params.row.Nom;
+        const c=params.row.iterationKey;
         return (
           <div className="cellAction">
             <Link to={`/add-glb-pip/${id}`} style={{ textDecoration: "none" }}>
@@ -171,15 +186,49 @@ const Dashboard = () => {
             <Link to={`/sites/${id}`} style={{ textDecoration: "none" }}>
               <div className="Pick2">Sites</div>
             </Link>
-            <Link to={`/add-audit-previous-audit/${id}`} style={{ textDecoration: "none" }}>
+            <Link
+              to={`/add-audit-previous-audit/${id}`}
+              style={{ textDecoration: "none" }}
+            >
               <div className="Pick2">PrevAudit</div>
             </Link>
             <Link to={`/anomalie/${id}`} style={{ textDecoration: "none" }}>
               <div className="Pick2">Anomalie</div>
             </Link>
+            <Button onClick={()=>handleFillQuestions(c)} style={{ textDecoration: "none" }}>
+              <div className="Pick2">Questions</div>
+            </Button>
           </div>
         );
       },
+    },
+    {
+      field: "Navigation",
+      headerName: "Navigation",
+      width: 100,
+      renderCell:(params)=>{
+        const c=params.row.iterationKey ?params.row.iterationKey : "";
+        return (
+          <>
+          {c && c!="" &&
+          <Button onClick={() =>handleNavigateToRmQuesion(c)}>
+           OSMQ 
+          </Button>
+          
+          
+          }
+
+
+          </>
+
+
+        )
+        
+
+
+
+      }
+
     },
     {
       field: "Export",
@@ -211,19 +260,21 @@ const Dashboard = () => {
                 }
               }}
             >
-               Annexe
+              Annexe
             </div>
-            
+
             <div>
-            <Link to={`/ansi-report/${id}`} style={{ textDecoration: "none" }}>
-              <Button> Ansi </Button>
-            </Link>
-          </div>
+              <Link
+                to={`/ansi-report/${id}`}
+                style={{ textDecoration: "none" }}
+              >
+                <Button> Ansi </Button>
+              </Link>
+            </div>
           </div>
         );
       },
     },
-   
   ];
 
   const handleDelete = async (e, id) => {
@@ -257,8 +308,6 @@ const Dashboard = () => {
     navigate("/import");
   };
 
-  
-  
   const Popup = (name, id, e) => {
     e.persist();
     sessionStorage.setItem("project_id", id);
@@ -277,13 +326,7 @@ const Dashboard = () => {
     // Handle the logic for the checked button
     console.log("Checked button clicked");
   };
-  if (!selectedIp) {
-    const firstActiveVm = Vm.find((element) => element.answer === "Online");
-    if (firstActiveVm) {
-      console.log("happened")
-      handleSelect(firstActiveVm.ip, firstActiveVm.Auth)
-    }
-}
+
   const Export = (id, e) => {
     e.persist();
     setDownloading(true);
@@ -292,8 +335,6 @@ const Dashboard = () => {
       project_id: id,
     };
     setExporting(true);
-
-   
 
     axios
       .post(
@@ -384,6 +425,7 @@ const Dashboard = () => {
       })
       .catch((error) => {
         // Handle errors
+
         console.error("Error sending data:", error);
         swal("Problem", "Detected");
         setDownloading(false);
@@ -453,9 +495,8 @@ const Dashboard = () => {
     border: "1px solid black",
   };
 
-
   return (
-    <div >
+    <div>
       <Dialog
         open={open}
         onClose={handleClose}
@@ -489,7 +530,6 @@ const Dashboard = () => {
         <table style={{ borderCollapse: "collapse", width: "15%" }}>
           <thead>
             <tr>
-              <th>Name</th>
               <th>URL</th>
               <th>Status</th>
               <th>Select</th>
@@ -504,7 +544,6 @@ const Dashboard = () => {
                   backgroundColor: url.answer === "Online" ? "green" : "red",
                 }}
               >
-                <td style={cellStyle}>{url.Name}</td>
                 <td style={cellStyle}>{url.ip}</td>
                 <td style={cellStyle}>{url.answer}</td>
                 <td style={cellStyle}>
@@ -529,18 +568,16 @@ const Dashboard = () => {
           </div>
         ) : (
           <div>
-             <DataGrid
-             style={{width:"100%"}}
-            className="datagrid"
-            rows={Project}
-            columns={userColumns}
-            pageSize={9}
-            rowsPerPageOptions={[9]}
-            columnBuffer={2} // Add this line
-
-          />
+            <DataGrid
+              style={{ width: "100%" }}
+              className="datagrid"
+              rows={Project}
+              columns={userColumns}
+              pageSize={9}
+              rowsPerPageOptions={[9]}
+              columnBuffer={2} // Add this line
+            />
           </div>
-         
         )}
       </div>
     </div>
