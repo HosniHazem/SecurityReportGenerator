@@ -21,12 +21,12 @@ const sidebarNavItems = [
         to: '/customer',
         section: 'customer'
     },
-    {
-        display: 'Database Tables',
-        // icon: <FontAwesomeIcon icon="fa-solid fa-table" />,
-        to: '/tables',
-        section: 'tables'
-    }
+    // {
+    //     display: 'Database Tables',
+    //     // icon: <FontAwesomeIcon icon="fa-solid fa-table" />,
+    //     to: '/tables',
+    //     section: 'tables'
+    // }
  
 ]
 
