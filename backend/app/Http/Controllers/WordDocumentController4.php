@@ -41,91 +41,37 @@ class WordDocumentController4 extends Controller
 
         set_time_limit(1000);
         //query for  customers table 
-        $sqlCustomers = 'SELECT 
-        c.id AS ID,
-        c.SN AS SN,
-        c.LN AS LN,
-        c.Logo AS Logo,
-        c.Description AS Description,
-        c.SecteurActivité AS SecteurActivite,
-        c.Categorie AS Categorie,
-        c.`Site web` AS `Site_Web`,
-        c.`Addresse mail` AS `Adresse_mail`,
-        c.Organigramme AS Organigramme,
-        c.Network_Design AS Network_Design,
-        c.type AS leType
-    FROM customers AS c
-    WHERE c.id = ?;';
+        $sqlCustomers = 'SELECT c.id AS ID, c.SN AS SN, c.LN AS LN, c.Logo AS Logo, c.Description AS Description, c.SecteurActivité AS SecteurActivite,
+         c.Categorie AS Categorie, c.`Site web` AS `Site_Web`, c.`Addresse mail` AS `Adresse_mail`, c.Organigramme AS Organigramme
+         , c.Network_Design AS Network_Design, c.type AS leType FROM customers AS c JOIN projects ON c.id = projects.customer_id WHERE projects.id = ?;';
 
         //query for process  table
-        $sqlProcess = 'SELECT
-        rpd.ID AS Processus_domaine_ID,
-        rpd.Processus_domaine AS process,
-        MAX(rpav.D) AS Process_D,
-        MAX(rpav.I) AS Process_I,
-        MAX(rpav.C) AS Process_C
-    FROM
-        rm_iteration ri
-    JOIN
-        rm_processus_domains rpd ON ri.ID = rpd.ID_ITERATION
-    LEFT JOIN
-        rm_processus_actifs_valeurs rpav ON rpd.ID = rpav.ID_Processus
-    WHERE
-        ri.CustomerId =?
-    GROUP BY
-        rpd.ID, rpd.Processus_domaine;';
+        $sqlProcess = 'SELECT rpd.ID AS Processus_domaine_ID,
+         rpd.Processus_domaine AS process, MAX(rpav.D) AS Process_D, 
+         MAX(rpav.I) AS Process_I, MAX(rpav.C) AS Process_C FROM rm_iteration ri 
+         JOIN rm_processus_domains rpd ON ri.ID = rpd.ID_ITERATION LEFT JOIN rm_processus_actifs_valeurs rpav ON rpd.ID = rpav.ID_Processus JOIN 
+         projects ON ri.ID = projects.iterationKey
+          WHERE projects.id = ?
+        GROUP BY rpd.ID, rpd.Processus_domaine;';
 
 
 
 
         $sql =  <<<HERE10
-    SELECT
-        rm_answers.ID_Question,
-        standards_controls.Controle_ID,
-        standards_controls.Clause,
-        standards_controls.controle,
-        rm_answers.Answer,
-        rm_questions.`Bonne pratique` as bp,
-        rm_questions.Vulnérabilité as vuln
-    FROM
-        standards_controls
-    LEFT JOIN
-        rm_questions ON standards_controls.Controle_ID = rm_questions.`ISO 27002:2022`
-    LEFT JOIN
-        rm_answers ON rm_answers.ID_Question = rm_questions.QuestionID
-    LEFT JOIN
-        rm_iteration ON rm_answers.ID_ITERATION = rm_iteration.id
-    WHERE
-        LENGTH(rm_questions.Vulnérabilité) > 5
-        AND rm_iteration.CustomerID = ?
-    ORDER BY
-        rm_answers.ID_Question ASC;
-HERE10;
+        SELECT rm_answers.ID_Question, standards_controls.Controle_ID, standards_controls.Clause
+        , standards_controls.controle, rm_answers.Answer, rm_questions.`Bonne pratique` as bp
+        , rm_questions.Vulnérabilité as vuln FROM standards_controls 
+        LEFT JOIN rm_questions ON standards_controls.Controle_ID = rm_questions.`ISO 27002:2022` LEFT JOIN rm_answers ON rm_answers.ID_Question = rm_questions.QuestionID 
+        LEFT JOIN rm_iteration ON rm_answers.ID_ITERATION = rm_iteration.id LEFT JOIN projects ON rm_iteration.ID= projects.iterationKey 
+        WHERE LENGTH(rm_questions.Vulnérabilité) > 5 AND projects.id = ? ORDER BY rm_answers.ID_Question ASC   
+        HERE10;
 
-        $sqlVuln = "SELECT
-
-        rm_questions.QuestionID AS Vuln_ref,
-        rm_questions.Vulnérabilité AS Vuln_desc,
-        rm_questions.`plan d'action` AS Vuln_recom,
-        standards_controls.Controle_ID,
-        rm_questions.`ISO 27002:2022` as Vuln_si,
-        rm_answers.Pertinence,
-        rm_answers.Answer
-        FROM
-        rm_questions
-        JOIN
-        standards_controls ON standards_controls.Controle_ID = rm_questions.`ISO 27002:2022`
-        LEFT JOIN
-        rm_answers ON rm_answers.ID_Question = rm_questions.QuestionID
-        LEFT JOIN
-        rm_iteration ON rm_answers.ID_ITERATION = rm_iteration.id
-        WHERE
-        rm_answers.Pertinence = 4
-        AND rm_answers.Answer = 0
-        AND rm_iteration.CustomerID = ?
-        AND rm_answers.ID_ITERATION = rm_iteration.id
-        ORDER BY
-        rm_questions.QuestionID ASC;";
+        $sqlVuln = "SELECT rm_questions.QuestionID AS Vuln_ref,
+        rm_questions.Vulnérabilité AS Vuln_desc, rm_questions.`plan d'action` AS Vuln_recom,
+        standards_controls.Controle_ID, rm_questions.`ISO 27002:2022` as Vuln_si, rm_answers.Pertinence, rm_answers.Answer FROM rm_questions 
+        JOIN standards_controls ON standards_controls.Controle_ID = rm_questions.`ISO 27002:2022` LEFT JOIN rm_answers ON rm_answers.ID_Question = rm_questions.QuestionID 
+        LEFT JOIN rm_iteration ON rm_answers.ID_ITERATION = rm_iteration.id LEFT JOIN projects ON rm_iteration.ID = projects.iterationKey WHERE rm_answers.Pertinence = 4 
+        AND rm_answers.Answer = 0 AND projects.id = ? AND rm_answers.ID_ITERATION = rm_iteration.id ORDER BY rm_questions.QuestionID ASC";
 
 
         //sql for  Siege Description
@@ -142,7 +88,7 @@ HERE10;
     JOIN
         `projects` p ON a.`Projet` = p.`id`
     WHERE
-        (a.`Type` = 'Apps' OR a.`Type` = 'Ext') AND p.`customer_id` = ?";
+        (a.`Type` = 'Apps' OR a.`Type` = 'Ext') AND p.id = ?";
         //sql for "serveurs par plateforme"
         $sqlServers = "SELECT
         a.`Nom` AS Srv_Name,
@@ -155,10 +101,20 @@ HERE10;
     JOIN
         `projects` p ON a.`Projet` = p.`id`
     WHERE
-        a.`Type` = 'Serveur' AND p.`customer_id` = ?";
+        a.`Type` = 'Serveur' AND p.id = ?";
 
         //sql for customers site
-        $sqlCustomerSite = 'SELECT Numero_site as N_Site, Structure as Structure_Site, Lieu as Lieu_Site FROM `Customer_sites` WHERE Customer_ID=? ';
+        $sqlCustomerSite = 'SELECT
+        cs.Numero_site AS N_Site,
+        cs.Structure AS Structure_Site,
+        cs.Lieu AS Lieu_Site
+    FROM
+        Customer_sites AS cs
+    JOIN
+        projects ON cs.Customer_ID = projects.customer_id
+    WHERE
+        projects.id = ?;
+     ';
         //sql for "Infrastucture Réseau et sécurité"
         $sqlInfrastructure = "SELECT
         a.`Nom` AS Infra_Nature,
@@ -171,29 +127,72 @@ HERE10;
     JOIN
         `projects` p ON a.`Projet` = p.`id`
     WHERE
-        a.`Type` = 'R_S' AND p.`customer_id` = ?";
+        a.`Type` = 'R_S' AND p.`id` = ?;";
         //sql for postes de travail
         $sqlPosteTravail = "SELECT sow.field4 AS PC_SE, COUNT(sow.field4) AS PC_Number FROM sow JOIN projects ON sow.Projet = projects.id JOIN customers ON projects.customer_id = customers.id WHERE sow.`Type` LIKE 'PC' AND customers.id = ?";
         //sql for network Design Image
-        $sqlNetworkDesign = "SELECT `Network_Design` FROM `customers` WHERE id=?";
+        $sqlNetworkDesign = "SELECT c.`Network_Design` FROM `customers` c JOIN projects p ON p.customer_id=c.id AND p.id=?;
+        ";
         //sql for audit tools
         $sqlAuditTools = "SELECT `Tool_name` as tool ,`Version` tool_version,`License` as tool_license,`Feature` as tool_features,`Composante_SI` as tool_sow FROM `Audit_Tools` ORDER BY `Composante_SI`;";
         //sql for "equipe de projet"
-        $sqlProjectTeam = "SELECT `Nom` as SPOC_Tech_Name ,`Titre` as SPOC_Tech_Title,`Adresse mail primaire` as SPOC_Tech_email ,`Adresse mail secondaire`,`Tél` as SPOC_Tech_Tel FROM `glb_pip` WHERE `Cusotmer_ID`=?";
+        $sqlProjectTeam = "SELECT gp.`Nom` AS SPOC_Tech_Name, gp.`Titre` AS SPOC_Tech_Title
+        , gp.`Adresse mail primaire` AS SPOC_Tech_email, gp.`Adresse mail secondaire`, gp.`Tél` AS SPOC_Tech_Tel 
+        FROM `glb_pip` gp 
+        JOIN customers ON gp.Cusotmer_ID = customers.id 
+        JOIN projects ON customers.id = projects.customer_id 
+        WHERE projects.id =?";
 
 
         //sql for domain table 
         $sqlDomain = <<<HERE10
-        SELECT `Clause_name` AS Domain, `controle_name` AS Mesures, ROUND( SUM(5 * `rm_questions`.`P` * rm_answers.Answer) / SUM(`rm_questions`.`P`), 1 ) AS Value FROM `standards_controls` LEFT JOIN `rm_questions` ON `standards_controls`.`ID` = `rm_questions`.`ID_control` LEFT JOIN `rm_answers` ON `rm_answers`.`ID_Question` = `rm_questions`.`QuestionID` LEFT JOIN `rm_iteration` ON `rm_iteration`.`ID` = `rm_answers`.`ID_ITERATION` WHERE `rm_iteration`.`CustomerID` = ? GROUP BY `Clause`, `controle` ORDER BY `Clause`, `controle` ASC;
-        HERE10;
+        SELECT
+            `Clause_name` AS Domain,
+            `controle_name` AS Mesures,
+            ROUND(SUM(5 * `rm_questions`.`P` * rm_answers.Answer) / SUM(`rm_questions`.`P`), 1) AS Value
+        FROM
+            `standards_controls`
+        LEFT JOIN
+            `rm_questions` ON `standards_controls`.`ID` = `rm_questions`.`ID_control`
+        LEFT JOIN
+            `rm_answers` ON `rm_answers`.`ID_Question` = `rm_questions`.`QuestionID`
+        LEFT JOIN
+            `rm_iteration` ON `rm_iteration`.`ID` = `rm_answers`.`ID_ITERATION`
+        LEFT JOIN 
+            `projects` ON `rm_iteration`.`ID` = `projects`.`iterationKey`
+        WHERE
+            projects.id = ?
+        GROUP BY
+            `Domain`, `Mesures`
+        ORDER BY
+            `Domain`, `Mesures` ASC;
+    HERE10;
+    
 
 
         //sql for prev audit
-        $sqlPrevAudit = "SELECT Project_name as ProjectName,`Action` as Action, `ActionNumero` as ActionNumero,`ProjetNumero` as projNum ,`Criticite` as Criticite ,`Chargee_action` as chargeaction,`ChargeHJ` as charge,`TauxRealisation` as tauxrealisation,`Evaluation` as Evaluation FROM audit_previousaudits_ap AS ap JOIN projects ON ap.projectID = projects.id JOIN customers ON projects.customer_id = customers.id WHERE customers.id = ? Order by `ProjetNumero`,`ActionNumero`";
+        $sqlPrevAudit = "SELECT
+        Project_name AS ProjectName,
+        `Action` AS Action,
+        `ActionNumero` AS ActionNumero,
+        `ProjetNumero` AS projNum,
+        `Criticite` AS Criticite,
+        `Chargee_action` AS chargeaction,
+        `ChargeHJ` AS charge,
+        `TauxRealisation` AS tauxrealisation,
+        `Evaluation` AS Evaluation
+    FROM
+        audit_previousaudits_ap AS ap
+    JOIN
+        projects ON ap.projectID = projects.id
+    WHERE
+        projects.id= ?
+    ORDER BY
+        `ProjetNumero`, `ActionNumero`;
+    ";
 
 
-        $sqlYear = 'SELECT `year` from `projects`WHERE `customer_id`=?';
-
+        $sqlYear = 'SELECT `year` from `projects`WHERE `id`=?';
         $templatePath = public_path("0.docx");
 
         $templateProcessor = new TemplateProcessor($templatePath);
@@ -218,7 +217,7 @@ HERE10;
 
         //current year 
         $currentYear = date('Y');
-        $templateProcessor->setValue('year', $year);
+        $templateProcessor->setValue('year', $currentYear);
 
 
         // Part 9.2
@@ -234,11 +233,10 @@ HERE10;
 
         //Part 11.1
 
-        // self::processPA_chapter11(5, "3", $templateProcessor);
-        // self::processPA_chapter11(6, "3", $templateProcessor);
-        // self::processPA_chapter11(7, "3", $templateProcessor);
-        // self::processPA_chapter11(8, "3", $templateProcessor);
-
+        self::processPA_chapter11(5, $customerId, $templateProcessor);
+        self::processPA_chapter11(6, $customerId, $templateProcessor);
+        self::processPA_chapter11(7, $customerId, $templateProcessor);
+        self::processPA_chapter11(8, $customerId, $templateProcessor);
 
 
 
@@ -701,7 +699,7 @@ HERE10;
         $response = Http::get($url);
         $content = $response->body();
 
-    
+
         // Save the modified content to a new file
         file_put_contents(storage_path('csv.csv'), $content);
         try {
@@ -735,29 +733,32 @@ HERE10;
 
 
 
-    static function processPA_chapter11($num, $iteration, $templateProcessor)
+    static function processPA_chapter11($num, $customerId, $templateProcessor)
     {
         $sqlPA = "SELECT
      ROW_NUMBER() OVER () AS AP_" . $num . "_numero,
     rm_questions.`plan d'action` AS AP_$num,
     rm_questions.`priorité` as priorité,
-    rm_questions.Responsable as Responsable,
-    rm_questions.ChargeHJ as ChargeHJ
+        rm_questions.Responsable as Responsable,
+        rm_questions.ChargeHJ as ChargeHJ
     FROM
-    rm_questions
+        rm_questions
     JOIN
-    standards_controls ON standards_controls.Controle_ID = rm_questions.`ISO 27002:2022`
+        standards_controls ON standards_controls.Controle_ID = rm_questions.`ISO 27002:2022`
     LEFT JOIN
-    rm_answers ON rm_answers.ID_Question = rm_questions.QuestionID
+        rm_answers ON rm_answers.ID_Question = rm_questions.QuestionID
     LEFT JOIN
-    rm_iteration ON rm_answers.ID_ITERATION = rm_iteration.id
+        rm_iteration ON rm_answers.ID_ITERATION = rm_iteration.id
+    LEFT JOIN
+         projects ON rm_iteration.ID = projects.iterationKey
     WHERE
-    rm_answers.Pertinence in(3, 4)
-    AND rm_answers.Answer = 0
-    AND rm_iteration.ID = '3'
-    AND standards_controls.clause=$num
+        rm_answers.Pertinence in(3, 4)
+        AND rm_answers.Answer = 0
+        AND projects.id = $customerId
+        AND standards_controls.clause = $num
     ORDER BY
-    standards_controls.Controle_ID  ASC;";
+        standards_controls.Controle_ID ASC;";
+
         $vuln = DB::select($sqlPA);
         $vulnArray = self::processDatabaseData($vuln);
         $vulnArrayLength = count($vulnArray);
