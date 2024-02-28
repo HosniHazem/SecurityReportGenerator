@@ -27,7 +27,7 @@ use App\Models\Project; // Replace with your actual model
 use Illuminate\Support\Facades\Http;
 use Stichoza\GoogleTranslate\GoogleTranslate;
 
-$GLOBALS['listOfAgesOfVulns'] = [""=>0, "0 - 7 days"=>0,        "7 - 30 days"=>0,        "30 - 60 days"=>0,        "60 - 180 days"=>0,        "180 - 365 days"=>0,        "365 - 730 days"=>0,        "730 days +"=>0];
+$GLOBALS['listOfAgesOfVulns'] = [""=>0, "Not yet published"=>0, "0 - 7 days"=>0,        "7 - 30 days"=>0,        "30 - 60 days"=>0,        "60 - 180 days"=>0,        "180 - 365 days"=>0,        "365 - 730 days"=>0,        "730 days +"=>0];
 $GLOBALS['listOfAgesOfVulnsMX']= [];
  $GLOBALS['allStats']= array(
     "TLT_Hosts_MLW"=> 0,
@@ -53,8 +53,11 @@ class AnnexesController extends Controller
 
         $sqls = array(
             <<< HERE0
-            SELECT  'Nombre de Plugins non traduit', count(DISTINCT `Plugin ID`), '/translatePlugins'  FROM vuln where ID_Projet=? and `Plugin ID` in (SELECT id FROM `plugins` WHERE `translated`<>'yes' )
+            SELECT  'Nombre de Plugins mixed Plugins Age', count(*) as nbr, '/DangerCorrectPluginsAges'  FROM plugins WHERE (length (`age_of_vuln`)=? AND `age_of_vuln` is not null) or `age_of_vuln`="Not yet published" 
             HERE0,
+            <<< HERE000
+            SELECT  'Nombre de Plugins non traduit', count(DISTINCT `Plugin ID`), '/translatePlugins'  FROM vuln where ID_Projet=? and `Plugin ID` in (SELECT id FROM `plugins` WHERE `translated`<>'yes' )
+            HERE000,
             <<< HERE1
             SELECT 'Nombre de Vulns non traduit', count(DISTINCT `id`),'/translateVulns'  FROM vuln where ID_Projet = ? and Risk in ('PASSED', 'FAILED') AND  `BID` not in ('noway', 'yes' )
             HERE1,
@@ -225,7 +228,7 @@ class AnnexesController extends Controller
         public static function setVulnPatchValues($prjID, $templateProcessor, $isitAnnexeA  )
     {
         set_time_limit(50000);
-        $listOfAgesOfVulnsxxxx = [""=>0, "0 - 7 days"=>0,        "7 - 30 days"=>0,        "30 - 60 days"=>0,        "60 - 180 days"=>0,        "180 - 365 days"=>0,        "365 - 730 days"=>0,        "730 days +"=>0];
+        $listOfAgesOfVulnsxxxx = [""=>0, "Not yet published"=>0, "0 - 7 days"=>0,        "7 - 30 days"=>0,        "30 - 60 days"=>0,        "60 - 180 days"=>0,        "180 - 365 days"=>0,        "365 - 730 days"=>0,        "730 days +"=>0    ];
         include("sqlRequests.php");
 
         $query = <<<HERE
@@ -861,7 +864,16 @@ public static function executeCronJobs(Request $req)
    self::sendMessage("[Finishing Cron Job\n Time now:". date("Y-m-d H:i:s"));
     return true;
 }
+public static function DangerCorrectPluginsAges(Request $req)
+{
 
+    set_time_limit(50000);
+    self::sendMessage("cleanup of plugin ages field ");
+
+ DB::update('UPDATE `plugins` SET `age_of_vuln` = NULL WHERE length (`age_of_vuln`)=? OR `age_of_vuln`="Not yet published"', [0]);
+ 
+ return true;
+}
 public static function populateOSDanger(Request $req)
 {
 
@@ -884,6 +896,8 @@ public static function populateOSDanger(Request $req)
  self::sendMessage("Populating OS Fields if possible for projet: " .$req->prj_id );
  return true;
 }
+
+
 
 public static function removeBadCharsFromDB(Request $req)
 {

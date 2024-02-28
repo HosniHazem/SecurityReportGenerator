@@ -279,7 +279,7 @@ class HtmlParser extends Controller
             $vuln=new Vuln();
             $vuln->Name=$result['name'];
             $vuln->Risk=$result['Severity'];
-            $vuln->CVSSv3BaseScore=$result['CVSS Score'];
+            $vuln->{'CVSS v3.0 Base Score'}=$result['CVSS Score'];
             $vuln->Host=$result['URL'];
             $vuln->Description=$result['Description'];
             $vuln->Solution=$result['Fix'];

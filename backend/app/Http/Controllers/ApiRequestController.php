@@ -71,7 +71,7 @@ class ApiRequestController extends Controller
                 $it->Host=self::parseBaseUrl(htmlspecialchars($item['affects_url']));
 
                  $it->Synopsis=htmlspecialchars($item['impact']);
-                 $it->CVSSv3BaseScore= $item['cvss3'];
+                 $it->{'CVSS v3.0 Base Score'}= $item['cvss3'];
                  // $it->score=$item['cvss_score'];
                 $cvssInput = $item['cvss3'];
 

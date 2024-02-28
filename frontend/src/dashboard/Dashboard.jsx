@@ -139,7 +139,7 @@ const Dashboard = () => {
   };
 
   const userColumns = [
-    { field: "id", headerName: "ID", width: 30 },
+    { field: "id", headerName: "ID", width: 100 },
     {
       field: "Nom",
       headerName: "Nom",
@@ -326,6 +326,13 @@ const Dashboard = () => {
     // Handle the logic for the checked button
     console.log("Checked button clicked");
   };
+  if (!selectedIp) {
+    const firstActiveVm = Vm.find((element) => element.answer === "Online");
+    if (firstActiveVm) {
+      console.log("happened")
+      handleSelect(firstActiveVm.ip, firstActiveVm.Auth)
+    }
+}
 
   const Export = (id, e) => {
     e.persist();
@@ -530,6 +537,7 @@ const Dashboard = () => {
         <table style={{ borderCollapse: "collapse", width: "15%" }}>
           <thead>
             <tr>
+              <th>Name</th>
               <th>URL</th>
               <th>Status</th>
               <th>Select</th>
@@ -544,6 +552,7 @@ const Dashboard = () => {
                   backgroundColor: url.answer === "Online" ? "green" : "red",
                 }}
               >
+                <td style={cellStyle}>{url.Name}</td>
                 <td style={cellStyle}>{url.ip}</td>
                 <td style={cellStyle}>{url.answer}</td>
                 <td style={cellStyle}>

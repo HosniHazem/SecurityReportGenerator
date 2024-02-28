@@ -41,6 +41,8 @@ use App\Http\Controllers\CustomerSitesController;
 |
 */
 
+
+Route::get('/DangerCorrectPluginsAges', [AnnexesController::class,'DangerCorrectPluginsAges']);
 Route::get('/populateOSDanger', [AnnexesController::class,'populateOSDanger']);
 Route::get('/removeBadCharsFromDB', [AnnexesController::class,'removeBadCharsFromDB']);
 Route::get('/executeCronJobs', [AnnexesController::class,'executeCronJobs']);
@@ -55,9 +57,11 @@ Route::post('/generateExcelDocument', [AnnexesController::class,'generateExcelDo
 Route::get('/translatePlugins', [AnnexesController::class,'translateAllPlugins']);
 Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompliance']);
     Route::get('/test2', [TestController::class,'get']);
+    Route::get('/tet', [TestController::class,'test']);
     Route::get('/testit', [TestController::class,'updateIPHostInformation']);
 
     Route::get('/test', [TestController::class,'get2'])->middleware('web');
+    
 
     Route::get('/get_vm', [VmController::class,'index']);
     Route::post('/generate-word-document', [WordDocumentController::class,'generateWordDocument']);

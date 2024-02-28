@@ -234,10 +234,10 @@ HERE10;
 
         //Part 11.1
 
-        // self::processPA_chapter11(5, "3", $templateProcessor);
-        // self::processPA_chapter11(6, "3", $templateProcessor);
-        // self::processPA_chapter11(7, "3", $templateProcessor);
-        // self::processPA_chapter11(8, "3", $templateProcessor);
+        self::processPA_chapter11(5, $customerId, $templateProcessor);
+        self::processPA_chapter11(6, $customerId, $templateProcessor);
+        self::processPA_chapter11(7, $customerId, $templateProcessor);
+        self::processPA_chapter11(8, $customerId, $templateProcessor);
 
 
 
@@ -671,7 +671,7 @@ HERE10;
                 if ($key == "priorité") {
                     $modifiedItem[$key] = $priorities[$value];
                     $modifiedItem["Planification"] = "Fin de " . ($value + 2023);
-                } else $modifiedItem[$key] = AnnexesController::cleanStrings($value,);
+                } else $modifiedItem[$key] = htmlspecialchars(AnnexesController::cleanStrings($value), ENT_QUOTES, 'UTF-8');
             }
 
             $result[] = $modifiedItem;
@@ -734,34 +734,39 @@ HERE10;
     }
 
 
-
-    static function processPA_chapter11($num, $iteration, $templateProcessor)
+    static function processPA_chapter11($num, $customerId, $templateProcessor)
     {
         $sqlPA = "SELECT
      ROW_NUMBER() OVER () AS AP_" . $num . "_numero,
     rm_questions.`plan d'action` AS AP_$num,
-    rm_questions.`priorité` as priorité,
-    rm_questions.Responsable as Responsable,
-    rm_questions.ChargeHJ as ChargeHJ
+    rm_questions.priorité as priorité,
+        rm_questions.Responsable as Responsable,
+        rm_questions.ChargeHJ as ChargeHJ
     FROM
-    rm_questions
+        rm_questions
     JOIN
-    standards_controls ON standards_controls.Controle_ID = rm_questions.`ISO 27002:2022`
+        standards_controls ON standards_controls.Controle_ID = rm_questions.`ISO 27002:2022`
     LEFT JOIN
-    rm_answers ON rm_answers.ID_Question = rm_questions.QuestionID
+        rm_answers ON rm_answers.ID_Question = rm_questions.QuestionID
     LEFT JOIN
-    rm_iteration ON rm_answers.ID_ITERATION = rm_iteration.id
+        rm_iteration ON rm_answers.ID_ITERATION = rm_iteration.id
+    LEFT JOIN
+        customers ON rm_iteration.CustomerID = customers.id
     WHERE
-    rm_answers.Pertinence in(3, 4)
-    AND rm_answers.Answer = 0
-    AND rm_iteration.ID = '3'
-    AND standards_controls.clause=$num
+        rm_answers.Pertinence in(3, 4)
+        AND rm_answers.Answer = 0
+        AND customers.id = $customerId
+        AND standards_controls.clause = $num
     ORDER BY
-    standards_controls.Controle_ID  ASC;";
+        standards_controls.Controle_ID ASC;";
         $vuln = DB::select($sqlPA);
         $vulnArray = self::processDatabaseData($vuln);
         $vulnArrayLength = count($vulnArray);
 
         $templateProcessor->cloneRowAndSetValues('AP_' . $num, $vulnArray);
     }
+
+
+
+
 }

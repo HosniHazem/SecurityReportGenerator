@@ -60,7 +60,7 @@ function SOW() {
 const subnet = getSubnetIpRange(item.IP_Host);
 subnet.map((ip)=>{
     const jsonObject = {
-      Nom: item.Nom ? item.Nom : null,
+        Nom: null,
         IP_Host: ip,
         Type : "PC"
       };
