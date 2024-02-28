@@ -389,6 +389,7 @@ class WordDocumentController4 extends Controller
         //customer site 
         $CustomersSite =  DB::select($sqlCustomerSite, [$customerId]);
         $CustomersSiteArray =  self::processDatabaseData($CustomersSite);
+        // return response()->json($CustomersSiteArray);
         $templateProcessor->cloneRowAndSetValues('N_Site', $CustomersSiteArray);
 
 
@@ -658,25 +659,28 @@ class WordDocumentController4 extends Controller
     }
 
     static function processDatabaseData($data)
-    {
-        $result = [];
-        $priorities = ["", "Très Urgent", "Urgent", "Normal"];
+{
+    $result = [];
+    $priorities = ["", "Très Urgent", "Urgent", "Normal"];
 
-        foreach ($data as $item) {
-            $modifiedItem = [];
+    foreach ($data as $item) {
+        $modifiedItem = [];
 
-            foreach ($item as $key => $value) {
-                if ($key == "priorité") {
-                    $modifiedItem[$key] = $priorities[$value];
-                    $modifiedItem["Planification"] = "Fin de " . ($value + 2023);
-                } else $modifiedItem[$key] = AnnexesController::cleanStrings($value,);
+        foreach ($item as $key => $value) {
+            if ($key == "priorité") {
+                $modifiedItem[$key] = $priorities[$value];
+                $modifiedItem["Planification"] = "Fin de " . ($value + 2023);
+            } else {
+                $modifiedItem[$key] =   htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
             }
-
-            $result[] = $modifiedItem;
         }
 
-        return $result;
+        $result[] = $modifiedItem;
     }
+
+    return $result;
+}
+
     static function currentDate()
     {
         $current_date = date('Y-m-d');
