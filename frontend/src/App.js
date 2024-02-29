@@ -25,6 +25,8 @@ import Anomalie from "./Anomalie";
 import AfterANomalie from "./AfterAnomalie";
 import TablesClone from "./Tables";
 import CreateCustomerSite from "./CustomerSites";
+import Register from "./Register";
+import Login from "./Login";
 
 function App() {
   return (
@@ -58,6 +60,8 @@ function App() {
         <Route path="/anomalie/:id" element={<Anomalie />} />
         <Route path="/tables" element={<TablesClone />} />
         <Route path="/sites/:id" element={<CreateCustomerSite />} />
+        <Route path="/register" element ={<Register />}  />
+        <Route path="/login" element ={<Login />}  />
 
 
       </Routes>

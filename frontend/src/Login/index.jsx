@@ -6,29 +6,28 @@ import toast from 'react-hot-toast';
 import { useNavigate } from "react-router-dom";
 
 
-export default function Register() {
+export default function Login() {
     const [form] = Form.useForm();
     const navigate=useNavigate();
 
     const handleNavigation=()=>{
-        navigate('/login');
+        navigate('/register');
     }
 
     const onFinish = async (values) => {
-      const { firstName, lastName, email, password } = values;
-      const name = `${firstName} ${lastName}`;
+      const {  email, password } = values;
   
       try {
         // Make API request to register user
-        const response = await axiosInstance.post('auth/register', {
-          name,
+        const response = await axiosInstance.post('auth/login', {
           email,
           password,
-          password_confirmation: password,
         });
   console.log(response.data);
         if(response.data.success){
-            toast.success('registered with success')
+            toast.success('login with success');
+            localStorage.setItem("token",response.data.access_token);
+            navigate('/')
         }
         else {
             toast.error(response.data.message);
@@ -44,21 +43,7 @@ export default function Register() {
     return (
         <div style={{ width: "50%", margin: "0 auto" ,marginTop:"2%"}}>
         <Form form={form} onFinish={onFinish} layout="vertical">
-        <Form.Item
-          name="firstName"
-          label="First Name"
-          rules={[{ required: true, message: 'Please enter your first name' }]}
-        >
-          <Input placeholder="Enter your first name" />
-        </Form.Item>
-  
-        <Form.Item
-          name="lastName"
-          label="Last Name"
-          rules={[{ required: true, message: 'Please enter your last name' }]}
-        >
-          <Input placeholder="Enter your last name" />
-        </Form.Item>
+       
   
         <Form.Item
           name="email"
@@ -79,7 +64,7 @@ export default function Register() {
           <Input.Password placeholder="Enter your password" />
         </Form.Item>
   
-        <Form.Item
+        {/* <Form.Item
           name="confirmPassword"
           label="Confirm Password"
           dependencies={['password']}
@@ -96,15 +81,15 @@ export default function Register() {
           ]}
         >
           <Input.Password placeholder="Confirm your password" />
-        </Form.Item>
+        </Form.Item> */}
   
         <Form.Item>
           <Button type="primary" htmlType="submit" style={{width:"100%"}}>
-            Register
+            Login
           </Button>
         </Form.Item>
       </Form>
-      <p onClick={handleNavigation}> Already have an account ?</p>
+      <p onClick={handleNavigation}> You do not have an account ? Register here </p>
       </div>
     );
 }
