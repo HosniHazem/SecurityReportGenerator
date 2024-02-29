@@ -160,12 +160,10 @@ class CustomerController extends Controller
     print_r($req->SN);
     foreach ($fillableFields as $field) {
         if (isset($req->$field)) {
-            print_r("found");
             $customer->$field = $req->input($field);
             
 
         }
-        else  print_r('not found');
     }
     $customer->update();
     // Handle file uploads if they are present in the request
