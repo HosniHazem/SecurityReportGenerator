@@ -52,9 +52,9 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://webapp.ssk.lc'),
+    'url' => env('APP_URL', 'http://webapp.smartskills.tn'),
 
-    'asset_url' => env('ASSET_URL', 'http://webapp.ssk.lc/AppGenerator/backend/public'),
+    'asset_url' => env('ASSET_URL', 'http://webapp.smartskills.tn/AppGenerator/backend/public'),
 
     /*
     |--------------------------------------------------------------------------

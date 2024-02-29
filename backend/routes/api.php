@@ -10,7 +10,7 @@ use App\Http\Controllers\AnnexesController;
 use App\Http\Controllers\WordDocumentController4;
 use App\Http\Controllers\ExcelDocumentController;
 use App\Http\Controllers\concatenateDocxFiles;
-use App\Http\Controllers\Sanctum\AuthController;
+// use App\Http\Controllers\Sanctum\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\JWTController;
 use App\Http\Controllers\NassusController;
@@ -29,6 +29,7 @@ use App\Http\Controllers\ApiRequestController;
 use App\Http\Controllers\CloneController;
 use App\Http\Controllers\HtmlParser;
 use App\Http\Controllers\CustomerSitesController;
+use App\Http\Controllers\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -154,3 +155,14 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::post('/add-customersite', [CustomerSitesController::class, 'createCustomerSite']);
     Route::get('all-customerSites',[CustomerSitesController::class,'index']);
 
+    Route::group(['middleware' => 'api', 'prefix' => 'auth'], function () {
+        // Registration route
+        Route::post('/register', [AuthController::class, 'register']);
+        
+        // Login route
+        Route::post('/login', [AuthController::class, 'login']);
+        // Route::post('/logout', [AuthController::class, 'logout']);
+        // Route::get('/profile', [AuthController::class, 'profile']);
+    
+    
+    });
