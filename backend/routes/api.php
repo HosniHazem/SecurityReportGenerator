@@ -99,7 +99,7 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::get('Customer', [CustomerController::class,'index']);
     Route::get('LastOne', [CustomerController::class,'default']);
     Route::delete('Customer/{id}/delete', [CustomerController::class,'destroy']);
-    Route::put('Customer/{id}/update', [CustomerController::class,'update']);
+    Route::post('Customer/{id}/update', [CustomerController::class,'update']);
     Route::post('Customer/create',[CustomerController::class,'store']);
 
     /// SOw
