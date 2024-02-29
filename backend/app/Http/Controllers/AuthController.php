@@ -72,6 +72,13 @@ public function login(Request $request)
         'success'=>true,
         'message'=>"redirecting to home page"
     ]);
+
+
+    
+}
+
+public function profile(){
+    return response()->json(auth()->user());
 }
 
 
