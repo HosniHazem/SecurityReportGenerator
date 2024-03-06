@@ -14,10 +14,11 @@ import {
 } from "@mui/material";
 import toast from 'react-hot-toast';
 import { axiosInstance } from '../../axios/axiosInstance';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 export default function ModifyAuditPreviousAudit() {
   const {id}=useParams();
   console.log(id)
+  const navigate=useNavigate()
 
   const [formData, setFormData] = useState({
     Project_name: "",
@@ -85,6 +86,7 @@ export default function ModifyAuditPreviousAudit() {
     );
     if (response.data.success) {
       toast.success(response.data.message);
+      navigate(-1)
     } else {
       toast.error(response.data.message);
     }

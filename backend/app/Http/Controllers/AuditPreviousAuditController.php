@@ -122,4 +122,13 @@ class AuditPreviousAuditController extends Controller
         $auditPreviousAudit->delete();
         return response()->json(['message' => 'Record deleted', 'status' => 200, 'success' => true]);
     }
+    function getauditPrevAuditByProjectId($projectID){
+        $auditPreviousAudit= AuditPreviousAudit::where('projectID', $projectID)->get();
+        
+        return response()->json([
+            'success' => 'true', // or 'error' based on your logic
+            'data' =>  $auditPreviousAudit,
+        ]);
+    }
+
 }

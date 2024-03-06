@@ -96,6 +96,11 @@ export default function AddAuditPreviousAudit() {
     }
   };
 
+  const handleNavigate=()=>{
+    navigate(`/all-audit-previous-audit/${projectID}`)
+  }
+
+
   return (
     <div>
       <TableContainer component={Paper}>
@@ -236,6 +241,7 @@ export default function AddAuditPreviousAudit() {
           </TableBody>
         </Table>
       </TableContainer>
+      <Button onClick={handleNavigate}> View  ALL Previous Audit of this Customer</Button>
     </div>
   );
 }

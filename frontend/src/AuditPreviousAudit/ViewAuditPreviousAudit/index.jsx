@@ -10,12 +10,13 @@ import {
   Button,
 } from "@mui/material";
 import { axiosInstance } from "../../axios/axiosInstance";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
 export default function ViewAuditPRevious() {
   const [auditData, setAuditData] = useState([]);
   const [projectNameMapping, setProjectNameMapping] = useState({});
+  const {projectId}=useParams();
 const navigate=useNavigate()
   // Create a mapping of project IDs to names
   useEffect(() => {
@@ -28,11 +29,11 @@ const navigate=useNavigate()
 
   useEffect(() => {
     axiosInstance
-      .get("/all-audit-previous-audits")
+      .get(`/get-audit-previous-audits-by-projectID/${projectId}`)
       .then((response) => {
         if (response.status === 200) {
           console.log(response.data.auditPrev);
-          setAuditData(response.data.auditPrev);
+          setAuditData(response.data.data);
         }
       })
       .catch((error) => {
@@ -59,6 +60,9 @@ const handleDelete=async (id)=>{
 } 
 const handleNavigate=async (id)=>{
   navigate(`modify-audit-previous-audit/${id}`)
+}
+const handleGoBack=()=>{
+  navigate(-1);
 }
   return (
     <div>
@@ -94,7 +98,7 @@ const handleNavigate=async (id)=>{
             </TableRow>
           </TableHead>
           <TableBody>
-            {auditData.map((audit, index) => (
+            {auditData?.map((audit, index) => (
               <TableRow key={index}>
                 <TableCell>{audit.Project_name}</TableCell>
                 <TableCell>
@@ -117,6 +121,7 @@ const handleNavigate=async (id)=>{
           </TableBody>
         </Table>
       </TableContainer>
+      <Button onClick={handleGoBack}> Go back</Button>
     </div>
   );
 }

@@ -50,12 +50,12 @@ function App() {
         <Route path="/import2" element={<Nessus2 />} />
         <Route path="/sow/:id" element={<Sow />} />
         <Route path="/add-glb-pip/:id" element={<AddGlbPip />} />
-        <Route path='/all-glb-pip' element={<ViewGlbPip />} /> 
+        <Route path='/all-glb-pip/:customerID' element={<ViewGlbPip />} /> 
         <Route path="/quality/:id" element={<Quality />} />
         <Route path="/modify-glb-pip/:id" element={<ModifyGlbPip />} />
         <Route path="/add-audit-previous-audit/:id" element={<AddAuditPreviousAudit />} />
-        <Route path="/all-audit-previous-audit" element={<ViewAuditPRevious />} />
-        <Route path="/all-audit-previous-audit/modify-audit-previous-audit/:id" element={< ModifyAuditPreviousAudit/>} />
+        <Route path="/all-audit-previous-audit/:projectId" element={<ViewAuditPRevious />} />
+        <Route path="/all-audit-previous-audit/:id/modify-audit-previous-audit/:id" element={< ModifyAuditPreviousAudit/>} />
         <Route path="/ansi-report/:id" element={<AnsiReport />} />
         <Route path="/anomalie/:id" element={<Anomalie />} />
         <Route path="/tables" element={<TablesClone />} />
