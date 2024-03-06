@@ -214,7 +214,9 @@ class GlbPipController extends Controller
     public function getGlbPipByProjectId($customerID){
         $glbPip = GlbPip::where('Cusotmer_ID', $customerID)->get();
         
-        return response()->json($glbPip);
-
+        return response()->json([
+            'success' => 'true', // or 'error' based on your logic
+            'data' => $glbPip,
+        ]);
     }
 }

@@ -93,8 +93,9 @@ export default function ModifyGlbPip() {
       if(response.data.success){
         toast.success(response.data.message);
         setTimeout(() => {
-            navigate("/all-glb-pip");
-          }, 2000);
+          // Use the goBack function to navigate back
+          navigate(-1);
+        }, 2000);
       }else {
         toast.error(response.data.message)
       }

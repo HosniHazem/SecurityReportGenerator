@@ -2,20 +2,23 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, TablePagination } from "@mui/material";
 import { axiosInstance } from "../../axios/axiosInstance";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
 export default function ViewGlbPip() {
-  const [glbPips, setGlbPips] = useState([]);
+  const [glbPips, setGlbPips] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const navigate=useNavigate();
+  const {customerID}=useParams();
+  console.log('ccc',customerID);
   useEffect(() => {
     axiosInstance
-      .get("/all-glbpip")
+      .get(`get-glbpip-by-customer-id/${customerID}`)
       .then((response) => {
         if (response.status === 200) {
-          setGlbPips(response.data.GlbPip);
+          setGlbPips(response.data.data);
+          console.log(response.data.GlbPip)
         }
       })
       .catch((error) => {
@@ -50,6 +53,9 @@ export default function ViewGlbPip() {
   const handleNavigation=(id)=>{
     navigate(`/modify-glb-pip/${id}`)
   }
+  const handleGoback=()=>{
+    navigate(-1);
+  }
   return (
     <div className="center-container">
       <TableContainer sx={{ maxHeight: 440 }}>
@@ -65,7 +71,7 @@ export default function ViewGlbPip() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {glbPips.slice(page * rowsPerPage, (page + 1) * rowsPerPage).map((glbPip) => (
+            {glbPips?.slice(page * rowsPerPage, (page + 1) * rowsPerPage).map((glbPip) => (
               <TableRow key={glbPip.ID}>
                 <TableCell>{glbPip.Nom}</TableCell>
                 <TableCell>{glbPip.Titre}</TableCell>
@@ -83,12 +89,14 @@ export default function ViewGlbPip() {
       </TableContainer>
       <TablePagination
         component="div"
-        count={glbPips.length}
+        count={glbPips?.length}
         page={page}
         onPageChange={handleChangePage}
         rowsPerPage={rowsPerPage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
+
+      <Button onClick={handleGoback}> Go back</Button>
     </div>
   );
 }
