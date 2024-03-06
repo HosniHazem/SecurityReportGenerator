@@ -121,6 +121,8 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::put('/update-glbPip/{id}', [GlbPipController::class,'update']);
     Route::delete('/delete-glbPip/{id}', [GlbPipController::class,'destroy']);
     Route::get('/all-glbpip', [GlbPipController::class,'index']);
+    Route::get('/get-glbpip-by-customer-id/{customerId}', [GlbPipController::class,'getGlbPipByProjectId']);
+
 
     Route::get('/all-audit-previous-audits', [AuditPreviousAuditController::class, 'index']);
     Route::post('/add-audit-previous-audits', [AuditPreviousAuditController::class, 'store']);
@@ -162,7 +164,7 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
         // Login route
         Route::post('/login', [AuthController::class, 'login']);
         // Route::post('/logout', [AuthController::class, 'logout']);
-        // Route::get('/profile', [AuthController::class, 'profile']);
+        Route::get('/profile', [AuthController::class, 'profile']);
     
     
     });

@@ -210,4 +210,11 @@ class GlbPipController extends Controller
         // Respond with a success message
         return response()->json(['success'=>true,'message' => 'un glb_pip a été supprimé', 'status' => 200]);
     }
+
+    public function getGlbPipByProjectId($customerID){
+        $glbPip = GlbPip::where('Cusotmer_ID', $customerID)->get();
+        
+        return response()->json($glbPip);
+
+    }
 }
