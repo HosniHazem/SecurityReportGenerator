@@ -118,7 +118,7 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
 
     Route::Post('/add-glbPip', [GlbPipController::class,'store']);
     Route::get('/get-glbPip/{id}', [GlbPipController::class,'show']);
-    Route::put('/update-glbPip/{id}', [GlbPipController::class,'update']);
+    Route::post('/update-glbPip/{id}', [GlbPipController::class,'update']);
     Route::delete('/delete-glbPip/{id}', [GlbPipController::class,'destroy']);
     Route::get('/all-glbpip', [GlbPipController::class,'index']);
     Route::get('/get-glbpip-by-customer-id/{customerId}', [GlbPipController::class,'getGlbPipByProjectId']);
@@ -129,6 +129,8 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::get('/get-audit-previous-audits/{id}', [AuditPreviousAuditController::class, 'show']);
     Route::put('/update-audit-previous-audits/{id}', [AuditPreviousAuditController::class, 'update']);
     Route::delete('/delete-audit-previous-audits/{id}', [AuditPreviousAuditController::class, 'destroy']);
+    Route::get('/get-audit-previous-audits-by-projectID/{projectID}', [AuditPreviousAuditController::class, 'getauditPrevAuditByProjectId']);
+
 
     Route::Post('/Uploadfile', [ImageController::class, 'uploadimage']);
 
@@ -154,8 +156,7 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::post('/all-attributes',[CloneController::class,'getTableAttributes']);
     Route::put('/modify',[CloneController::class,'Modify']);
     Route::delete('/delete-row',[CloneController::class,'DeleteRow']);
-    Route::post('/add-customersite', [CustomerSitesController::class, 'createCustomerSite']);
-    Route::get('all-customerSites',[CustomerSitesController::class,'index']);
+    
 
     Route::group(['middleware' => 'api', 'prefix' => 'auth'], function () {
         // Registration route
@@ -168,3 +169,10 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     
     
     });
+
+    Route::post('/add-customersite', [CustomerSitesController::class, 'createCustomerSite']);
+    Route::get('all-customerSites',[CustomerSitesController::class,'index']);
+    Route::get('/customer-sites/{id}', [CustomerSitesController::class, 'show']);
+    Route::post('/customer-sites/{id}', [CustomerSitesController::class, 'update']);
+    Route::delete('/customer-sites/{id}', [CustomerSitesController::class, 'destroy']);
+    Route::get('/customer-sites-by-customer-id/{id}', [CustomerSitesController::class, 'getCustomerSiteByCustomerId']);

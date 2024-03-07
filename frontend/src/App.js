@@ -27,6 +27,8 @@ import TablesClone from "./Tables";
 import CreateCustomerSite from "./CustomerSites";
 import Register from "./Register";
 import Login from "./Login";
+import AllCustomerSites from "./CustomerSites/allCustomerSites";
+import ModifyCustomerSite from "./CustomerSites/ModifyCustomerSite";
 
 function App() {
   return (
@@ -49,7 +51,7 @@ function App() {
         <Route path="/import" element={<Nessus />} />
         <Route path="/import2" element={<Nessus2 />} />
         <Route path="/sow/:id" element={<Sow />} />
-        <Route path="/add-glb-pip/:id" element={<AddGlbPip />} />
+        <Route path="/add-glb-pip/:customerID" element={<ViewGlbPip />} />
         <Route path='/all-glb-pip/:customerID' element={<ViewGlbPip />} /> 
         <Route path="/quality/:id" element={<Quality />} />
         <Route path="/modify-glb-pip/:id" element={<ModifyGlbPip />} />
@@ -62,8 +64,10 @@ function App() {
         <Route path="/sites/:id" element={<CreateCustomerSite />} />
         <Route path="/register" element ={<Register />}  />
         <Route path="/login" element ={<Login />}  />
+        <Route path="/sites/:id/customer-sites/:customerID" element={<AllCustomerSites />} />
+         <Route path="sites/:id/customer-sites/:customerID/customer-sites-modify/:customerSiteId"  element={<ModifyCustomerSite />} />
 
-
+        {/* /customer-sites-modify/${customerSiteID} */}
       </Routes>
     </BrowserRouter>
   );

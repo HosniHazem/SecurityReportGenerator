@@ -178,12 +178,13 @@ class GlbPipController extends Controller
         }
     
         // Update the GlbPip model with the new data
-        $glbPip->Nom = $request->input('Nom');
-        $glbPip->Titre = $request->input('Titre');
-        $glbPip["Adresse mail primaire"] = $request->input('adresse_mail_primaire');
-        $glbPip["Adresse mail secondaire"] = $request->input('adresse_mail_secondaire');
-        $glbPip->Tél = $request->input('tel');
-        $glbPip->update();
+        $glbPip->Nom = $request->Nom;
+        $glbPip->Titre = $request->Titre; // Updated key
+        $glbPip["Adresse mail primaire"]  = $request->adresse_mail_primaire; // Updated key
+        $glbPip["Adresse mail secondaire"]  = $request->adresse_mail_secondaire; // Updated key
+        $glbPip->Tél = $request->tel; // Updated key
+        
+        $glbPip->save();
     
         // Respond with a success message and the updated record
         return response()->json(['success'=>true,'message' => 'un glbpip a été mis a jour', 'data' => $glbPip]);
