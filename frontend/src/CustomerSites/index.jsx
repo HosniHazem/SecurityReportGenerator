@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { axiosInstance } from "../axios/axiosInstance";
 import { Form, Input, Button, message, InputNumber } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
+import { Button as MUIButton } from "@mui/material";
 
 export default function CreateCustomerSite() {
   const { id } = useParams();
@@ -56,7 +57,10 @@ export default function CreateCustomerSite() {
       message.error("An error occurred while creating the customer site");
     }
   };
-
+ 
+    const handleNavigate=()=>{
+      navigate(`customer-sites/${project.customer_id}`)
+    }
   return (
     <div style={{ width: "50%", marginLeft: "40%",marginTop:"10%" }}>
       {" "}
@@ -108,6 +112,7 @@ export default function CreateCustomerSite() {
           </Button>
         </Form.Item>
       </Form>
+      <MUIButton onClick={handleNavigate}> View all Customer Sites of This Customer</MUIButton>
     </div>
   );
 }
