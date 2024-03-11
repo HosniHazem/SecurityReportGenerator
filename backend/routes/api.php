@@ -43,6 +43,8 @@ use App\Http\Controllers\AuthController;
 */
 
 
+Route::group(['middleware' => 'jwt.verify'], function () {
+
 Route::get('/DangerCorrectPluginsAges', [AnnexesController::class,'DangerCorrectPluginsAges']);
 Route::get('/populateOSDanger', [AnnexesController::class,'populateOSDanger']);
 Route::get('/removeBadCharsFromDB', [AnnexesController::class,'removeBadCharsFromDB']);
@@ -156,7 +158,14 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::post('/all-attributes',[CloneController::class,'getTableAttributes']);
     Route::put('/modify',[CloneController::class,'Modify']);
     Route::delete('/delete-row',[CloneController::class,'DeleteRow']);
-    
+    Route::post('/add-customersite', [CustomerSitesController::class, 'createCustomerSite']);
+    Route::get('all-customerSites',[CustomerSitesController::class,'index']);
+    Route::get('/customer-sites/{id}', [CustomerSitesController::class, 'show']);
+    Route::post('/customer-sites/{id}', [CustomerSitesController::class, 'update']);
+    Route::delete('/customer-sites/{id}', [CustomerSitesController::class, 'destroy']);
+    Route::get('/customer-sites-by-customer-id/{id}', [CustomerSitesController::class, 'getCustomerSiteByCustomerId']);
+});
+
 
     Route::group(['middleware' => 'api', 'prefix' => 'auth'], function () {
         // Registration route
@@ -170,9 +179,4 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     
     });
 
-    Route::post('/add-customersite', [CustomerSitesController::class, 'createCustomerSite']);
-    Route::get('all-customerSites',[CustomerSitesController::class,'index']);
-    Route::get('/customer-sites/{id}', [CustomerSitesController::class, 'show']);
-    Route::post('/customer-sites/{id}', [CustomerSitesController::class, 'update']);
-    Route::delete('/customer-sites/{id}', [CustomerSitesController::class, 'destroy']);
-    Route::get('/customer-sites-by-customer-id/{id}', [CustomerSitesController::class, 'getCustomerSiteByCustomerId']);
+
