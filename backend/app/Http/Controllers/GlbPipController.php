@@ -143,21 +143,21 @@ class GlbPipController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // Validate the incoming request data
-        $validator = Validator::make($request ->all(),[
-            'Nom' => 'required',
-            'Titre' => 'required',
-            'adresse_mail_primaire' => 'required|email',
-            'adresse_mail_secondaire' => 'email',
-            'tel' => 'required',
-        ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => $validator->getMessageBag(),
-                'success'=>false,
+        // // Validate the incoming request data
+        // $validator = Validator::make($request ->all(),[
+        //     'Nom' => 'required',
+        //     'Titre' => 'required',
+        //     'adresse_mail_primaire' => 'required|email',
+        //     'adresse_mail_secondaire' => 'email',
+        //     'tel' => 'required',
+        // ]);
+        // if ($validator->fails()) {
+        //     return response()->json([
+        //         'message' => $validator->getMessageBag(),
+        //         'success'=>false,
                 
-            ]);
-        }
+        //     ]);
+        // }
         $existingGlbPip = GlbPip::where('id', '!=', $id)
         ->where(function ($query) use ($request) {
             $query->where('Adresse mail primaire', $request->input('adresse_mail_primaire'))

@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+
+use App\Mail\RegistrationEmail; // Replace with your actual Mail class
 
 class AuthController extends Controller
 {
@@ -14,31 +17,60 @@ class AuthController extends Controller
     }
 
 
+    
 
     //register
-    public function register (Request $request){
-        $validator=Validator::make($request->all(),[
-            'name'=>'required',
-            'email'=>'required|string|email|unique:users',
-            'password'=>'required|string|confirmed|min:6',
-        ]);
-        if ($validator->fails()){
-            return response()->json([
-                'errors' => $validator->errors()->toJson(),
-                'success' => false,
-            ]);
-            
+    public function register (){
+        
+        $users = [
+            [
+                'name' => 'Habib',
+                'email' => 'habib.jalouli@smartskills.tn',
+                'password' => 'HoJvR0BO7P3osg8',
+            ],
+            [
+                'name' => 'Rawia',
+                'email' => 'rawia.hajri@smartskills.tn',
+                'password' => 'q5gklecLy7vsIUz',
+            ],
+            [
+                
+                'name' => 'Ayed',
+                'email' => 'ayed.akrout@smartskills.tn',
+                'password' => 'FQyuRiDnI3pBH4X',
+
+            ]
+        ];
+        
+
+
+        foreach ($users as $userData) {
+        
+      
+        
+            $user = User::create(array_merge(
+                $userData,
+                ['password' => bcrypt($userData['password'])]
+            ));
+        
+            // $this->sendRegistrationEmail($userData['email'], $userData['password']);
         }
-        $user=User::create(array_merge(
-            $validator->validated(),
-            ['password' =>bcrypt($request->password)]
-        ));
         return response()->json([
             'message' =>"registered successfully",
             'success'=>true,
-            'user' =>$user
         ],201);
 }
+
+
+private function sendRegistrationEmail($email, $password)
+{
+    Mail::raw("Welcome to Your App! Your registration was successful. Your password is: $password", function ( $message) use ($email) {
+        $message->to($email)->subject('Welcome to Your App');
+    });
+    
+}
+
+
 
 public function login(Request $request)
 {

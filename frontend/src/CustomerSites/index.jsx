@@ -12,7 +12,7 @@ export default function CreateCustomerSite() {
     const fetchData = async () => {
       try {
         const response = await axiosInstance.get(`/Project/${id}/show`);
-        console.log(response.data.Project);
+        console.log("project",response.data.Project);
 
         if (response.status === 200) {
           setProject(response.data.Project);
@@ -29,7 +29,7 @@ export default function CreateCustomerSite() {
 
   const onFinish = async (values) => {
     console.log(values);
-    console.log(project.customer_id);
+    // console.log(project.customer_id);
     console.log("Numero Site:", values.Numero_site);
     console.log("Structure:", values.Structure);
     console.log("Lieu:", values.Lieu);
@@ -37,7 +37,7 @@ export default function CreateCustomerSite() {
     try {
       // Send a POST request to your backend API
       const response = await axiosInstance.post("add-customersite", {
-        Customer_ID: project.customer_id,
+        Customer_ID: id,
         Numero_site: values.Numero_site,
         Structure: values.Structure,
         Lieu: values.Lieu,
@@ -59,7 +59,7 @@ export default function CreateCustomerSite() {
   };
  
     const handleNavigate=()=>{
-      navigate(`customer-sites/${project.customer_id}`)
+      navigate(`customer-sites/${id}`)
     }
   return (
     <div style={{ width: "50%", marginLeft: "40%",marginTop:"10%" }}>
