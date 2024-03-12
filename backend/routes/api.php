@@ -41,7 +41,11 @@ use App\Http\Controllers\AuthController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+Route::get('Project', [ProjectController::class,'index']);
+Route::get('/get_vm', [VmController::class,'index']);
+Route::get('Customer', [CustomerController::class,'index']);
 
+Route::get('/generate-ansi/{customerId}', [WordDocumentController4::class,'generateWordDocument']);
 
 Route::group(['middleware' => 'jwt.verify'], function () {
 
@@ -66,14 +70,12 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::get('/test', [TestController::class,'get2'])->middleware('web');
     
 
-    Route::get('/get_vm', [VmController::class,'index']);
     Route::post('/generate-word-document', [WordDocumentController::class,'generateWordDocument']);
     Route::post('/generate-annexe', [WordDocumentController2::class,'generateWordDocument']);
     // Route::post('/generate-ansi', [WordDocumentController4::class,'generateWordDocument']);
     Route::post('/getAnnexes', [AnnexesController::class,'getAnnexes']);
     Route::get('/getAnnexes', [AnnexesController::class,'getAnnexes']);
     Route::get('/generate-concat', [concatenateDocxFiles::class,'mergeDocxFiles']);
-    Route::get('/generate-ansi/{customerId}', [WordDocumentController4::class,'generateWordDocument']);
 ///nessus1
     Route::post('/getScan', [NassusController::class,'GetAll']);
     Route::Post('/ExportAll', [NassusController::class,'ExportAll']);
@@ -91,7 +93,6 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::post('/imageProfil', [CustomerController::class, 'uploadimage']);
 
     Route::get('Project/{id}/show', [ProjectController::class,'show']);
-    Route::get('Project', [ProjectController::class,'index']);
     Route::get('LastOne', [ProjectController::class,'default']);
     Route::delete('Project/{id}/delete', [ProjectController::class,'destroy']);
     Route::put('Project/{id}/update', [ProjectController::class,'update']);
@@ -99,7 +100,6 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::post('Project/create',[ProjectController::class,'store']);
 
     Route::get('Customer/{id}/show', [CustomerController::class,'show']);
-    Route::get('Customer', [CustomerController::class,'index']);
     Route::get('LastOne', [CustomerController::class,'default']);
     Route::delete('Customer/{id}/delete', [CustomerController::class,'destroy']);
     Route::post('Customer/{id}/update', [CustomerController::class,'update']);
