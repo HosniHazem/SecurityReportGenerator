@@ -1,34 +1,34 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import './sidebar.scss';
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-const sidebarNavItems = [
-    {
-        display: 'Dashboard',
-        icon: <i className='bx bx-home'></i>,
-        to: '/dashboard',
-        section: 'dashboard'
-    },
-    {
-        display: 'Projects',
-        icon: <i className='bx bx-receipt'></i>,
-        to: '/project',
-        section: 'project'
-    },
-    {
-        display: 'Customers',
-        icon: <i className='bx bx-user'></i>,
-        to: '/customer',
-        section: 'customer'
-    },
-    // {
-    //     display: 'Database Tables',
-    //     // icon: <FontAwesomeIcon icon="fa-solid fa-table" />,
-    //     to: '/tables',
-    //     section: 'tables'
-    // }
+// const sidebarNavItems = [
+//     {
+//         display: 'Dashboard',
+//         icon: <i className='bx bx-home'></i>,
+//         to: '/dashboard',
+//         section: 'dashboard'
+//     },
+//     {
+//         display: 'Projects',
+//         icon: <i className='bx bx-receipt'></i>,
+//         to: '/project',
+//         section: 'project'
+//     },
+//     {
+//         display: 'Customers',
+//         icon: <i className='bx bx-user'></i>,
+//         to: '/customer',
+//         section: 'customer'
+//     },
+//     // {
+//     //     display: 'Database Tables',
+//     //     // icon: <FontAwesomeIcon icon="fa-solid fa-table" />,
+//     //     to: '/tables',
+//     //     section: 'tables'
+//     // }
  
-]
+// ]
 
 const Sidebar = () => {
     const [activeIndex, setActiveIndex] = useState(0);
@@ -36,6 +36,41 @@ const Sidebar = () => {
     const sidebarRef = useRef();
     const indicatorRef = useRef();
     const location = useLocation();
+    const navigate=useNavigate();
+    const handleLogout=()=>{
+        localStorage.removeItem('token');
+        navigate('/login')
+        location.reload() 
+        
+    }
+    const sidebarNavItems = [
+        {
+            display: 'Dashboard',
+            icon: <i className='bx bx-home'></i>,
+            to: '/dashboard',
+            section: 'dashboard'
+        },
+        {
+            display: 'Projects',
+            icon: <i className='bx bx-receipt'></i>,
+            to: '/project',
+            section: 'project'
+        },
+        {
+            display: 'Customers',
+            icon: <i className='bx bx-user'></i>,
+            to: '/customer',
+            section: 'customer'
+        },
+        {
+            display: 'Logout',
+             icon: <i class='bx bx-log-out'></i>,
+
+             onClick: handleLogout
+        }
+     
+    ]
+    
 
     useEffect(() => {
         setTimeout(() => {
@@ -68,7 +103,7 @@ const Sidebar = () => {
             ></div>
             {
                 sidebarNavItems.map((item, index) => (
-                    <Link to={item.to} key={index}>
+                    <Link to={item.to} key={index} onClick={item?.onClick}>
                         <div className={`sidebar__menu__item ${activeIndex === index ? 'active' : ''}`}>
                             <div className="sidebar__menu__item__icon">
                                 {item.icon}
