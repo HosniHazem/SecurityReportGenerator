@@ -63,6 +63,14 @@ const Sidebar = () => {
             section: 'customer'
         },
         {
+            display:'History',
+            icon: <i class='bx bx-history'></i>,
+            to: '/logs',
+            section: 'customer'
+
+
+        },
+        {
             display: 'Logout',
              icon: <i class='bx bx-log-out'></i>,
 

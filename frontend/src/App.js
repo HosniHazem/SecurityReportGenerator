@@ -30,6 +30,7 @@ import Login from "./Login";
 import AllCustomerSites from "./CustomerSites/allCustomerSites";
 import ModifyCustomerSite from "./CustomerSites/ModifyCustomerSite";
 import PrivateRoutes from "./PrivateRoutes";
+import Logs from "./Logs";
 
 function App() {
   // const isAuthenticated = localStorage.getItem('token');
@@ -70,6 +71,7 @@ function App() {
         <Route path="/sites/:id" element={<CreateCustomerSite />} />
         <Route path="/sites/:id/customer-sites/:customerID" element={<AllCustomerSites />} />
          <Route path="sites/:id/customer-sites/:customerID/customer-sites-modify/:customerSiteId"  element={<ModifyCustomerSite />} />
+         <Route path="logs" element={<Logs />} />
          </Route>
          <Route path="/login" element ={<Login />}  />
 
