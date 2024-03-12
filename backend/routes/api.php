@@ -47,7 +47,7 @@ Route::get('Customer', [CustomerController::class,'index']);
 
 Route::get('/generate-ansi/{customerId}', [WordDocumentController4::class,'generateWordDocument']);
 
-Route::group(['middleware' => 'jwt.verify'], function () {
+Route::group(['middleware' => ['jwt.verify', 'log_activity']], function () {
 
 Route::get('/DangerCorrectPluginsAges', [AnnexesController::class,'DangerCorrectPluginsAges']);
 Route::get('/populateOSDanger', [AnnexesController::class,'populateOSDanger']);

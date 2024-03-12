@@ -2,7 +2,6 @@
 
 namespace App\Http;
 
-
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
 class Kernel extends HttpKernel
@@ -40,10 +39,10 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
 
-
         'api' => [
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            'log_activity', // Added 'log_activity' middleware
         ],
     ];
 
@@ -65,8 +64,8 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'isAdmin' => \App\Http\Middleware\AdminMiddleware::class,
-        'isAgent' => \App\Http\Middleware\AgentMiddleware::class,
-        'isClient' => \App\Http\Middleware\ClientMiddleware::class,
+        // 'isAgent' => \App\Http\Middleware\AgentMiddleware::class,
+        // 'isClient' => \App\Http\Middleware\ClientMiddleware::class,
         'api' => [
            // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             'throttle:api',
@@ -75,6 +74,6 @@ class Kernel extends HttpKernel
         'jwt.verify' => \App\Http\Middleware\JwtMiddleware::class,
         'jwt.auth' => 'Tymon\JWTAuth\Middleware\GetUserFromToken',
         'jwt.refresh' => 'Tymon\JWTAuth\Middleware\RefreshToken',
+        'log_activity' => \App\Http\Middleware\LogActivity::class, // 'log_activity' middleware
     ];
-
 }
