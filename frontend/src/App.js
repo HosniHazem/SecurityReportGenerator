@@ -1,6 +1,6 @@
 import "./App.scss";
 import "boxicons/css/boxicons.min.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate,Navigate } from "react-router-dom";
 import AppLayout from "./layout/AppLayout";
 import Dashboard from "./dashboard/Dashboard";
 import Project from "./projects/Projects";
@@ -29,8 +29,12 @@ import Register from "./Register";
 import Login from "./Login";
 import AllCustomerSites from "./CustomerSites/allCustomerSites";
 import ModifyCustomerSite from "./CustomerSites/ModifyCustomerSite";
+import PrivateRoutes from "./PrivateRoutes";
 
 function App() {
+  // const isAuthenticated = localStorage.getItem('token');
+
+
   return (
     <BrowserRouter>
     <Toaster
@@ -38,6 +42,8 @@ function App() {
   reverseOrder={false}
 />
       <Routes>
+      <Route element={<PrivateRoutes />}>
+
         <Route path="/" element={<AppLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />
@@ -62,12 +68,12 @@ function App() {
         <Route path="/anomalie/:id" element={<Anomalie />} />
         <Route path="/tables" element={<TablesClone />} />
         <Route path="/sites/:id" element={<CreateCustomerSite />} />
-        <Route path="/register" element ={<Register />}  />
-        <Route path="/login" element ={<Login />}  />
         <Route path="/sites/:id/customer-sites/:customerID" element={<AllCustomerSites />} />
          <Route path="sites/:id/customer-sites/:customerID/customer-sites-modify/:customerSiteId"  element={<ModifyCustomerSite />} />
+         </Route>
+         <Route path="/login" element ={<Login />}  />
 
-        {/* /customer-sites-modify/${customerSiteID} */}
+
       </Routes>
     </BrowserRouter>
   );
