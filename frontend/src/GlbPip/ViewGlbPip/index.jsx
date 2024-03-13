@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Children } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
   Table,
@@ -18,10 +18,16 @@ import toast from "react-hot-toast";
 
 export default function ViewGlbPip() {
   const [glbPips, setGlbPips] = useState(null);
+  const [editableCell, setEditableCell] = useState({
+    rowIndex: -1,
+    colIndex: -1,
+    id: null,
+  });
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const navigate = useNavigate();
   const { customerID } = useParams();
+  const [modifiedGlbPips, setModifiedGlbPips] = useState([]);
 
   useEffect(() => {
     axiosInstance
@@ -46,11 +52,14 @@ export default function ViewGlbPip() {
   };
 
   const handleDeleteGlbPip = async (id) => {
+    console.log(id);
     try {
       const response = await axiosInstance.delete(`/delete-glbPip/${id}`);
       if (response.data.success) {
         // Remove the deleted record from the state
-        setGlbPips((prevGlbPips) => prevGlbPips.filter((glbPip) => glbPip.ID !== id));
+        setGlbPips((prevGlbPips) =>
+          prevGlbPips.filter((glbPip) => glbPip.ID !== id)
+        );
         toast.success(response.data.message);
       } else {
         toast.error(response.data.message);
@@ -65,75 +74,94 @@ export default function ViewGlbPip() {
     navigate(`/modify-glb-pip/${id}`);
   };
 
-  const isValidEmail = (email) => {
-    // You can implement a more sophisticated email validation regex if needed
+  const handleEditCell = (rowIndex, colIndex, id) => {
+    setEditableCell({ rowIndex, colIndex, id });
+  };
+
+  const validateEmail = (email) => {
+    // Simple email validation regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  const isValidPhoneNumber = (phoneNumber) => {
-    // Validate Tél format: It should start with 2, 5, or 8 and have 8 digits.
-    const phoneRegex = /^(2|5|9)\d{7}$/;
-    return phoneRegex.test(phoneNumber);
+  const validateTel = (tel) => {
+    // Telephone number validation regex (8 digits starting with 2, 5, or 9)
+    const telRegex = /^[259]\d{7}$/;
+    return telRegex.test(tel);
   };
 
-  const handleSaveChanges = async (id, updatedData) => {
-    // Implement your validation rules here
-    if (!updatedData.Nom || !updatedData.Titre) {
-      toast.error("Please fill in all required fields.");
+  const handleUpdate = async (data, id) => {
+    const {
+      Nom,
+      Titre,
+      "Adresse mail primaire": Adresse_mail_primaire,
+      "Adresse mail secondaire": Adresse_mail_secondaire,
+      Tél,
+    } = data;
+    console.log("data", data);
+    if (Adresse_mail_primaire && !validateEmail(Adresse_mail_primaire)) {
+      toast.error("Invalid email format for Adresse mail primaire");
       return;
     }
-  
-    if (updatedData["Adresse mail primaire"] && !isValidEmail(updatedData["Adresse mail primaire"])) {
-      toast.error("Invalid Email primaire format.");
+    if (Adresse_mail_secondaire && !validateEmail(Adresse_mail_secondaire)) {
+      toast.error("Invalid email format for Adresse mail secondaire");
       return;
     }
-  
-    if (updatedData["Adresse mail secondaire"] && !isValidEmail(updatedData["Adresse mail secondaire"])) {
-      toast.error("Invalid Email Secondaire format.");
+
+    if (Tél && !validateTel(Tél)) {
+      toast.error("Invalid telephone number format");
       return;
     }
-  
-    if (updatedData.Tél && !isValidPhoneNumber(updatedData.Tél)) {
-      toast.error("Invalid Tél format. It should start with 2, 5, or 8 and have 8 digits.");
-      return;
-    }
-  
-    console.log(glbPips);
-  
+
     try {
       const response = await axiosInstance.post(`/update-glbPip/${id}`, {
-        Nom: updatedData.Nom,
-        Titre: updatedData.Titre,
-        adresse_mail_primaire: updatedData["Adresse mail primaire"],
-        adresse_mail_secondaire: updatedData["Adresse mail secondaire"],
-        tel: updatedData.Tél
+        Nom,
+        Titre,
+        adresse_mail_primaire: Adresse_mail_primaire,
+        adresse_mail_secondaire: Adresse_mail_secondaire,
+        tel: Tél,
       });
-  console.log(response.data)
+      console.log(response.data);
       if (response.data.success) {
-        // Update the state with the modified data
-        setGlbPips((prevGlbPips) => prevGlbPips.map((glbPip) => (glbPip.ID === id ? { ...glbPip, ...updatedData } : glbPip)));
         toast.success(response.data.message);
       } else {
-        toast.error(response.data.message);
+        toast.error("Something went wrong");
       }
     } catch (error) {
       console.error(error);
-      toast.error("Something went wrong");
+      toast.error("Error updating data");
     }
   };
-  
 
-  const handleInputChange = (id, field, value) => {
+  const handleCellBlur = (field, rowIndex, colIndex, newValue, id) => {
+    console.log(
+      `New value for ${field} at (${rowIndex}, ${colIndex}):`,
+      newValue
+    );
     setGlbPips((prevGlbPips) => {
-      const updatedGlbPips = prevGlbPips.map((glbPip) =>
-        glbPip.ID === id ? { ...glbPip, [field]: value } : glbPip
-      );
-      console.log("wa", updatedGlbPips);
-      return updatedGlbPips;
+      const newGlbPips = [...prevGlbPips];
+      newGlbPips[rowIndex][field] = newValue;
+      if (
+        editableCell.rowIndex === rowIndex &&
+        editableCell.colIndex === colIndex
+      ) {
+        // handleUpdate(newGlbPips[rowIndex], id);
+      }
+      return newGlbPips;
     });
   };
-  
+
+  const handleSave = () => {
+    if (glbPips !== null) {
+      glbPips.forEach((glbPip) => {
+        handleUpdate(glbPip, glbPip.ID);
+      });
+    }
+  };
+
+  const handleGoback = () => {
+    navigate(-1);
+  };
 
   return (
     <div className="center-container">
@@ -150,47 +178,134 @@ export default function ViewGlbPip() {
             </TableRow>
           </TableHead>
           <TableBody>
-  {glbPips?.slice(page * rowsPerPage, (page + 1) * rowsPerPage).map((glbPip) => (
-    <TableRow key={glbPip.ID}>
-      <TableCell>
-        <Input
-          defaultValue={glbPip.Nom}
-          onChange={(e) => handleInputChange(glbPip.ID, 'Nom', e.target.value)}
-        />
-      </TableCell>
-      <TableCell>
-        <Input
-          defaultValue={glbPip.Titre}
-          onChange={(e) => handleInputChange(glbPip.ID, 'Titre', e.target.value)}
-        />
-      </TableCell>
-      <TableCell>
-        <Input
-          defaultValue={glbPip["Adresse mail primaire"]}
-          onChange={(e) => handleInputChange(glbPip.ID, 'adresse_mail_primaire', e.target.value)}
-        />
-      </TableCell>
-      <TableCell>
-        <Input
-          defaultValue={glbPip["Adresse mail secondaire"]}
-          onChange={(e) => handleInputChange(glbPip.ID, 'adresse_mail_secondaire', e.target.value)}
-        />
-      </TableCell>
-      <TableCell>
-        <Input
-          defaultValue={glbPip.Tél}
-          onChange={(e) => handleInputChange(glbPip.ID, 'tel', e.target.value)}
-        />
-      </TableCell>
-      <TableCell>
-        <Button onClick={() => handleNavigation(glbPip.ID)}>Modifier</Button>
-        <Button onClick={() => handleDeleteGlbPip(glbPip.ID)}>Supprimer</Button>
-        <Button onClick={() => handleSaveChanges(glbPip.ID, glbPip)}>Sauvegarder</Button>
-      </TableCell>
-    </TableRow>
-  ))}
-</TableBody>
+            {glbPips
+              ?.slice(page * rowsPerPage, (page + 1) * rowsPerPage)
+              .map((glbPip, rowIndex) => (
+                <TableRow key={glbPip.ID}>
+                  <TableCell
+                    onDoubleClick={() => handleEditCell(rowIndex, 0, glbPip.ID)}
+                  >
+                    {editableCell.rowIndex === rowIndex &&
+                    editableCell.colIndex === 0 ? (
+                      <Input
+                        value={glbPip.Nom}
+                        onChange={(e) =>
+                          handleCellBlur("Nom", rowIndex, 0, e.target.value, glbPip.ID)
+                        }
+                        onBlur={(e) =>
+                          handleCellBlur("Nom", rowIndex, 0, e.target.value, glbPip.ID)
+                        }
+                      />
+                    ) : (
+                      glbPip.Nom
+                    )}
+                  </TableCell>
+                  <TableCell
+                    onDoubleClick={() => handleEditCell(rowIndex, 1, glbPip.ID)}
+                  >
+                    {editableCell.rowIndex === rowIndex &&
+                    editableCell.colIndex === 1 ? (
+                      <Input
+                        value={glbPip.Titre}
+                        onChange={(e) =>
+                          handleCellBlur("Titre", rowIndex, 1, e.target.value, glbPip.ID)
+                        }
+                        onBlur={(e) =>
+                          handleCellBlur("Titre", rowIndex, 1, e.target.value, glbPip.ID)
+                        }
+                      />
+                    ) : (
+                      glbPip.Titre
+                    )}
+                  </TableCell>
+                  <TableCell
+                    onDoubleClick={() => handleEditCell(rowIndex, 2, glbPip.ID)}
+                  >
+                    {editableCell.rowIndex === rowIndex &&
+                    editableCell.colIndex === 2 ? (
+                      <Input
+                        value={glbPip["Adresse mail primaire"]}
+                        onChange={(e) =>
+                          handleCellBlur(
+                            "Adresse mail primaire",
+                            rowIndex,
+                            2,
+                            e.target.value,
+                            glbPip.ID
+                          )
+                        }
+                        onBlur={(e) =>
+                          handleCellBlur(
+                            "Adresse mail primaire",
+                            rowIndex,
+                            2,
+                            e.target.value,
+                            glbPip.ID
+                          )
+                        }
+                      />
+                    ) : (
+                      glbPip["Adresse mail primaire"]
+                    )}
+                  </TableCell>
 
+                  <TableCell
+                    onDoubleClick={() => handleEditCell(rowIndex, 3, glbPip.ID)}
+                  >
+                    {editableCell.rowIndex === rowIndex &&
+                    editableCell.colIndex === 3 ? (
+                      <Input
+                        value={glbPip["Adresse mail secondaire"]}
+                        onChange={(e) =>
+                          handleCellBlur(
+                            "Adresse mail secondaire",
+                            rowIndex,
+                            3,
+                            e.target.value,
+                            glbPip.ID
+                          )
+                        }
+                        onBlur={(e) =>
+                          handleCellBlur(
+                            "Adresse mail secondaire",
+                            rowIndex,
+                            3,
+                            e.target.value,
+                            glbPip.ID
+                          )
+                        }
+                      />
+                    ) : (
+                      glbPip["Adresse mail secondaire"]
+                    )}
+                  </TableCell>
+                  <TableCell
+                    onDoubleClick={() => handleEditCell(rowIndex, 4, glbPip.ID)}
+                  >
+                    {editableCell.rowIndex === rowIndex &&
+                    editableCell.colIndex === 4 ? (
+                      <Input
+                        value={glbPip.Tél}
+                        onChange={(e) =>
+                          handleCellBlur("Tél", rowIndex, 4, e.target.value, glbPip.ID)
+                        }
+                        onBlur={(e) =>
+                          handleCellBlur("Tél", rowIndex, 4, e.target.value, glbPip.ID)
+                        }
+                      />
+                    ) : (
+                      glbPip.Tél
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Button onClick={handleSave}>Save</Button>
+                    <Button onClick={() => handleDeleteGlbPip(glbPip.ID)}>
+                      Supprimer
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+          </TableBody>
         </Table>
       </TableContainer>
       <TablePagination
@@ -201,8 +316,7 @@ export default function ViewGlbPip() {
         rowsPerPage={rowsPerPage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
-
-      <Button onClick={() => navigate(-1)}>Go back</Button>
+      <Button onClick={handleGoback}>Go back</Button>
     </div>
   );
 }
