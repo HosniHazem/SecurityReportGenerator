@@ -151,11 +151,9 @@ export default function ViewGlbPip() {
     });
   };
 
-  const handleSave = () => {
-    if (glbPips !== null) {
-      glbPips.forEach((glbPip) => {
-        handleUpdate(glbPip, glbPip.ID);
-      });
+  const handleSave = (glbPip) => {
+    if (glbPip !== null) {
+      handleUpdate(glbPip, glbPip.ID);
     }
   };
 
@@ -178,134 +176,180 @@ export default function ViewGlbPip() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {glbPips
-              ?.slice(page * rowsPerPage, (page + 1) * rowsPerPage)
-              .map((glbPip, rowIndex) => (
-                <TableRow key={glbPip.ID}>
-                  <TableCell
-                    onDoubleClick={() => handleEditCell(rowIndex, 0, glbPip.ID)}
-                  >
-                    {editableCell.rowIndex === rowIndex &&
-                    editableCell.colIndex === 0 ? (
-                      <Input
-                        value={glbPip.Nom}
-                        onChange={(e) =>
-                          handleCellBlur("Nom", rowIndex, 0, e.target.value, glbPip.ID)
-                        }
-                        onBlur={(e) =>
-                          handleCellBlur("Nom", rowIndex, 0, e.target.value, glbPip.ID)
-                        }
-                      />
-                    ) : (
-                      glbPip.Nom
-                    )}
-                  </TableCell>
-                  <TableCell
-                    onDoubleClick={() => handleEditCell(rowIndex, 1, glbPip.ID)}
-                  >
-                    {editableCell.rowIndex === rowIndex &&
-                    editableCell.colIndex === 1 ? (
-                      <Input
-                        value={glbPip.Titre}
-                        onChange={(e) =>
-                          handleCellBlur("Titre", rowIndex, 1, e.target.value, glbPip.ID)
-                        }
-                        onBlur={(e) =>
-                          handleCellBlur("Titre", rowIndex, 1, e.target.value, glbPip.ID)
-                        }
-                      />
-                    ) : (
-                      glbPip.Titre
-                    )}
-                  </TableCell>
-                  <TableCell
-                    onDoubleClick={() => handleEditCell(rowIndex, 2, glbPip.ID)}
-                  >
-                    {editableCell.rowIndex === rowIndex &&
-                    editableCell.colIndex === 2 ? (
-                      <Input
-                        value={glbPip["Adresse mail primaire"]}
-                        onChange={(e) =>
-                          handleCellBlur(
-                            "Adresse mail primaire",
-                            rowIndex,
-                            2,
-                            e.target.value,
-                            glbPip.ID
-                          )
-                        }
-                        onBlur={(e) =>
-                          handleCellBlur(
-                            "Adresse mail primaire",
-                            rowIndex,
-                            2,
-                            e.target.value,
-                            glbPip.ID
-                          )
-                        }
-                      />
-                    ) : (
-                      glbPip["Adresse mail primaire"]
-                    )}
-                  </TableCell>
+  {glbPips
+    ?.slice(page * rowsPerPage, (page + 1) * rowsPerPage)
+    .map((glbPip, rowIndex) => (
+      <TableRow key={glbPip.ID}>
+        <TableCell
+          onDoubleClick={() =>
+            handleEditCell(rowIndex, 0, glbPip.ID)
+          }
+        >
+          {editableCell.rowIndex === rowIndex &&
+          editableCell.colIndex === 0 ? (
+            <Input
+              value={glbPip.Nom}
+              onChange={(e) =>
+                handleCellBlur(
+                  "Nom",
+                  rowIndex,
+                  0,
+                  e.target.value,
+                  glbPip.ID
+                )
+              }
+              onBlur={(e) =>
+                handleCellBlur(
+                  "Nom",
+                  rowIndex,
+                  0,
+                  e.target.value,
+                  glbPip.ID
+                )
+              }
+            />
+          ) : (
+            glbPip.Nom
+          )}
+        </TableCell>
+        <TableCell
+          onDoubleClick={() =>
+            handleEditCell(rowIndex, 1, glbPip.ID)
+          }
+        >
+          {editableCell.rowIndex === rowIndex &&
+          editableCell.colIndex === 1 ? (
+            <Input
+              value={glbPip.Titre}
+              onChange={(e) =>
+                handleCellBlur(
+                  "Titre",
+                  rowIndex,
+                  1,
+                  e.target.value,
+                  glbPip.ID
+                )
+              }
+              onBlur={(e) =>
+                handleCellBlur(
+                  "Titre",
+                  rowIndex,
+                  1,
+                  e.target.value,
+                  glbPip.ID
+                )
+              }
+            />
+          ) : (
+            glbPip.Titre
+          )}
+        </TableCell>
+        <TableCell
+          onDoubleClick={() =>
+            handleEditCell(rowIndex, 2, glbPip.ID)
+          }
+        >
+          {editableCell.rowIndex === rowIndex &&
+          editableCell.colIndex === 2 ? (
+            <Input
+              value={glbPip["Adresse mail primaire"]}
+              onChange={(e) =>
+                handleCellBlur(
+                  "Adresse mail primaire",
+                  rowIndex,
+                  2,
+                  e.target.value,
+                  glbPip.ID
+                )
+              }
+              onBlur={(e) =>
+                handleCellBlur(
+                  "Adresse mail primaire",
+                  rowIndex,
+                  2,
+                  e.target.value,
+                  glbPip.ID
+                )
+              }
+            />
+          ) : (
+            glbPip["Adresse mail primaire"]
+          )}
+        </TableCell>
+        <TableCell
+          onDoubleClick={() =>
+            handleEditCell(rowIndex, 3, glbPip.ID)
+          }
+        >
+          {editableCell.rowIndex === rowIndex &&
+          editableCell.colIndex === 3 ? (
+            <Input
+              value={glbPip["Adresse mail secondaire"]}
+              onChange={(e) =>
+                handleCellBlur(
+                  "Adresse mail secondaire",
+                  rowIndex,
+                  3,
+                  e.target.value,
+                  glbPip.ID
+                )
+              }
+              onBlur={(e) =>
+                handleCellBlur(
+                  "Adresse mail secondaire",
+                  rowIndex,
+                  3,
+                  e.target.value,
+                  glbPip.ID
+                )
+              }
+            />
+          ) : (
+            glbPip["Adresse mail secondaire"]
+          )}
+        </TableCell>
+        <TableCell
+          onDoubleClick={() =>
+            handleEditCell(rowIndex, 4, glbPip.ID)
+          }
+        >
+          {editableCell.rowIndex === rowIndex &&
+          editableCell.colIndex === 4 ? (
+            <Input
+              value={glbPip.Tél}
+              onChange={(e) =>
+                handleCellBlur(
+                  "Tél",
+                  rowIndex,
+                  4,
+                  e.target.value,
+                  glbPip.ID
+                )
+              }
+              onBlur={(e) =>
+                handleCellBlur(
+                  "Tél",
+                  rowIndex,
+                  4,
+                  e.target.value,
+                  glbPip.ID
+                )
+              }
+            />
+          ) : (
+            glbPip.Tél
+          )}
+        </TableCell>
+        <TableCell>
+          <Button onClick={() => handleSave(glbPip)}>Save</Button>
+          <Button onClick={() => handleDeleteGlbPip(glbPip.ID)}>
+            Supprimer
+          </Button>
+        </TableCell>
+      </TableRow>
+    ))}
+</TableBody>
 
-                  <TableCell
-                    onDoubleClick={() => handleEditCell(rowIndex, 3, glbPip.ID)}
-                  >
-                    {editableCell.rowIndex === rowIndex &&
-                    editableCell.colIndex === 3 ? (
-                      <Input
-                        value={glbPip["Adresse mail secondaire"]}
-                        onChange={(e) =>
-                          handleCellBlur(
-                            "Adresse mail secondaire",
-                            rowIndex,
-                            3,
-                            e.target.value,
-                            glbPip.ID
-                          )
-                        }
-                        onBlur={(e) =>
-                          handleCellBlur(
-                            "Adresse mail secondaire",
-                            rowIndex,
-                            3,
-                            e.target.value,
-                            glbPip.ID
-                          )
-                        }
-                      />
-                    ) : (
-                      glbPip["Adresse mail secondaire"]
-                    )}
-                  </TableCell>
-                  <TableCell
-                    onDoubleClick={() => handleEditCell(rowIndex, 4, glbPip.ID)}
-                  >
-                    {editableCell.rowIndex === rowIndex &&
-                    editableCell.colIndex === 4 ? (
-                      <Input
-                        value={glbPip.Tél}
-                        onChange={(e) =>
-                          handleCellBlur("Tél", rowIndex, 4, e.target.value, glbPip.ID)
-                        }
-                        onBlur={(e) =>
-                          handleCellBlur("Tél", rowIndex, 4, e.target.value, glbPip.ID)
-                        }
-                      />
-                    ) : (
-                      glbPip.Tél
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Button onClick={handleSave}>Save</Button>
-                    <Button onClick={() => handleDeleteGlbPip(glbPip.ID)}>
-                      Supprimer
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-          </TableBody>
         </Table>
       </TableContainer>
       <TablePagination
