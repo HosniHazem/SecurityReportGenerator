@@ -83,10 +83,10 @@ export default function AddAuditPreviousAudit() {
         "/add-audit-previous-audits",
         { ...formData, ID_Projet: 1, projectID }
       );
-      
+      console.log(response.data)
       if (response.data.success) {
         toast.success(response.data.message);
-        navigate("/dashboard")
+        navigate(-1)
       } else {
         toast.error(response.data.message);
       }

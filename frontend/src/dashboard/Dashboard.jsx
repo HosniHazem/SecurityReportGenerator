@@ -188,7 +188,7 @@ const Dashboard = () => {
               <div className="Pick2">Sites</div>
             </Link>
             <Link
-              to={`/add-audit-previous-audit/${id}`}
+              to={`/all-audit-previous-audit/${id}`}
               style={{ textDecoration: "none" }}
             >
               <div className="Pick2">PrevAudit</div>
