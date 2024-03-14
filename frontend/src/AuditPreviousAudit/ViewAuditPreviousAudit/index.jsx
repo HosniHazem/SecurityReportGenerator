@@ -255,12 +255,16 @@ const saveChanges = async (updatedData) => {
     },
   ];
   
-  
+  const goToAddAuditPrev=()=>{
+    navigate(`/add-audit-previous-audit/${projectId}`)
+
+  }
 
   return (
     <div>
       <Table dataSource={auditData} columns={columns} />
       <Button onClick={handleGoBack}> Go back</Button>
+      <Button onClick={goToAddAuditPrev}> Add audit previous Audit</Button>
     </div>
   );
 }
