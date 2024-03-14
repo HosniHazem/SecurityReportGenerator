@@ -178,7 +178,7 @@ const Dashboard = () => {
         const c=params.row.iterationKey;
         return (
           <div className="cellAction">
-            <Link to={`/add-glb-pip/${id}`} style={{ textDecoration: "none" }}>
+            <Link to={`/add-glb-pip/${customerId}`} style={{ textDecoration: "none" }}>
               <div className="Pick2">PIP</div>
             </Link>
             <Link to={`/sow/${id}`} style={{ textDecoration: "none" }}>
