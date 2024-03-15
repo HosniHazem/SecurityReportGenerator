@@ -143,7 +143,7 @@ const Dashboard = () => {
     {
       field: "Nom",
       headerName: "Nom",
-      width: 80,
+      width: 120,
       renderCell: (params) => {
         return params.row.Nom;
       },

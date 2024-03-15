@@ -55,19 +55,19 @@ function SOW() {
     const srvArray = generateObjects(serveur,"Serveur"); 
     const rsArray = generateObjects(r_s,"R_S"); 
     const pcArray = generateObjects(pc,"PC"); 
-    let pcsubnetArray = [];
-  pcArray.map((item) => {
-const subnet = getSubnetIpRange(item.IP_Host);
-subnet.map((ip)=>{
-    const jsonObject = {
-        Nom: null,
-        IP_Host: ip,
-        Type : "PC"
-      };
-pcsubnetArray.push(jsonObject);
+//     let pcsubnetArray = [];
+//   pcArray.map((item) => {
+// const subnet = getSubnetIpRange(item.IP_Host);
+// subnet.map((ip)=>{
+//     const jsonObject = {
+//         Nom: null,
+//         IP_Host: ip,
+//         Type : "PC"
+//       };
+// pcsubnetArray.push(jsonObject);
 
-})
-  }); 
+// })
+//   }); 
 
 //test
 function removeFromPcsubnetArray(pcsubnetArray, ipHostToRemove) {
@@ -81,23 +81,23 @@ function removeFromPcsubnetArray(pcsubnetArray, ipHostToRemove) {
 
   
   // Check and remove duplicates from pcsubnetArray
-  appsArray.forEach((app) => {
-    pcsubnetArray = removeFromPcsubnetArray(pcsubnetArray, app.IP_Host);
-  });
+  // appsArray.forEach((app) => {
+  //   pcsubnetArray = removeFromPcsubnetArray(pcsubnetArray, app.IP_Host);
+  // });
   
-  srvArray.forEach((srv) => {
-    pcsubnetArray = removeFromPcsubnetArray(pcsubnetArray, srv.IP_Host);
-  });
+  // srvArray.forEach((srv) => {
+  //   pcsubnetArray = removeFromPcsubnetArray(pcsubnetArray, srv.IP_Host);
+  // });
   
-  rsArray.forEach((rs) => {
-    pcsubnetArray = removeFromPcsubnetArray(pcsubnetArray, rs.IP_Host);
-  });
+  // rsArray.forEach((rs) => {
+  //   pcsubnetArray = removeFromPcsubnetArray(pcsubnetArray, rs.IP_Host);
+  // });
 
 
   setServeurInput(srvArray);
   setRSInput(rsArray);
   setAppsInput(appsArray);
-  setPCInput(pcsubnetArray);
+  setPCInput(pcArray);
 
     
       setButton("yes");
