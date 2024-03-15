@@ -1,4 +1,6 @@
 <?php
+
+use App\Http\Controllers\ActivityLogController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AnomalieController;
@@ -166,6 +168,7 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::get('/customer-sites-by-customer-id/{id}', [CustomerSitesController::class, 'getCustomerSiteByCustomerId']);
 });
 
+Route::get('/all-logs',[ActivityLogController::class,'index']);
 
     Route::group(['middleware' => 'api', 'prefix' => 'auth'], function () {
         // Registration route
