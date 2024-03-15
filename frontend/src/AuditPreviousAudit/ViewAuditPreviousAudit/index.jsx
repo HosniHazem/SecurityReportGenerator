@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button ,Input} from "antd";
+import { Table, Button, Input } from "antd";
 import { axiosInstance } from "../../axios/axiosInstance";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
-
 
 export default function ViewAuditPrevious() {
   const [auditData, setAuditData] = useState([]);
@@ -63,44 +62,50 @@ export default function ViewAuditPrevious() {
     navigate(-1);
   };
 
- // Inside ViewAuditPrevious component
- const handleInputUpdate = (rowId, dataIndex, newValue) => {
-  setAuditData(prevAuditData => {
-    const updatedData = prevAuditData.map(row => {
-      if (row.ID === rowId) {
-        const updatedRow = {
-          ...row,
-          [dataIndex]: newValue
-        };
-        saveChanges(updatedRow); // Call saveChanges with the updated row
-        return updatedRow;
-      }
-      return row;
+  // Inside ViewAuditPrevious component
+  const handleInputUpdate = (rowId, dataIndex, newValue) => {
+    setAuditData((prevAuditData) => {
+      const updatedData = prevAuditData.map((row) => {
+        if (row.ID === rowId) {
+          const updatedRow = {
+            ...row,
+            [dataIndex]: newValue,
+          };
+          saveChanges(updatedRow); // Call saveChanges with the updated row
+          return updatedRow;
+        }
+        return row;
+      });
+      console.log("Updated Data:", updatedData); // Log the entire updated data
+      return updatedData;
     });
-    console.log("Updated Data:", updatedData); // Log the entire updated data
-    return updatedData;
-  });
-};
+  };
 
-
-const saveChanges = async (updatedData) => {
-  const { Action, ActionNumero, ChargeHJ, Chargee_action, Criticite, Evaluation, ID, Project_name, ProjetNumero, TauxRealisation } = updatedData;
-  try {
-    const response = await axiosInstance.put(`/update-audit-previous-audits/${ID}`, updatedData);
-    console.log("Updated audit previous:", response.data); // Log the response after updating
-    // Handle success or display a message if needed
-  } catch (error) {
-    console.error("Failed to update audit previous:", error);
-    // Handle error or display an error message
-  }
-};
-
-
-  
-  
-  
-  
-
+  const saveChanges = async (updatedData) => {
+    const {
+      Action,
+      ActionNumero,
+      ChargeHJ,
+      Chargee_action,
+      Criticite,
+      Evaluation,
+      ID,
+      Project_name,
+      ProjetNumero,
+      TauxRealisation,
+    } = updatedData;
+    try {
+      const response = await axiosInstance.put(
+        `/update-audit-previous-audits/${ID}`,
+        updatedData
+      );
+      console.log("Updated audit previous:", response.data); // Log the response after updating
+      // Handle success or display a message if needed
+    } catch (error) {
+      console.error("Failed to update audit previous:", error);
+      // Handle error or display an error message
+    }
+  };
 
   const columns = [
     {
@@ -254,11 +259,10 @@ const saveChanges = async (updatedData) => {
       ),
     },
   ];
-  
-  const goToAddAuditPrev=()=>{
-    navigate(`/add-audit-previous-audit/${projectId}`)
 
-  }
+  const goToAddAuditPrev = () => {
+    navigate(`/add-audit-previous-audit/${projectId}`);
+  };
 
   return (
     <div>
@@ -268,13 +272,14 @@ const saveChanges = async (updatedData) => {
     </div>
   );
 }
+
 const EditableCell = ({ value, record, dataIndex, handleUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState(value); // Initialize inputValue with the current value
 
   const toggleEdit = () => {
     // Skip editing if dataIndex is 'id' or 'ID'
-    if (dataIndex.toLowerCase() === 'id') {
+    if (dataIndex.toLowerCase() === "id") {
       return;
     }
 
@@ -287,17 +292,15 @@ const EditableCell = ({ value, record, dataIndex, handleUpdate }) => {
   };
 
   // Inside the EditableCell component
-const handleInputConfirm = () => {
-  if (isEditing) {
-    setIsEditing(false);
-    // Only call update if value has changed
-    if (inputValue !== value) {
-      handleUpdate(record.ID, dataIndex, inputValue); // Pass the row ID, dataIndex, and newValue
+  const handleInputConfirm = () => {
+    if (isEditing) {
+      setIsEditing(false);
+      // Only call update if value has changed
+      if (inputValue !== value) {
+        handleUpdate(record.ID, dataIndex, inputValue); // Pass the row ID, dataIndex, and newValue
+      }
     }
-  }
-};
-
-  
+  };
 
   useEffect(() => {
     // When isEditing becomes false, reset the inputValue
@@ -318,8 +321,12 @@ const handleInputConfirm = () => {
           onPressEnter={handleInputConfirm}
         />
       ) : (
-        <div onClick={toggleEdit} style={{ cursor: 'pointer' }}>
-          {value !== undefined && value !== null ? value : <span style={{ visibility: 'hidden' }}>empty</span>}
+        <div onClick={toggleEdit} style={{ cursor: "pointer" }}>
+          {value !== undefined && value !== null ? (
+            value
+          ) : (
+            <span style={{ visibility: "hidden" }}>empty</span>
+          )}
         </div>
       )}
     </div>
