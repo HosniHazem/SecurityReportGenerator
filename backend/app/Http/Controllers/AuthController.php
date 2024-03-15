@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
+use App\Models\RegisteredUser;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
@@ -22,35 +23,9 @@ class AuthController extends Controller
     //register
     public function register()
 {
-    $users = [
-        [
-            'name' => 'Habib',
-            'email' => 'habib.jalouli@smartskills.tn',
-            'password' => 'HoJvR0BO7P3osg8',
-            'tel'=> '+216 55 030 130'
-        ],
-        [
-            'name' => 'Rawia',
-            'email' => 'rawia.hajri@smartskills.tn',
-            'password' => 'q5gklecLy7vsIUz',
-            'tel'=> '+216 29 887 734'
-
-        ],
-        [
-            'name' => 'Ayed',
-            'email' => 'ayed.akrout@smartskills.tn',
-            'password' => 'FQyuRiDnI3pBH4X',
-            'tel'=> '+216 29 961 666'
-
-        ],
-        [
-            'name' => 'Hajer',
-            'email' => 'hajer.labidi@smartskills.tn',
-            'password' => 'bJjZshBVHHIE',
-            'tel'=> '+216 53 479 659'
-
-        ]
-    ];
+    
+    $users=[];
+    $users=RegisteredUser::all()->toArray();
 
     foreach ($users as $userData) {
         // Check if the user with the same email exists
