@@ -20,46 +20,58 @@ class AuthController extends Controller
     
 
     //register
-    public function register (){
-        
-        $users = [
-            [
-                'name' => 'Habib',
-                'email' => 'habib.jalouli@smartskills.tn',
-                'password' => 'HoJvR0BO7P3osg8',
-            ],
-            [
-                'name' => 'Rawia',
-                'email' => 'rawia.hajri@smartskills.tn',
-                'password' => 'q5gklecLy7vsIUz',
-            ],
-            [
-                
-                'name' => 'Ayed',
-                'email' => 'ayed.akrout@smartskills.tn',
-                'password' => 'FQyuRiDnI3pBH4X',
+    public function register()
+{
+    $users = [
+        [
+            'name' => 'Habib',
+            'email' => 'habib.jalouli@smartskills.tn',
+            'password' => 'HoJvR0BO7P3osg8',
+            'tel'=> '+216 55 030 130'
+        ],
+        [
+            'name' => 'Rawia',
+            'email' => 'rawia.hajri@smartskills.tn',
+            'password' => 'q5gklecLy7vsIUz',
+            'tel'=> '+216 29 887 734'
 
-            ]
-        ];
-        
+        ],
+        [
+            'name' => 'Ayed',
+            'email' => 'ayed.akrout@smartskills.tn',
+            'password' => 'FQyuRiDnI3pBH4X',
+            'tel'=> '+216 29 961 666'
 
+        ],
+        [
+            'name' => 'Hajer',
+            'email' => 'hajer.labidi@smartskills.tn',
+            'password' => 'bJjZshBVHHIE',
+            'tel'=> '+216 53 479 659'
 
-        foreach ($users as $userData) {
-        
-      
-        
+        ]
+    ];
+
+    foreach ($users as $userData) {
+        // Check if the user with the same email exists
+        $existingUser = User::where('email', $userData['email'])->first();
+
+        if (!$existingUser) {
             $user = User::create(array_merge(
                 $userData,
                 ['password' => bcrypt($userData['password'])]
             ));
-        
+
             // $this->sendRegistrationEmail($userData['email'], $userData['password']);
         }
-        return response()->json([
-            'message' =>"registered successfully",
-            'success'=>true,
-        ],201);
+    }
+
+    return response()->json([
+        'message' => "Registered successfully",
+        'success' => true,
+    ], 201);
 }
+
 
 
 private function sendRegistrationEmail($email, $password)
