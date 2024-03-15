@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './sidebar.scss';
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 // const sidebarNavItems = [
@@ -36,12 +36,10 @@ const Sidebar = () => {
     const sidebarRef = useRef();
     const indicatorRef = useRef();
     const location = useLocation();
-    const navigate=useNavigate();
-    const handleLogout=()=>{
+    const navigate = useNavigate();
+    const handleLogout = () => {
         localStorage.removeItem('token');
-        navigate('/login')
-        location.reload() 
-        
+        window.location.reload();
     }
     const sidebarNavItems = [
         {
@@ -99,7 +97,7 @@ const Sidebar = () => {
         <div className="sidebar__logo">
              Web App 2 
         </div>
-        <p className="version">V0.80</p>
+        <p className="version">V0.90</p>
 
         <div ref={sidebarRef} className="sidebar__menu">
             <div
