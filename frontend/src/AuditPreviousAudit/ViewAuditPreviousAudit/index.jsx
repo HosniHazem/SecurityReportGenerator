@@ -8,6 +8,7 @@ export default function ViewAuditPrevious() {
   const [auditData, setAuditData] = useState([]);
   const [projectNameMapping, setProjectNameMapping] = useState({});
   const { projectId } = useParams();
+  console.log(projectId);
   const navigate = useNavigate();
 
   // Create a mapping of project IDs to names
@@ -24,7 +25,7 @@ export default function ViewAuditPrevious() {
       .get(`/get-audit-previous-audits-by-projectID/${projectId}`)
       .then((response) => {
         if (response.status === 200) {
-          console.log(response.data.auditPrev);
+          console.log("response",response.data.auditPrev);
           setAuditData(response.data.data);
         }
       })
@@ -254,7 +255,7 @@ export default function ViewAuditPrevious() {
       render: (_, record) => (
         <span>
           <Button onClick={() => handleDelete(record.ID)}>Supprimer</Button>
-          <Button onClick={() => handleNavigate(record.ID)}>Modifier</Button>
+          {/* <Button onClick={() => handleNavigate(record.ID)}>Modifier</Button> */}
         </span>
       ),
     },
