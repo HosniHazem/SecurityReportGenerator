@@ -83,10 +83,10 @@ export default function AddAuditPreviousAudit() {
         "/add-audit-previous-audits",
         { ...formData, ID_Projet: 1, projectID }
       );
-      
+      console.log(response.data)
       if (response.data.success) {
         toast.success(response.data.message);
-        navigate("/dashboard")
+        navigate(-1)
       } else {
         toast.error(response.data.message);
       }
@@ -95,6 +95,11 @@ export default function AddAuditPreviousAudit() {
       toast.error("An error occurred.");
     }
   };
+
+  const handleNavigate=()=>{
+    navigate(`/all-audit-previous-audit/${projectID}`)
+  }
+
 
   return (
     <div>
@@ -236,6 +241,7 @@ export default function AddAuditPreviousAudit() {
           </TableBody>
         </Table>
       </TableContainer>
+      <Button onClick={handleNavigate}> View  ALL Previous Audit of this Customer</Button>
     </div>
   );
 }

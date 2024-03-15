@@ -47,6 +47,7 @@ export default function AddGlbPip() {
       .then((response) => {
         if (response.status === 200) {
           setProject(response.data.Project);
+          console.log('project is',project)
         
         }
       })
@@ -110,6 +111,10 @@ export default function AddGlbPip() {
       toast.error("error");
     }
   };
+
+  const handleNavigate=()=>{
+    navigate(`/all-glb-pip/${project.customer_id}`);
+  }
 
   return (
     <div className="add-glb-pip-div">
@@ -211,6 +216,7 @@ export default function AddGlbPip() {
           </TableBody>
         </Table>
       </TableContainer>
+      <Button onClick={handleNavigate}>View GlB PIP  OF THIS CUSTOMER</Button>
     </div>
   );
 }

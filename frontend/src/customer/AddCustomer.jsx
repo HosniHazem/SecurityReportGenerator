@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { styled } from "@mui/system";
 import axios from "axios";
 import swal from "sweetalert";
@@ -8,6 +8,7 @@ import { Form, Input, Button, Upload, message, Col, Row } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { Span } from "../projects/Typography";
 import "./Add.css";
+import { axiosInstance } from "../axios/axiosInstance";
 
 const Container = styled("div")(({ theme }) => ({
   margin: "30px",
@@ -27,6 +28,33 @@ function AddCustom() {
   const [logoFile, setLogoFile] = useState(null);
   const [organigrammeFile, setOrganigrammeFile] = useState(null);
   const [networkDesignFile, setNetworkDesignFile] = useState(null);
+  const {id}=useParams();
+  const [form] = Form.useForm();
+  const [customer,setCustomer]=useState(null);
+
+
+  useEffect(() => {
+    // Fetch customer details when component mounts
+    const fetchCustomerDetails = async () => {
+      try {
+        const response = await axiosInstance.get(
+          `Customer/${id}/show`
+        );
+          console.log(response.data);
+        if (response.data.status === 200) {
+          // Set form values with the received customer data
+          setCustomer(response.data.Customer);
+          console.log(customer);
+        } 
+      } catch (error) {
+        // Handle errors
+        console.error(error);
+      }
+    };
+
+    fetchCustomerDetails();
+  }, [id, form]);
+
 
   const normLogoFile = (e) => {
     if (Array.isArray(e)) {
@@ -62,27 +90,23 @@ function AddCustom() {
     console.log("values",values)
     try {
       const formData = new FormData();
-      formData.append("SN", values.SN);
-      formData.append("LN", values.LN);
-      formData.append("Description", values.Description);
-      formData.append("SecteurActivité", values.SecteurActivité);
-      formData.append("Categorie", values.Categorie);
-      formData.append("Site_Web", values.Site_Web);
-      formData.append("Addresse mail", values.Addresse_mail);
 
-      // Append files to the form data
-      formData.append("Logo", values.Logo[0]?.originFileObj);
-      formData.append("Organigramme", values.Organigramme[0]?.originFileObj);
-      formData.append(
-        "Network_Design",
-        values.Network_Design[0]?.originFileObj
-      );
+      Object.entries(values).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          // Append key-value pair to FormData
+          if (key === "Logo" || key === "Organigramme" || key === "Network_Design") {
+            formData.append(key, value[0]?.originFileObj);
+          } else {
+            formData.append(key, value);
+          }
+        }
+      });
 // Assuming values.Logo, values.Organigramme, and values.Network_Design are arrays
 
 
 
-      const response = await axios.post(
-        "http://webapp.ssk.lc/AppGenerator/backend/api/Customer/create",
+      const response = await axiosInstance.post(
+        `Customer/${id}/update`,
         formData,
         {
           headers: {
@@ -90,11 +114,11 @@ function AddCustom() {
           },
         }
       );
-
+        console.log(response.data)
       // Handle the response from your Laravel backend
       if (response.data.status === 200) {
         Swal.fire({
-          title: "Customer Added Successfully",
+          title: "Customer Updated Successfully",
           icon: "success",
         });
         navigate("/customer");
@@ -109,22 +133,22 @@ function AddCustom() {
     }
   };
 
-  const initialValues = {
-    SN: "Initial SN Value",
-    LN: "Initial LN Value",
-    Description: "Initial Description Value",
-    SecteurActivité: "Initial Secteur d'Activité Value",
-    Categorie: "Initial Catégorie Value",
-    Site_Web: "Initial Site Web Value",
-    Addresse_mail: "ali@gmail.com",
-  };
+  // const initialValues = {
+  //   SN: customer?.SN,
+  //   LN: customer?.LN ,
+  //   Description: customer?.Description,
+  //   SecteurActivité: "Initial Secteur d'Activité Value",
+  //   Categorie: "Initial Catégorie Value",
+  //   Site_Web: "Initial Site Web Value",
+  //   Addresse_mail: "ali@gmail.com",
+  // };
 
   return (
     <div style={{ width: "50%", margin: "0 auto" ,marginTop:"2%"}}>
       <Form
         name="customer_form"
         onFinish={onFinish}
-        initialValues={initialValues}
+        // initialValues={initialValues}
         layout="vertical"
       >
         <Row gutter={[16, 16]}>
@@ -132,7 +156,7 @@ function AddCustom() {
             <Form.Item
               name="SN"
               label="SN"
-              rules={[{ required: true, message: "Please enter SN" }]}
+              // rules={[{ required: true, message: "Please enter SN" }]}
             >
               <Input />
             </Form.Item>
@@ -141,7 +165,7 @@ function AddCustom() {
             <Form.Item
               name="LN"
               label="LN"
-              rules={[{ required: true, message: "Please enter LN" }]}
+              // rules={[{ required: true, message: "Please enter LN" }]}
             >
               <Input />
             </Form.Item>
@@ -153,7 +177,7 @@ function AddCustom() {
             <Form.Item
               name="Description"
               label="Description"
-              rules={[{ required: true, message: "Please enter Description" }]}
+              // rules={[{ required: true, message: "Please enter Description" }]}
             >
               <Input />
             </Form.Item>
@@ -162,9 +186,9 @@ function AddCustom() {
             <Form.Item
               name="SecteurActivité"
               label="Secteur d'Activité"
-              rules={[
-                { required: true, message: "Please enter Secteur d'Activité" },
-              ]}
+              // rules={[
+              //   { required: true, message: "Please enter Secteur d'Activité" },
+              // ]}
             >
               <Input />
             </Form.Item>
@@ -176,7 +200,7 @@ function AddCustom() {
             <Form.Item
               name="Categorie"
               label="Catégorie"
-              rules={[{ required: true, message: "Please enter Catégorie" }]}
+              // rules={[{ required: true, message: "Please enter Catégorie" }]}
             >
               <Input />
             </Form.Item>
@@ -185,7 +209,7 @@ function AddCustom() {
             <Form.Item
               name="Site_Web"
               label="Site Web"
-              rules={[{ required: true, message: "Please enter Site Web" }]}
+              // rules={[{ required: true, message: "Please enter Site Web" }]}
             >
               <Input />
             </Form.Item>
@@ -197,7 +221,7 @@ function AddCustom() {
             <Form.Item
               name="Addresse_mail"
               label="Adresse Mail"
-              rules={[{ required: true, message: "Please enter Adresse Mail" }]}
+              // rules={[{ required: true, message: "Please enter Adresse Mail" }]}
             >
               <Input />
             </Form.Item>

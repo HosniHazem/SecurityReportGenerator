@@ -128,39 +128,60 @@ class CustomerController extends Controller
     }
 
 
-    public function update(Request $req,$id)
-    {
-        $validator = Validator::make($req->all(), [
-            'SN' => 'required',
-            'LN' => 'required',
-            'Logo' => 'required'
+    public function update(Request $req, $customerId)
+{
+    $validator = Validator::make($req->all(), [
+        'SN'=>'string',
+        'Logo' => 'image|mimes:jpeg,png,jpg,gif',
+        'Organigramme' => 'image|mimes:jpeg,png,jpg,gif',
+        'Network_Design' => 'image|mimes:jpeg,png,jpg,gif',
+       
+        'Addresse_mail' => 'email',
+    ]);
+    // print_r("wa");exit;
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 422,
+            'validate_err' => $validator->getMessageBag(),
         ]);
-      
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 422,
-                'validate_err' => $validator->getMessageBag(),
-            ]);
-        } else {
-
-        $item =Customer::find($id);
-
-        if($item){
-            $item->SN=$req->SN;
-            $item->LN=$req->LN;
-            $item->Logo=$req->Logo;
-        $item->update();
-        return response()->json(['message'=>'done','status' => 200]);
-                }
-
-
-                else
-                {
-                return response()->json(['message'=>'not done','status' => 404]);
-                }
-            }
     }
+// return $req->all();
+    $customer = Customer::find($customerId);
+
+    if (!$customer) {
+        return response()->json([
+            'status' => 404,
+            'message' => 'Customer not found',
+        ]);
+    }
+// return $customer;
+    // Update fields if they are present in the request
+    $fillableFields = ['SN', 'LN', 'Logo', 'Organigramme', 'Description', 'SecteurActivité', 'Categorie', 'Site_Web', 'Addresse_mail'];
+    print_r($req->SN);
+    foreach ($fillableFields as $field) {
+        if (isset($req->$field)) {
+            $customer->$field = $req->input($field);
+            
+
+        }
+    }
+    $customer->update();
+    // Handle file uploads if they are present in the request
+    $fileFields = ['Logo', 'Organigramme', 'Network_Design'];
+    foreach ($fileFields as $fileField) {
+        if ($req->hasFile($fileField)) {
+            $file = $req->file($fileField);
+            $fileName = $customer->SN . '_' . $fileField . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('images/uploads'), $fileName);
+            $customer->{$fileField} = $fileName;
+        }
+    }
+
+    $customer->update();
+
+    return response()->json(['message' => 'Customer updated successfully', 'status' => 200 ,'Customer'=>$customer]);
+}
+
     public function destroy($id)
     {
 

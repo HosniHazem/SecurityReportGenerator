@@ -173,21 +173,22 @@ const Dashboard = () => {
       width: 450,
       renderCell: (params) => {
         const id = params.row.id;
+        const customerId=params.row.customer_id
         const nom = params.row.Nom;
         const c=params.row.iterationKey;
         return (
           <div className="cellAction">
-            <Link to={`/add-glb-pip/${id}`} style={{ textDecoration: "none" }}>
+            <Link to={`/add-glb-pip/${customerId}`} style={{ textDecoration: "none" }}>
               <div className="Pick2">PIP</div>
             </Link>
             <Link to={`/sow/${id}`} style={{ textDecoration: "none" }}>
               <div className="Pick2">SOW</div>
             </Link>
-            <Link to={`/sites/${id}`} style={{ textDecoration: "none" }}>
+            <Link to={`/sites/${customerId}`} style={{ textDecoration: "none" }}>
               <div className="Pick2">Sites</div>
             </Link>
             <Link
-              to={`/add-audit-previous-audit/${id}`}
+              to={`/all-audit-previous-audit/${id}`}
               style={{ textDecoration: "none" }}
             >
               <div className="Pick2">PrevAudit</div>

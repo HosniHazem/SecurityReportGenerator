@@ -1,4 +1,6 @@
 <?php
+
+use App\Http\Controllers\ActivityLogController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AnomalieController;
@@ -10,7 +12,7 @@ use App\Http\Controllers\AnnexesController;
 use App\Http\Controllers\WordDocumentController4;
 use App\Http\Controllers\ExcelDocumentController;
 use App\Http\Controllers\concatenateDocxFiles;
-use App\Http\Controllers\Sanctum\AuthController;
+// use App\Http\Controllers\Sanctum\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\JWTController;
 use App\Http\Controllers\NassusController;
@@ -29,6 +31,7 @@ use App\Http\Controllers\ApiRequestController;
 use App\Http\Controllers\CloneController;
 use App\Http\Controllers\HtmlParser;
 use App\Http\Controllers\CustomerSitesController;
+use App\Http\Controllers\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,7 +43,13 @@ use App\Http\Controllers\CustomerSitesController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+Route::get('Project', [ProjectController::class,'index']);
+Route::get('/get_vm', [VmController::class,'index']);
+Route::get('Customer', [CustomerController::class,'index']);
 
+Route::get('/generate-ansi/{customerId}', [WordDocumentController4::class,'generateWordDocument']);
+
+Route::group(['middleware' => ['jwt.verify', 'log_activity']], function () {
 
 Route::get('/DangerCorrectPluginsAges', [AnnexesController::class,'DangerCorrectPluginsAges']);
 Route::get('/populateOSDanger', [AnnexesController::class,'populateOSDanger']);
@@ -63,14 +72,12 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::get('/test', [TestController::class,'get2'])->middleware('web');
     
 
-    Route::get('/get_vm', [VmController::class,'index']);
     Route::post('/generate-word-document', [WordDocumentController::class,'generateWordDocument']);
     Route::post('/generate-annexe', [WordDocumentController2::class,'generateWordDocument']);
     // Route::post('/generate-ansi', [WordDocumentController4::class,'generateWordDocument']);
     Route::post('/getAnnexes', [AnnexesController::class,'getAnnexes']);
     Route::get('/getAnnexes', [AnnexesController::class,'getAnnexes']);
     Route::get('/generate-concat', [concatenateDocxFiles::class,'mergeDocxFiles']);
-    Route::get('/generate-ansi/{customerId}', [WordDocumentController4::class,'generateWordDocument']);
 ///nessus1
     Route::post('/getScan', [NassusController::class,'GetAll']);
     Route::Post('/ExportAll', [NassusController::class,'ExportAll']);
@@ -88,7 +95,6 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::post('/imageProfil', [CustomerController::class, 'uploadimage']);
 
     Route::get('Project/{id}/show', [ProjectController::class,'show']);
-    Route::get('Project', [ProjectController::class,'index']);
     Route::get('LastOne', [ProjectController::class,'default']);
     Route::delete('Project/{id}/delete', [ProjectController::class,'destroy']);
     Route::put('Project/{id}/update', [ProjectController::class,'update']);
@@ -96,10 +102,9 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::post('Project/create',[ProjectController::class,'store']);
 
     Route::get('Customer/{id}/show', [CustomerController::class,'show']);
-    Route::get('Customer', [CustomerController::class,'index']);
     Route::get('LastOne', [CustomerController::class,'default']);
     Route::delete('Customer/{id}/delete', [CustomerController::class,'destroy']);
-    Route::put('Customer/{id}/update', [CustomerController::class,'update']);
+    Route::post('Customer/{id}/update', [CustomerController::class,'update']);
     Route::post('Customer/create',[CustomerController::class,'store']);
 
     /// SOw
@@ -117,15 +122,19 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
 
     Route::Post('/add-glbPip', [GlbPipController::class,'store']);
     Route::get('/get-glbPip/{id}', [GlbPipController::class,'show']);
-    Route::put('/update-glbPip/{id}', [GlbPipController::class,'update']);
+    Route::post('/update-glbPip/{id}', [GlbPipController::class,'update']);
     Route::delete('/delete-glbPip/{id}', [GlbPipController::class,'destroy']);
     Route::get('/all-glbpip', [GlbPipController::class,'index']);
+    Route::get('/get-glbpip-by-customer-id/{customerId}', [GlbPipController::class,'getGlbPipByProjectId']);
+
 
     Route::get('/all-audit-previous-audits', [AuditPreviousAuditController::class, 'index']);
     Route::post('/add-audit-previous-audits', [AuditPreviousAuditController::class, 'store']);
     Route::get('/get-audit-previous-audits/{id}', [AuditPreviousAuditController::class, 'show']);
     Route::put('/update-audit-previous-audits/{id}', [AuditPreviousAuditController::class, 'update']);
     Route::delete('/delete-audit-previous-audits/{id}', [AuditPreviousAuditController::class, 'destroy']);
+    Route::get('/get-audit-previous-audits-by-projectID/{projectID}', [AuditPreviousAuditController::class, 'getauditPrevAuditByProjectId']);
+
 
     Route::Post('/Uploadfile', [ImageController::class, 'uploadimage']);
 
@@ -153,4 +162,24 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::delete('/delete-row',[CloneController::class,'DeleteRow']);
     Route::post('/add-customersite', [CustomerSitesController::class, 'createCustomerSite']);
     Route::get('all-customerSites',[CustomerSitesController::class,'index']);
+    Route::get('/customer-sites/{id}', [CustomerSitesController::class, 'show']);
+    Route::post('/customer-sites/{id}', [CustomerSitesController::class, 'update']);
+    Route::delete('/customer-sites/{id}', [CustomerSitesController::class, 'destroy']);
+    Route::get('/customer-sites-by-customer-id/{id}', [CustomerSitesController::class, 'getCustomerSiteByCustomerId']);
+});
+
+Route::get('/all-logs',[ActivityLogController::class,'index']);
+
+    Route::group(['middleware' => 'api', 'prefix' => 'auth'], function () {
+        // Registration route
+        Route::post('/register', [AuthController::class, 'register']);
+        
+        // Login route
+        Route::post('/login', [AuthController::class, 'login']);
+        // Route::post('/logout', [AuthController::class, 'logout']);
+        Route::get('/profile', [AuthController::class, 'profile']);
+    
+    
+    });
+
 

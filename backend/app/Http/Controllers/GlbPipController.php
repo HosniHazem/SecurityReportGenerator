@@ -143,21 +143,21 @@ class GlbPipController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // Validate the incoming request data
-        $validator = Validator::make($request ->all(),[
-            'Nom' => 'required',
-            'Titre' => 'required',
-            'adresse_mail_primaire' => 'required|email',
-            'adresse_mail_secondaire' => 'email',
-            'tel' => 'required',
-        ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => $validator->getMessageBag(),
-                'success'=>false,
+        // // Validate the incoming request data
+        // $validator = Validator::make($request ->all(),[
+        //     'Nom' => 'required',
+        //     'Titre' => 'required',
+        //     'adresse_mail_primaire' => 'required|email',
+        //     'adresse_mail_secondaire' => 'email',
+        //     'tel' => 'required',
+        // ]);
+        // if ($validator->fails()) {
+        //     return response()->json([
+        //         'message' => $validator->getMessageBag(),
+        //         'success'=>false,
                 
-            ]);
-        }
+        //     ]);
+        // }
         $existingGlbPip = GlbPip::where('id', '!=', $id)
         ->where(function ($query) use ($request) {
             $query->where('Adresse mail primaire', $request->input('adresse_mail_primaire'))
@@ -178,12 +178,13 @@ class GlbPipController extends Controller
         }
     
         // Update the GlbPip model with the new data
-        $glbPip->Nom = $request->input('Nom');
-        $glbPip->Titre = $request->input('Titre');
-        $glbPip["Adresse mail primaire"] = $request->input('adresse_mail_primaire');
-        $glbPip["Adresse mail secondaire"] = $request->input('adresse_mail_secondaire');
-        $glbPip->Tél = $request->input('tel');
-        $glbPip->update();
+        $glbPip->Nom = $request->Nom;
+        $glbPip->Titre = $request->Titre; // Updated key
+        $glbPip["Adresse mail primaire"]  = $request->adresse_mail_primaire; // Updated key
+        $glbPip["Adresse mail secondaire"]  = $request->adresse_mail_secondaire; // Updated key
+        $glbPip->Tél = $request->tel; // Updated key
+        
+        $glbPip->save();
     
         // Respond with a success message and the updated record
         return response()->json(['success'=>true,'message' => 'un glbpip a été mis a jour', 'data' => $glbPip]);
@@ -209,5 +210,14 @@ class GlbPipController extends Controller
     
         // Respond with a success message
         return response()->json(['success'=>true,'message' => 'un glb_pip a été supprimé', 'status' => 200]);
+    }
+
+    public function getGlbPipByProjectId($customerID){
+        $glbPip = GlbPip::where('Cusotmer_ID', $customerID)->get();
+        
+        return response()->json([
+            'success' => 'true', // or 'error' based on your logic
+            'data' => $glbPip,
+        ]);
     }
 }
