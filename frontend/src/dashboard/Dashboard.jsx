@@ -184,7 +184,7 @@ const Dashboard = () => {
             <Link to={`/sow/${id}`} style={{ textDecoration: "none" }}>
               <div className="Pick2">SOW</div>
             </Link>
-            <Link to={`/sites/${customerId}`} style={{ textDecoration: "none" }}>
+            <Link to={`/sites/${customerId}/customer-sites/${customerId}`} style={{ textDecoration: "none" }}>
               <div className="Pick2">Sites</div>
             </Link>
             <Link
