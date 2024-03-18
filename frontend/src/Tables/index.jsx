@@ -178,16 +178,11 @@ export default function TablesClone() {
 
 const EditableCell = ({ value, record, dataIndex, handleUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [inputValue, setInputValue] = useState(value); // Initialize inputValue with the current value
+  const [inputValue, setInputValue] = useState(value);
 
   const toggleEdit = () => {
-    // Skip editing if dataIndex is 'id' or 'ID'
-    if (dataIndex.toLowerCase() === 'id') {
-      return;
-    }
-
-    setIsEditing(!isEditing); // Toggle between true and false
-    setInputValue(value); // Set input to the current value, even if it's an empty string
+    setIsEditing(!isEditing);
+    setInputValue(value);
   };
 
   const handleInputChange = (e) => {
@@ -197,7 +192,6 @@ const EditableCell = ({ value, record, dataIndex, handleUpdate }) => {
   const handleInputConfirm = () => {
     if (isEditing) {
       setIsEditing(false);
-      // Only call update if value has changed
       if (inputValue !== value) {
         handleUpdate(record, dataIndex, inputValue);
       }
@@ -205,26 +199,42 @@ const EditableCell = ({ value, record, dataIndex, handleUpdate }) => {
   };
 
   useEffect(() => {
-    // When isEditing becomes false, reset the inputValue
-    // This handles the case when editing is canceled
     if (!isEditing) {
       setInputValue(value);
     }
   }, [isEditing, value]);
 
+  const isTextArea = value && value.length > 40;
+
   return (
     <div>
       {isEditing ? (
-        <Input
-          value={inputValue}
-          autoFocus // Automatically focus the input when editing starts
-          onChange={handleInputChange}
-          onBlur={handleInputConfirm}
-          onPressEnter={handleInputConfirm}
-        />
+        isTextArea ? (
+          <textarea
+            className="editable-cell-textarea"
+            style={{ height: `${Math.max(2, Math.ceil(value.length / 10))}rem` }}
+            value={inputValue}
+            autoFocus
+            onChange={handleInputChange}
+            onBlur={handleInputConfirm}
+            onPressEnter={handleInputConfirm}
+          />
+        ) : (
+          <Input
+            value={inputValue}
+            autoFocus
+            onChange={handleInputChange}
+            onBlur={handleInputConfirm}
+            onPressEnter={handleInputConfirm}
+          />
+        )
       ) : (
-        <div onClick={toggleEdit} style={{ cursor: 'pointer' }}>
-          {value !== undefined && value !== null ? value : <span style={{ visibility: 'hidden' }}>empty</span>}
+        <div onClick={toggleEdit} style={{ cursor: "pointer" }}>
+          {value !== undefined && value !== null ? (
+            value
+          ) : (
+            <span style={{ visibility: "hidden" }}>empty</span>
+          )}
         </div>
       )}
     </div>

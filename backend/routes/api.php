@@ -32,6 +32,8 @@ use App\Http\Controllers\CloneController;
 use App\Http\Controllers\HtmlParser;
 use App\Http\Controllers\CustomerSitesController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\RmProcessusDomainsController;
+use App\Models\RmProcessusDomains;
 
 /*
 |--------------------------------------------------------------------------
@@ -166,6 +168,15 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::post('/customer-sites/{id}', [CustomerSitesController::class, 'update']);
     Route::delete('/customer-sites/{id}', [CustomerSitesController::class, 'destroy']);
     Route::get('/customer-sites-by-customer-id/{id}', [CustomerSitesController::class, 'getCustomerSiteByCustomerId']);
+    Route::post('/add-processus-domain', [RmProcessusDomainsController::class, 'create']);
+
+    Route::get('/rm-processus-domains', [RmProcessusDomainsController::class, 'index']);
+    Route::post('/rm-processus-domains', [RmProcessusDomainsController::class, 'create']);
+    Route::get('/rm-processus-domains/{id}', [RmProcessusDomainsController::class, 'show']);
+    Route::post('/update-rm-processus-domains/{id}', [RmProcessusDomainsController::class, 'update']);
+    Route::delete('/rm-processus-domains/{id}', [RmProcessusDomainsController::class, 'destroy']);
+    Route::get('/rm-processus-domains/getRmProccessByIterationID/{idIteration}', [RmProcessusDomainsController::class, 'getRmProccessByIterationID']);
+
 });
 
 Route::get('/all-logs',[ActivityLogController::class,'index']);
