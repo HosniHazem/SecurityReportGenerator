@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\RmProcessusDomains;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use App\Models\RmIteration;
+use App\Models\RmProcessusActifsValeurs;
 
 
 class RmProcessusDomainsController extends Controller
@@ -149,19 +149,29 @@ class RmProcessusDomainsController extends Controller
 
 
 
-    public function destroy($id)
-
-    {
-        $rmProcessusDomain=RmProcessusDomains::find($id);
-
-        if(!$rmProcessusDomain){
-            return response()->json(['success'=>false,'message' => 'Record not found', 'status' => 404]);
-
+        public function destroy($id)
+        {
+            // Find the RmProcessusDomains record by $id
+            $rmProcessusDomain = RmProcessusDomains::find($id);
+        
+            // Check if the record exists
+            if (!$rmProcessusDomain) {
+                return response()->json(['success' => false, 'message' => 'Record not found', 'status' => 404]);
+            }
+        
+            // Find related records in RmProcessusActifsValeurs
+            $rmProcessusActifs = RmProcessusActifsValeurs::where('ID_Processus', $id)->get();
+        
+            // Loop through related records and delete each one
+            foreach ($rmProcessusActifs as $rmProcessusActif) {
+                $rmProcessusActif->delete();
+            }
+        
+            // Now delete the RmProcessusDomains record
+            $rmProcessusDomain->delete();
+        
+            // Return success response
+            return response()->json(['success' => true, 'message' => 'Un rm processus a été supprimé', 'status' => 200]);
         }
-
-        $rmProcessusDomain->delete();
-
-        return response()->json(['success'=>true,'message' => 'un rm processus a été supprimé', 'status' => 200]);
-
-    }
+        
 }

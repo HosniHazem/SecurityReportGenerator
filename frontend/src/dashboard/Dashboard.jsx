@@ -170,7 +170,7 @@ const Dashboard = () => {
     {
       field: "ProjectDetails",
       headerName: "Project Details",
-      width: 450,
+      width: 550,
       renderCell: (params) => {
         const id = params.row.id;
         const customerId=params.row.customer_id
@@ -196,9 +196,14 @@ const Dashboard = () => {
             <Link to={`/anomalie/${id}`} style={{ textDecoration: "none" }}>
               <div className="Pick2">Anomalie</div>
             </Link>
-            <Button onClick={()=>handleFillQuestions(c)} style={{ textDecoration: "none" }}>
+            <Link onClick={()=>handleFillQuestions(c)} style={{ textDecoration: "none" }}>
               <div className="Pick2">Questions</div>
-            </Button>
+            </Link>
+            <Link to={`/all-rm-processus/${c}`} style={{ textDecoration: "none" }}>
+              <div className="Pick2">RmProccessus</div>
+            </Link>
+            
+
           </div>
         );
       },
