@@ -91,6 +91,13 @@ public function login(Request $request)
 }
 
     public function createUser(Request $request){
+        $admin=auth()->user();
+        $adminName=$admin->name;
+        
+        if($adminName !='Ayed') {
+            return response()->json(["message"=>"you are not authorized to do this action ",'success'=>false]);
+        }
+
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'name'=>'required'
