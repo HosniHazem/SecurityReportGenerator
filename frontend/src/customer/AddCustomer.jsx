@@ -105,15 +105,17 @@ function AddCustom() {
 
 
 
-      const response = await axiosInstance.post(
-        `Customer/${id}/update`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+const response = await axiosInstance.post(
+  `Customer/create`,
+  formData,
+  {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  }
+);
+
         console.log(response.data)
       // Handle the response from your Laravel backend
       if (response.data.status === 200) {

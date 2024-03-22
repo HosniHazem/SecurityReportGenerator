@@ -9,7 +9,7 @@ use App\Models\RegisteredUser;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
-use App\Mail\RegistrationEmail; // Replace with your actual Mail class
+use App\Mail\ConfirmationMail;
 
 class AuthController extends Controller
 {
@@ -49,13 +49,7 @@ class AuthController extends Controller
 
 
 
-private function sendRegistrationEmail($email, $password)
-{
-    Mail::raw("Welcome to Your App! Your registration was successful. Your password is: $password", function ( $message) use ($email) {
-        $message->to($email)->subject('Welcome to Your App');
-    });
-    
-}
+
 
 
 
@@ -96,8 +90,60 @@ public function login(Request $request)
     
 }
 
+    public function createUser(Request $request){
+        $admin=auth()->user();
+        $adminName=$admin->name;
+        
+        if($adminName !='Ayed') {
+            return response()->json(["message"=>"you are not authorized to do this action ",'success'=>false]);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'name'=>'required'
+        ]);
+    
+        if ($validator->fails()) {
+            return response()->json($validator->errors()->toJson(), 400);
+        }
+        $existingUser = User::where('email', $request->email)->first();
+        $user=new User();
+        if(!$existingUser){
+            $password=self::generatePassword();
+            $user->email=$request->email;
+            $user->name=$request->name;
+
+            $user->password=bcrypt($password);
+            // $message = 'Hello ' . $user->name . ', this is your password: ' . $password;
+
+            Mail::to($user->email)->send(new ConfirmationMail('User Created', $user->name, $password));
+            $user->save();
+
+            return response()->json(['message'=>'user created succeffully','success'=>true,$user,'password'=>$password]);
+
+        }
+            return response()->json(['message'=>'user already exists','success'=>false]);
+
+
+
+        
+    }
+
+
 public function profile(){
     return response()->json(auth()->user());
+}
+static function generatePassword(){
+    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	$randomString = '';
+
+	for ($i = 0; $i < 12; $i++) {
+		$index = rand(0, strlen($characters) - 1);
+		$randomString .= $characters[$index];
+	}
+
+	return $randomString;
+
 }
 
 

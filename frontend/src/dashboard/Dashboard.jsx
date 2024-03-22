@@ -40,6 +40,8 @@ const Dashboard = () => {
   const selected = sessionStorage.getItem("selectedIp");
   const [selectedIp, setSelectedIp] = useState(selected);
   const theme = useTheme();
+  const [isScrollingLeft, setIsScrollingLeft] = useState(false);
+
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
 
   // }, []);
@@ -138,12 +140,22 @@ const Dashboard = () => {
     }
   };
 
+    const handleScroll = (event) => {
+    const scrollLeft = event.target.scrollLeft;
+    setIsScrollingLeft(scrollLeft > 0);
+  };
+
   const userColumns = [
-    { field: "id", headerName: "ID", width: 100 },
+    { field: "id", headerName: "ID", width: 100 , 
+    //  headerClassName: "sticky-header",
+    // cellClassName: "sticky-column",
+  },
     {
       field: "Nom",
       headerName: "Nom",
       width: 120,
+      // headerClassName: "sticky-header",
+      // cellClassName: "sticky-column",
       renderCell: (params) => {
         return params.row.Nom;
       },
@@ -170,7 +182,7 @@ const Dashboard = () => {
     {
       field: "ProjectDetails",
       headerName: "Project Details",
-      width: 450,
+      width: 550,
       renderCell: (params) => {
         const id = params.row.id;
         const customerId=params.row.customer_id
@@ -184,7 +196,7 @@ const Dashboard = () => {
             <Link to={`/sow/${id}`} style={{ textDecoration: "none" }}>
               <div className="Pick2">SOW</div>
             </Link>
-            <Link to={`/sites/${customerId}`} style={{ textDecoration: "none" }}>
+            <Link to={`/sites/${customerId}/customer-sites/${customerId}`} style={{ textDecoration: "none" }}>
               <div className="Pick2">Sites</div>
             </Link>
             <Link
@@ -196,9 +208,14 @@ const Dashboard = () => {
             <Link to={`/anomalie/${id}`} style={{ textDecoration: "none" }}>
               <div className="Pick2">Anomalie</div>
             </Link>
-            <Button onClick={()=>handleFillQuestions(c)} style={{ textDecoration: "none" }}>
+            <Link onClick={()=>handleFillQuestions(c)} style={{ textDecoration: "none" }}>
               <div className="Pick2">Questions</div>
-            </Button>
+            </Link>
+            <Link to={`/all-rm-processus/${c}`} style={{ textDecoration: "none" }}>
+              <div className="Pick2">RmProccessus</div>
+            </Link>
+            
+
           </div>
         );
       },
@@ -538,7 +555,7 @@ const Dashboard = () => {
         <table style={{ borderCollapse: "collapse", width: "15%" }}>
           <thead>
             <tr>
-              <th>Name</th>
+            <th className="sticky-header">Name</th> 
               <th>URL</th>
               <th>Status</th>
               <th>Select</th>
@@ -553,8 +570,8 @@ const Dashboard = () => {
                   backgroundColor: url.answer === "Online" ? "green" : "red",
                 }}
               >
-                <td style={cellStyle}>{url.Name}</td>
-                <td style={cellStyle}>{url.ip}</td>
+                <td  style={cellStyle}>{url.Name}</td> 
+                <td  style={cellStyle}>{url.ip}</td>
                 <td style={cellStyle}>{url.answer}</td>
                 <td style={cellStyle}>
                   <input
@@ -585,7 +602,9 @@ const Dashboard = () => {
               columns={userColumns}
               pageSize={9}
               rowsPerPageOptions={[9]}
-              columnBuffer={2} // Add this line
+              columnBuffer={2}
+              onScroll={handleScroll}
+               // Add this line
             />
           </div>
         )}

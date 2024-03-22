@@ -31,6 +31,10 @@ import AllCustomerSites from "./CustomerSites/allCustomerSites";
 import ModifyCustomerSite from "./CustomerSites/ModifyCustomerSite";
 import PrivateRoutes from "./PrivateRoutes";
 import Logs from "./Logs";
+import AllRmProcess from "./RmProccessusDomains/ViewRmProcessDomains";
+import AddRmProccess from "./RmProccessusDomains/AddRmProccessDomains";
+import CreateUser from "./Users";
+// import AllRmProcess from "./RmProccessusDomains/AddRmProcessDomains";
 
 function App() {
   // const isAuthenticated = localStorage.getItem('token');
@@ -72,6 +76,10 @@ function App() {
         <Route path="/sites/:id/customer-sites/:customerID" element={<AllCustomerSites />} />
          <Route path="sites/:id/customer-sites/:customerID/customer-sites-modify/:customerSiteId"  element={<ModifyCustomerSite />} />
          <Route path="logs" element={<Logs />} />
+         <Route path="/all-rm-processus/:idIteration" element={<AllRmProcess />} />
+         <Route path="/add-rm-proccessus/:idIteration" element={<AddRmProccess />} />
+         <Route path="/users" element={<CreateUser />} />
+
          </Route>
          <Route path="/login" element ={<Login />}  />
 

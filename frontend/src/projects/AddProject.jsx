@@ -11,6 +11,7 @@ import { Form, Input, Button, Select, Col, Row } from "antd";
 import TextField from "@mui/material/TextField";
 import "./add.css";
 import toast from "react-hot-toast";
+import { axiosInstance } from "../axios/axiosInstance";
 
 const Container = styled("div")(({ theme }) => ({
   margin: "30px",
@@ -63,10 +64,16 @@ function AddProject() {
   const onFinish = async (values) => {
     console.log("values are", values);
     try {
-      const response =  await axios.post(
-        `http://webapp.ssk.lc/AppGenerator/backend/api/Project/create`,
-        values
+      const response = await axiosInstance.post(
+        `/Project/create`,
+        values,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          }
+        }
       );
+      
         console.log(response.data)
       if (response.data.status===200) {
           toast.success("projet crée")

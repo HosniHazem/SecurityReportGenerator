@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './sidebar.scss';
+import { axiosInstance } from '../axios/axiosInstance';
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 // const sidebarNavItems = [
 //     {
@@ -41,6 +42,11 @@ const Sidebar = () => {
         localStorage.removeItem('token');
         window.location.reload();
     }
+
+  
+
+
+
     const sidebarNavItems = [
         {
             display: 'Dashboard',
@@ -69,13 +75,23 @@ const Sidebar = () => {
 
         },
         {
+            display:'Users',
+            icon: <i class='bx bx-user-plus'></i>,
+            to: '/users',
+            section: 'customer'
+
+
+        },
+     
+        {
             display: 'Logout',
              icon: <i class='bx bx-log-out'></i>,
 
              onClick: handleLogout
-        }
-     
+        },
+        
     ]
+   
     
 
     useEffect(() => {
