@@ -182,3 +182,28 @@
   cursor: not-allowed; /* Set cursor to not-allowed to indicate it's not clickable */
   /* Add any other styles to visually indicate disabled state */
 }
+/* Add this CSS to your stylesheet */
+// .sticky-header {
+//   position: sticky;
+//   left: 0;
+//   z-index: 1;
+// }
+// .sticky-cell {
+//   position: sticky;
+//   left: 0;
+//   z-index: 1;
+// }
+.sticky-header {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  // background-color: rgba(255, 255, 255, 0.137); /* Ensure it covers the header row */
+  background-color: #fff;
+}
+
+.sticky-column {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background-color: #fff;
+}
