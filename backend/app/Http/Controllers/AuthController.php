@@ -80,7 +80,7 @@ public function login(Request $request)
     return response()->json([
         'access_token' => $token,
         'token_type' => 'bearer',
-        'expires_in' => \Illuminate\Support\Facades\Auth::factory()->getTTL() * 60,
+        'expires_in' => 3600,
         'user' => auth()->user(),
         'success'=>true,
         'message'=>"redirecting to home page"

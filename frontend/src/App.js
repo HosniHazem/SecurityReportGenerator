@@ -55,7 +55,7 @@ function App() {
           <Route path="/project" element={<Project />} />
           <Route path="/customer" element={<Customer />} />
         </Route>
-        <Route path="/updatecustomer/:id" element={<AddCustomer/>} />
+        <Route path="/updatecustomer/:id" element={<UpdateCustomer/>} />
         <Route path="/updateproject/:id" element={<UpdateProject />} />
         <Route path="/newcustomer" element={<AddCustomer />} />
         <Route path="/newproject" element={<AddProject />} />
@@ -63,7 +63,7 @@ function App() {
         <Route path="/import2" element={<Nessus2 />} />
         <Route path="/sow/:id" element={<Sow />} />
         <Route path="/add-glb-pip/:customerID" element={<ViewGlbPip/>} />
-        <Route path='/ajout-glb-pip/:customerID' element={<AddGlbPip />} /> 
+        <Route path='/ajout-glb-pip/:id' element={<AddGlbPip />} /> 
         <Route path="/quality/:id" element={<Quality />} />
         <Route path="/modify-glb-pip/:id" element={<ModifyGlbPip />} />
         <Route path="/add-audit-previous-audit/:id" element={<AddAuditPreviousAudit />} />

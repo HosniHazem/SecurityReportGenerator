@@ -91,26 +91,41 @@ const Auth = sessionStorage.getItem('Auth');
 
  
   useEffect(() => {
-    const dataToSend = {
-      selectedIp: selectedIp,
-      Auth : Auth
-    }
+    // Retrieve token from local storage
+    const token = localStorage.getItem('token');
   
-    console.log(dataToSend)
-    axios.post("http://webapp.ssk.lc/AppGenerator/backend/api/getScan2",dataToSend).then((res) => {
-      if (res.status === 200) {
-        
-        const filteredFolders = res.data.Folders.folders.filter(folder => folder.name.toLowerCase().includes(project_name.toLowerCase()));
-        //const filteredFolders = res.data.Folders.folders;
-
-        setFolders(filteredFolders);
-        setScans(res.data.Folders.scans);
-
-      }
-    }).catch((error) => {
-      console.error('Error sending data:', error);
-    });
+    // Ensure token exists before making the request
+    if (token) {
+      const dataToSend = {
+        selectedIp: selectedIp,
+        Auth: Auth
+      };
+  
+      // Set the Authorization header with the token
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      };
+  
+      axios.post("http://webapp.ssk.lc/AppGenerator/backend/api/getScan2", dataToSend, config)
+        .then((res) => {
+          if (res.status === 200) {
+            const filteredFolders = res.data.Folders.folders.filter(folder => folder.name.toLowerCase().includes(project_name.toLowerCase()));
+            //const filteredFolders = res.data.Folders.folders;
+  
+            setFolders(filteredFolders);
+            setScans(res.data.Folders.scans);
+          }
+        })
+        .catch((error) => {
+          console.error('Error sending data:', error);
+        });
+    } else {
+      console.error('Token not found in local storage');
+    }
   }, []);
+  
 
   useEffect(() => {
     axios.get("http://webapp.ssk.lc/AppGenerator/backend/api/get_vm").then((res) => {

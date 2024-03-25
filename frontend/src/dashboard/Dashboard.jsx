@@ -408,6 +408,7 @@ const Dashboard = () => {
     e.persist();
     setDownloading(true);
     const project_id = sessionStorage.getItem("project_id");
+    const token = localStorage.getItem("token"); // Fetch token from local storage
     const dataToSend = {
       project_id: [id],
       annex_id: [1, 2, 3, 4, 5, 6, 7, 8],
@@ -422,6 +423,9 @@ const Dashboard = () => {
         `http://webapp.ssk.lc/AppGenerator/backend/api/getAnnexes`,
         dataToSend,
         {
+          headers: {
+            Authorization: `Bearer ${token}`, // Set Authorization header with the token
+          },
           responseType: "blob", // Set responseType to 'blob' to indicate binary data
         }
       )
@@ -460,6 +464,7 @@ const Dashboard = () => {
         setExporting(false);
       });
   };
+
   const Export3 = (name, id, e) => {
     e.persist();
     setDownloading(true);

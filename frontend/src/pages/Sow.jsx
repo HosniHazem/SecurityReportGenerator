@@ -113,29 +113,36 @@ function removeFromPcsubnetArray(pcsubnetArray, ipHostToRemove) {
 }
 
 const imported = () => {
+  let parsedData = {};
+  parsedData.serveur = serveurInput;
+  parsedData.apps = appsInput;
+  parsedData.pc = pcInput;
+  parsedData.rs = r_sInput;
+  parsedData.project_id = id;
 
-    let parsedData = {};
-    parsedData.serveur = serveurInput;
-    parsedData.apps = appsInput;
-    parsedData.pc = pcInput;
-    parsedData.rs = r_sInput;
-    parsedData.project_id = id;
-console.log(parsedData);
-  axios.post('http://webapp.ssk.lc/AppGenerator/backend/api/Sow/import',parsedData)
+  console.log(parsedData);
+
+  const token = localStorage.getItem("token"); // Fetch token from local storage
+
+  axios.post('http://webapp.ssk.lc/AppGenerator/backend/api/Sow/import', parsedData, {
+      headers: {
+          Authorization: `Bearer ${token}`, // Set Authorization header with the token
+      }
+  })
   .then((response) => {
-    if(response.data.status===200){
-      swal("Imported","Successfully");
-
-    }else if(response.data.status===404) {
-      swal("Error","Problem while importing");
-    }
+      if (response.data.status === 200) {
+          swal("Imported", "Successfully");
+      } else if (response.data.status === 404) {
+          swal("Error", "Problem while importing");
+      }
   })
   .catch((error) => {
-    // Handle error
-    console.error('Error sending data:', error);
-    swal("Error","Problem while importing");
-  })   
+      // Handle error
+      console.error('Error sending data:', error);
+      swal("Error", "Problem while importing");
+  });
 }
+
 const getSubnetIpRange = (cidr) => {
 
   // Split CIDR into IP and subnet mask

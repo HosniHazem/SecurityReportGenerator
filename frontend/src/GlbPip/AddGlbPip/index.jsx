@@ -117,106 +117,107 @@ export default function AddGlbPip() {
   }
 
   return (
-    <div className="add-glb-pip-div">
-      <h1 className="add-glb-pip-title">Ajouter un Glb Pip</h1>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>
-                <span>Nom et Prénom</span>
-              </TableCell>
-              <TableCell>
-                <span>Titre</span>
-              </TableCell>
-              <TableCell>
-                <span>Tél</span>
-              </TableCell>
-              <TableCell>
-                <span>Mail primaire</span>
-              </TableCell>
-              <TableCell>
-                <span>Mail secondaire</span>
-              </TableCell>
-              <TableCell>
-                <span> </span>
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            <TableRow>
-              <TableCell>
-                <TextField
-                  variant="outlined"
-                  placeholder="Saisir nom et prénom"
-                  fullWidth
-                  name="Nom"
-                  value={formData.Nom}
-                  onChange={handleChange}
-                />
-              </TableCell>
-              <TableCell>
-                <TextField
-                  variant="outlined"
-                  placeholder="Saisir Titre"
-                  fullWidth
-                  name="Titre"
-                  value={formData.Titre}
-                  onChange={handleChange}
-                />
-              </TableCell>
-              <TableCell>
-                <TextField
-                  variant="outlined"
-                  placeholder="Saisir Tél"
-                  fullWidth
-                  name="tel"
-                  value={formData.tel}
-                  onChange={handleChange}
-                  helperText={
-                    telError
-                      ? "Entrer un numéro Ooredoo/Tunisie Télécom/Orange"
-                      : ""
-                  }
-                  error={telError}
-                />
-              </TableCell>
-              <TableCell>
-                <TextField
-                  variant="outlined"
-                  placeholder="Saisir E-mail"
-                  fullWidth
-                  name="adresse_mail_primaire"
-                  value={formData.adresse_mail_primaire}
-                  onChange={handleChange}
-                  helperText={emailError ? "Entrer un email valide" : ""}
-                  error={emailError}
-                />
-              </TableCell>
-              <TableCell>
-                <TextField
-                  variant="outlined"
-                  placeholder="Enter Mail secondaire"
-                  fullWidth
-                  name="adresse_mail_secondaire"
-                  value={formData.adresse_mail_secondaire}
-                  onChange={handleChange}
-                />
-              </TableCell>
-              <TableCell>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleSubmit}
-                >
-                  Ajouter
-                </Button>
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <Button onClick={handleNavigate}>View GlB PIP  OF THIS CUSTOMER</Button>
-    </div>
+<div className="add-glb-pip-div">
+  <h1 className="add-glb-pip-title">Ajouter un Glb Pip</h1>
+  <TableContainer component={Paper}>
+    <Table>
+      <TableHead>
+        <TableRow>
+          <TableCell>
+            <span>Nom et Prénom</span>
+          </TableCell>
+          <TableCell>
+            <span>Titre</span>
+          </TableCell>
+          <TableCell>
+            <span>Tél</span>
+          </TableCell>
+          <TableCell>
+            <span>Mail primaire</span>
+          </TableCell>
+          <TableCell>
+            <span>Mail secondaire</span>
+          </TableCell>
+          <TableCell>
+            <span> </span>
+          </TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        <TableRow>
+          <TableCell>
+            <TextField
+              variant="outlined"
+              placeholder="Saisir nom et prénom"
+              fullWidth
+              name="Nom"
+              value={formData.Nom}
+              onChange={handleChange}
+            />
+          </TableCell>
+          <TableCell>
+            <TextField
+              variant="outlined"
+              placeholder="Saisir Titre"
+              fullWidth
+              name="Titre"
+              value={formData.Titre}
+              onChange={handleChange}
+            />
+          </TableCell>
+          <TableCell>
+            <TextField
+              variant="outlined"
+              placeholder="Saisir Tél"
+              fullWidth
+              name="tel"
+              value={formData.tel}
+              onChange={handleChange}
+              helperText={
+                telError
+                  ? "Entrer un numéro Ooredoo/Tunisie Télécom/Orange"
+                  : ""
+              }
+              error={telError}
+            />
+          </TableCell>
+          <TableCell>
+            <TextField
+              variant="outlined"
+              placeholder="Saisir E-mail"
+              fullWidth
+              name="adresse_mail_primaire"
+              value={formData.adresse_mail_primaire}
+              onChange={handleChange}
+              helperText={emailError ? "Entrer un email valide" : ""}
+              error={emailError}
+            />
+          </TableCell>
+          <TableCell>
+            <TextField
+              variant="outlined"
+              placeholder="Enter Mail secondaire"
+              fullWidth
+              name="adresse_mail_secondaire"
+              value={formData.adresse_mail_secondaire}
+              onChange={handleChange}
+            />
+          </TableCell>
+          <TableCell>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSubmit}
+            >
+              Ajouter
+            </Button>
+          </TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
+  </TableContainer>
+  <Button onClick={handleNavigate}>View GlB PIP OF THIS CUSTOMER</Button>
+</div>
+
   );
 }

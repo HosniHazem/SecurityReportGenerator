@@ -11,7 +11,11 @@ export default function CreateUser() {
     const onFinish = async (values) => {
       setLoading(true);
       try {
-        const response = await axiosInstance.post('/create-user', values);
+        const response = await axiosInstance.post('/create-user', values,{
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`
+            }
+          });
         console.log(response)
         if(response.data.success){
             toast.success(response.data.message)
