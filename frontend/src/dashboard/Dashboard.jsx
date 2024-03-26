@@ -182,7 +182,7 @@ const Dashboard = () => {
     {
       field: "ProjectDetails",
       headerName: "Project Details",
-      width: 550,
+      width: 650,
       renderCell: (params) => {
         const id = params.row.id;
         const customerId=params.row.customer_id
@@ -213,6 +213,9 @@ const Dashboard = () => {
             </Link>
             <Link to={`/all-rm-processus/${c}`} style={{ textDecoration: "none" }}>
               <div className="Pick2">RmProccessus</div>
+            </Link>
+            <Link to={`/all-vuln/${id}`} style={{ textDecoration: "none" }}>
+              <div className="Pick2">Vuln</div>
             </Link>
             
 

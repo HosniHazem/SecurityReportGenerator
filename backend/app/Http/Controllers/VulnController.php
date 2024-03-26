@@ -72,7 +72,7 @@ class VulnController extends Controller
     
             $expectedType = $columnInfo[$attribute];
             if (!$this->validateValueType($value, $expectedType)) {
-                return response()->json(['error' => 'Value type mismatch for attribute ' . $attribute]);
+                return response()->json(['message' => 'Value type mismatch for attribute ' . $attribute ,'success'=>false]);
             }
     
             // Construct the SQL update statement
@@ -86,11 +86,11 @@ class VulnController extends Controller
                 return response()->json(['message' => 'Record updated successfully', 'success' => true]);
             } catch (\Exception $e) {
                 // Handle query execution failure
-                return response()->json(['error' => $e->getMessage()]);
+                return response()->json(['message' => $e->getMessage(),'success'=>false]);
             }
         } else {
             // If the provided attribute is not allowed, return an error message
-            return response()->json(['error' => 'Attribute not allowed']);
+            return response()->json(['message' => 'Attribute not allowed','success'=>false]);
         }
     }
     

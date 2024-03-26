@@ -3,10 +3,11 @@ import { Form, Input, Button, message, Card } from 'antd';
 import axios from 'axios';
 import { axiosInstance } from '../axios/axiosInstance';
 import toast from 'react-hot-toast';
-
+import  {useNavigate } from 'react-router-dom'
 export default function CreateUser() {
     
     const [loading, setLoading] = useState(false);
+    const navigate=useNavigate()
 
     const onFinish = async (values) => {
       setLoading(true);
@@ -19,9 +20,12 @@ export default function CreateUser() {
         console.log(response)
         if(response.data.success){
             toast.success(response.data.message)
+            navigate(-1)
         }
         else {
             toast.error(response.data.message)
+            navigate(-1)
+
         }
       } catch (error) {
         message.error(error.response.data.message);
