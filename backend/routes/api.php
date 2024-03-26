@@ -34,6 +34,7 @@ use App\Http\Controllers\CustomerSitesController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RmProcessusDomainsController;
 use App\Models\RmProcessusDomains;
+use App\Http\Controllers\VulnController;
 
 /*
 |--------------------------------------------------------------------------
@@ -173,6 +174,15 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::delete('/rm-processus-domains/{id}', [RmProcessusDomainsController::class, 'destroy']);
     Route::get('/rm-processus-domains/getRmProccessByIterationID/{idIteration}', [RmProcessusDomainsController::class, 'getRmProccessByIterationID']);
     Route::post('/create-user', [AuthController::class, 'createUser']);
+
+    Route::get('/vulns', [VulnController::class, 'index']);
+Route::post('/vulns', [VulnController::class, 'store']);
+Route::get('/vulns/{id}', [VulnController::class, 'show']);
+Route::get('/vuln-attributes', [VulnController::class, 'getColumnNamesVuln']);
+
+Route::get('/vuln-by-projectID/{id}', [VulnController::class, 'showByProjectID']); // Route to show vulnerabilities by project ID
+Route::post('/vulns-update/{id}', [VulnController::class, 'update']);
+Route::delete('/vulns/{id}', [VulnController::class, 'destroy']);
 
 });
 
