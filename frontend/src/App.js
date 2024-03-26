@@ -34,6 +34,7 @@ import Logs from "./Logs";
 import AllRmProcess from "./RmProccessusDomains/ViewRmProcessDomains";
 import AddRmProccess from "./RmProccessusDomains/AddRmProccessDomains";
 import CreateUser from "./Users";
+import AllVulns from "./Vuln/AllVuln";
 // import AllRmProcess from "./RmProccessusDomains/AddRmProcessDomains";
 
 function App() {
@@ -79,6 +80,7 @@ function App() {
          <Route path="/all-rm-processus/:idIteration" element={<AllRmProcess />} />
          <Route path="/add-rm-proccessus/:idIteration" element={<AddRmProccess />} />
          <Route path="/users" element={<CreateUser />} />
+         <Route path="/all-vuln/:id" element={<AllVulns />} />
 
          </Route>
          <Route path="/login" element ={<Login />}  />
