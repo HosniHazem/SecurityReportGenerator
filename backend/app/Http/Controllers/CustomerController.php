@@ -10,7 +10,7 @@ use App\Models\Project;
 
 class CustomerController extends Controller
 {
-
+    
 
    
 
@@ -20,7 +20,7 @@ class CustomerController extends Controller
         $item =Customer::find($id);
         if($item){
 
-        return response()->json(['Customer'=>$item,'status' => 200]);
+        return response()->json(['data'=>$item ,'success'=>true]);
         }
     else
     {

@@ -36,6 +36,7 @@ import AddRmProccess from "./RmProccessusDomains/AddRmProccessDomains";
 import CreateUser from "./Users";
 import AllVulns from "./Vuln/AllVuln";
 import AddVuln from "./Vuln/AddVuln";
+import MajCustomer from "./customer/MajCustomer";
 // import AllRmProcess from "./RmProccessusDomains/AddRmProcessDomains";
 
 function App() {
@@ -57,7 +58,7 @@ function App() {
           <Route path="/project" element={<Project />} />
           <Route path="/customer" element={<Customer />} />
         </Route>
-        <Route path="/updatecustomer/:id" element={<UpdateCustomer/>} />
+        <Route path="/updatecustomer/:id" element={<MajCustomer/>} />
         <Route path="/updateproject/:id" element={<UpdateProject />} />
         <Route path="/newcustomer" element={<AddCustomer />} />
         <Route path="/newproject" element={<AddProject />} />
