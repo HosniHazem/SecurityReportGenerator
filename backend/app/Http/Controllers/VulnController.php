@@ -26,11 +26,39 @@ class VulnController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
-    {
-        $vuln = Vuln::create($request->all());
-        return response()->json($vuln, 201);
+
+     public function store(Request $request)
+{
+    try {
+        // Get all attributes and their values from the request
+        $attributes = $request->all();
+
+        // Extract the table name from the request (assuming it's 'vuln')
+        $tableName = 'vuln';
+
+        // Escape column names with backticks
+        $escapedColumns = array_map(function($column) {
+            return "`$column`";
+        }, array_keys($attributes));
+
+        // Build the SQL query
+        $columns = implode(', ', $escapedColumns);
+        $values = implode(', ', array_fill(0, count($attributes), '?'));
+
+        // Print the SQL query
+        $sqlQuery = "INSERT INTO $tableName ($columns) VALUES ($values)";
+
+        // Execute the SQL query
+        DB::insert($sqlQuery, array_values($attributes));
+
+        return response()->json(['message' => 'Vuln created successfully', 'success' => true]);
+    } catch (\Exception $e) {
+        return response()->json(['message' => $e->getMessage(), 'success' => false]);
     }
+}
+
+     
+    
 
     /**
      * Display the specified resource.
@@ -204,7 +232,15 @@ public function getColumnNamesVuln()
      */
     public function destroy($id)
     {
-        Vuln::findOrFail($id)->delete();
-        return response()->json(null, 204);
+        try {
+            $vuln = Vuln::findOrFail($id);
+            $vuln->delete();
+
+            return response()->json(['message'=>" deleted succeffully","success"=>true]);
+
+        } catch (\Exception $e) {
+
+            return response()->json(['message' => $e->getMessage(),'success'=>false]);
+        }
     }
 }

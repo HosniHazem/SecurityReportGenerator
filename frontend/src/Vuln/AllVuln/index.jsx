@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams ,useNavigate } from 'react-router-dom';
 import { axiosInstance } from '../../axios/axiosInstance';
-import { Table,Input } from 'antd';
+import { Table,Input, Button } from 'antd';
 import toast from 'react-hot-toast';
 
 export default function AllVulns() {
   const { id } = useParams();
   const [vulns, setVulns] = useState(null);
   const [attributes, setAttributes] = useState(null);
+  const navigate=useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -86,7 +87,33 @@ export default function AllVulns() {
     }
   };
   
+  const handleDelete = async (id) => {
+   
+    try {
+     
+
+      const response = await axiosInstance.delete(`/vulns/${id}`)
   
+      if (response.data.success) {
+        toast.success("Deleted successfully");
+        setVulns((prevData) => prevData.filter((row) => row.id !== id ));
+
+
+      } else {
+        toast.error("Error deleting data 1");
+      }
+    } catch (error) {
+      toast.error("Error deleting data");
+      console.log(error);
+    }
+  
+  };
+
+  const handleNavigate=()=>{
+    navigate(`/add-vuln/${id}`)
+
+  }
+
 
   const columns = attributes
     ? [
@@ -113,7 +140,7 @@ export default function AllVulns() {
           fixed: 'right',
           width: 100,
           render: (text, record) => (
-            <a onClick={() => handleDelete(record.id || record.ID)}>Delete</a>
+            <a onClick={() => handleDelete(record.id)}>Delete</a>
           ),
         },
       ]
@@ -121,6 +148,7 @@ export default function AllVulns() {
 
   return (
     <div>
+        <Button type='primary' style={{'width':'20%' ,'marginTop':'3%','marginBottom':'2%'}} onClick={handleNavigate}>Add Vuln</Button>
       <Table
         columns={columns}
         dataSource={vulns}
@@ -185,7 +213,7 @@ const EditableCell = ({ value, record, dataIndex, handleUpdate }) => {
         )
       ) : (
         <div onClick={toggleEdit} style={{ cursor: "pointer" }}>
-          {value !== undefined && value !== null ? (
+          {value !== undefined && value !== null   && value!=="" ? (
             value
           ) : (
             <span style={{ visibility: "hidden" }}>empty</span>
