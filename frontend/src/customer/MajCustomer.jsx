@@ -6,6 +6,8 @@ import axios from "axios";
 import swal from "sweetalert";
 import Swal from "sweetalert2";
 import "./Add.css";
+import { axiosInstance } from "../axios/axiosInstance";
+import toast from "react-hot-toast";
 
 export default function () {
   const { id } = useParams();
@@ -86,57 +88,43 @@ export default function () {
       Addresse_mail: CustomerInput["Addresse mail"],
     };
   }
-  const UpdateCustomer = () => {
-    form
-      .validateFields()
-      .then((values) => {
-        const {
-          SN,
-          LN,
-          Description,
-          SecteurActivité,
-          Categorie,
-          Site_Web,
-          Addresse_mail,
-        } = values;
-        if (Fich != null) {
-          const data = {
-            SN,
-            LN,
-            Description,
-            SecteurActivité,
-            Categorie,
-            Site_Web,
-            Addresse_mail,
-            Logo: Fich,
-            // Add other fields here
-          };
-          axios
-            .post(
-              `http://webapp.ssk.lc/AppGenerator/backend/api/Customer/${id}/update`,
-              data,
-              {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
-              }
-            )
-            .then((res) => {
-              if (res.data.status === 200) {
-                swal("Created", "Customer", "success");
-                navigate("/customer_create");
-              } else if (res.data.status === 404) {
-                swal("Error", CustomerInput.SN, "error");
-              }
-            })
-            .catch((error) => {
-              console.error("Update Customer Error:", error);
-            });
+  const UpdateCustomer =async (values) => {
+    console.log("values",values)
+    const formData = new FormData();
+
+    Object.entries(values).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          // Append key-value pair to FormData
+          if (key === "Logo" || key === "Organigramme" || key === "Network_Design") {
+            formData.append(key, value[0]?.originFileObj);
+          } else {
+            formData.append(key, value);
+          }
         }
-      })
-      .catch((errorInfo) => {
-        console.log("Failed:", errorInfo);
       });
+    try {
+
+        const response=await axios.post(`http://webapp.ssk.lc/AppGenerator/backend/api/Customer/${id}/update` ,formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          })
+          console.log("res",response.data)
+          if(response.data.success){
+            toast.success("customer updated succeffully")
+            navigate(-1)
+          }
+
+        
+
+    } catch (error) {
+        console.log(error);
+    }
+
+
+
+
   };
 
   console.log("init", initialValues);

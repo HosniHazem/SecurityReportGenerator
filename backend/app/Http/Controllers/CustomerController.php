@@ -130,6 +130,7 @@ class CustomerController extends Controller
 
     public function update(Request $req, $customerId)
 {
+  try {
     $validator = Validator::make($req->all(), [
         'SN'=>'string',
         'Logo' => 'image|mimes:jpeg,png,jpg,gif',
@@ -156,8 +157,7 @@ class CustomerController extends Controller
     }
 // return $customer;
     // Update fields if they are present in the request
-    $fillableFields = ['SN', 'LN', 'Logo', 'Organigramme', 'Description', 'SecteurActivité', 'Categorie', 'Site_Web', 'Addresse_mail'];
-    print_r($req->SN);
+    $fillableFields = ['SN', 'LN', 'Logo', 'Organigramme', 'Description', 'SecteurActivité', 'Categorie', 'Site Web', 'Addresse mail'];
     foreach ($fillableFields as $field) {
         if (isset($req->$field)) {
             $customer->$field = $req->input($field);
@@ -179,7 +179,10 @@ class CustomerController extends Controller
 
     $customer->update();
 
-    return response()->json(['message' => 'Customer updated successfully', 'status' => 200 ,'Customer'=>$customer]);
+    return response()->json(['message' => 'Customer updated successfully', 'success' => true ,'Customer'=>$customer]);
+} catch (\Exception $e) {
+    return response()->json(['message' => $e->getMessage(), 'success' => false]);
+}
 }
 
     public function destroy($id)
