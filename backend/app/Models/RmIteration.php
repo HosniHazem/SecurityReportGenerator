@@ -16,7 +16,6 @@ class RmIteration extends Model
         'MehariVersion',
         'CustomerID',
         'Date création',
-        // Add other fields as needed
     ];
 
     public function customer()
