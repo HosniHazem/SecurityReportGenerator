@@ -1,154 +1,215 @@
-import React,{ useState,useEffect } from "react";
-import { useNavigate,useParams} from 'react-router-dom';
-import {
-  Button,
-  Grid,
-} from '@mui/material'
-import { styled } from '@mui/system'
-import { ValidatorForm} from 'react-material-ui-form-validator'
-import axios from 'axios';
-import swal from 'sweetalert';
-import { Span } from './Typography'
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Form, Input, Button, Select, Row, Col } from "antd";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { axiosInstance } from "../axios/axiosInstance";
+import { styled } from "@mui/system";
 
-import TextField from '@mui/material/TextField';
-import "./add.css";
+const { Option } = Select;
 
-const Container = styled('div')(({ theme }) => ({
-    margin: '30px',
-    [theme.breakpoints.down('sm')]: {
-        margin: '16px',
+
+const Container = styled("div")(({ theme }) => ({
+  margin: "30px",
+  [theme.breakpoints.down("sm")]: {
+    margin: "16px",
+  },
+  "& .breadcrumb": {
+    marginBottom: "20px",
+    [theme.breakpoints.down("sm")]: {
+      marginBottom: "16px",
     },
-    '& .breadcrumb': {
-        marginBottom: '20px',
-        [theme.breakpoints.down('sm')]: {
-            marginBottom: '16px',
-        },
-    },
-}))
-
+  },
+}));
 
 function UpdateProject() {
 
 
-  const { id } = useParams();
-    const navigate = useNavigate();
-    const [value, setValue] = React.useState(null);
-    const [ProjectInput, setProject] = useState([]);
-    const [Customer, setCustomer] = useState([]);
-    const [Fich, setFich] = useState(null);
-      useEffect(() => {
-        axios.get(`http://webapp.ssk.lc/AppGenerator/backend/api/Project/${id}/show`).then((res) => {
-          if(res.data.status === 200){
-            setProject(res.data.Project);
-     } else if(res.data.status === 404){
-      
-     }
-        });
-      }, [id]);
+  const navigate = useNavigate();
+  const { id } = useParams(); // Assuming you have the project ID in the route params
+
+  const [form] = Form.useForm();
+  const [project, setProject] = useState(null);
+  const [customers, setCustomers] = useState([]);
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axiosInstance.get(`http://webapp.ssk.lc/AppGenerator/backend/api/Project/${id}/show`);
+        console.log("res",response.data);
+        if (response.data.success) {
+          console.log("proj",response.data.Project);
+          setProject(response.data.Project)
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+  
+    fetchData();
+  }, [id]);
+  
       const handleInput = (e) => {
         e.persist();
-       
-        setProject({...ProjectInput, [e.target.name]: e.target.value });
-    }
-    useEffect(() => {
-      axios.get(`http://webapp.ssk.lc/AppGenerator/backend/api/Customer`,).then((res) => {
-        if(res.status === 200){
-        setCustomer(res.data.Customer);
-   }
-      });
-    }, []);
+        setProject({ ...project, [e.target.name]: e.target.value });
+      };
+      
+      useEffect(() => {
+        axios.get(`http://webapp.ssk.lc/AppGenerator/backend/api/Customer`).then((res) => {
+          if (res.status === 200) {
+            setCustomers(res.data.Customer);
+          }
+        });
+      }, []);
+      
 
       const [error,setError] = useState([]);
 
 
-      const UpdateProject = (e) => {
+     const onFinish = async (values) => {
+      console.log("values",values)
+    try {
+      const response=await axiosInstance.post(`Project/${id}/update`,values);
+      console.log(response.data.status)
+      if(response.data.status===200){
+        toast.success(response.data.message)
+        navigate(-1);
+      }
+
+    } catch (error) { 
+      console.log("error",error)
       
-          e.preventDefault();
-          
-         
-          const  data = {
+    }
+  };
 
-            Nom: ProjectInput.Nom,
-            URL: ProjectInput.URL,
-            Description: ProjectInput.Description,
-            customer_id: ProjectInput.customer_id,
-            year: ProjectInput.year,
-
-        }
-console.log(data);
-      axios.put(`http://webapp.ssk.lc/AppGenerator/backend/api/Project/${id}/update`, data).then(res=>{
-          if(res.data.status === 200)
-          {
-              
-              swal("Updated","Project","success");
-             navigate('/customer_create');
-          }
-          else if(res.data.status === 404)
-          {
-              swal("Error",ProjectInput.SN,"error");
-          }
-          else if(res.data.status === 422)
-          {
-            swal("All fields are mandetory","","error");
-            setProject({...ProjectInput, error_list: res.data.validate_err });  
-          }
-      });
-   
-  }
   return (
-
-    <Container >
-    <div className="Container">
-
-        <ValidatorForm onSubmit={UpdateProject} onError={() => null} encType="multipart/form-data">
+    <div>
+      <h1>Update Project</h1>
+      {project && (
+         <Container>
+         <Form form={form} onFinish={onFinish}  layout="vertical" initialValues={project}>
+           <Row gutter={[16, 16]}>
+             <Col span={12}>
+               <Form.Item
+                 label="Nom"
+                 name="Nom"
+                //  rules={[{ required: true, message: "Veuillez entrer un Nom!" }]}
+               >
+                 <Input />
+               </Form.Item>{" "}
+             </Col>
+             <Col span={12}>
+               {" "}
+               <Form.Item
+                 label="URL"
+                 name="URL"
+                //  rules={[{ required: true, message: "Veuillez entrer un URL!" }]}
+               >
+                 <Input />
+               </Form.Item>
+             </Col>
+           </Row>
+           <Row gutter={[16, 16]}>
+             <Col span={12}>
+               {" "}
+               <Form.Item
+                 label="Description"
+                 name="Description"
+                 rules={[
+                  //  { required: true, message: "Veuillez entrer une Description!" },
+                 ]}
+               >
+                 <Input />
+               </Form.Item>{" "}
+             </Col>
+             <Col span={12}>
+               {" "}
+               <Form.Item
+                 label="Customer"
+                 name="customer_id"
+                //  rules={[{ required: true, message: "Please select a customer!" }]}
+               >
+                 <Select
+                   placeholder="Select a customer"
+                   onChange={(value) =>
+                     form.setFieldsValue({ customer_id: value })
+                   }
+                 >
+                   {customers.map((customer) => (
+                     <Option value={customer.id} key={customer.id}>
+                       {customer.LN}
+                     </Option>
+                   ))}
+                 </Select>
+               </Form.Item>
+             </Col>
+           </Row>
+           <Row gutter={[16, 16]}>
+             <Col span={12}>
+               {" "}
+               <Form.Item
+                 label="Iteration Key"
+                 name="iterationKey"
+                 rules={[
+                   {
+                     required: true,
+                     message: "Veuillez entrer un Iteration Key!",
+                   },
+                 ]}
+               >
+                 <Input />
+               </Form.Item>
+             </Col>
+             <Col span={12}>
+               {" "}
+               <Form.Item
+                 label="Method Version"
+                 name="methodVersion"
+                //  rules={[
+                //    {
+                //      required: true,
+                //      message: "Veuillez entrer un Method Version!",
+                //    },
+                //  ]}
+               >
+                 <Select placeholder="Sélectionnez une version" allowClear>
+                   <Option value="1.3">1.3-Standard</Option>
+                   <Option value="2.1">2.1-Standard</Option>
+                 </Select>
+               </Form.Item>
+             </Col>
+           </Row>
+           <Row gutter={[16, 16]}> 
+           <Col span={12}>
+   
+           <Form.Item
+             label="Year"
+             name="year"
+            //  rules={[
+            //    { required: true, message: "Veuillez entrer un nombre valide!" },
+            //  ]}
+           >
+             <Input type="number" />
+           </Form.Item>
+           </Col>
          
-                  <label htmlFor="exampleFormControlInput1" className="item">Nom :</label>
-                      <input type="text" name="Nom" onChange={handleInput}  className="form-control" htmlFor="exampleFormControlInput1" value={ProjectInput.Nom}  />
-
-                  <label htmlFor="exampleFormControlInput1" className="item">URL :</label>
-                      <input type="text" name="URL" onChange={handleInput}  className="form-control" htmlFor="exampleFormControlInput1" value={ProjectInput.URL}  />
-                  
-                  <label htmlFor="exampleFormControlInput1" className="item">Description :</label>
-                      <input type="text" name="Description" onChange={handleInput}  className="form-control" htmlFor="exampleFormControlInput1" value={ProjectInput.Description}  />
-                  
-                      <div className="form-group">
-    <label className="item">Customer :</label>
-    <select
-                        name="customer_id"
-                        className="form-control"
-                        onChange={handleInput}
-                        value={ProjectInput.customer_id}
-                      >
-                        <option value="DEFAULT"></option>
-                        {Customer.map((item,index) => {
-                          return (
-                            <option value={item.id} key={index}>
-                              {item.LN}
-                            </option>
-                          );
-                        })}
-                      </select>
-                      <span className="text-danger">{Customer.error_list}</span>
-  </div>
-
-                  <label htmlFor="exampleFormControlInput1" className="item">year :</label>
-                      <input type="text" name="year" onChange={handleInput}  className="form-control" htmlFor="exampleFormControlInput1" value={ProjectInput.year}  />
-
-
-<div className="item"></div>
-
-<div className="item"></div>
-            <Button color="primary" variant="contained" type="submit" className="item" >
-                <Span sx={{ pl: 1, textTransform: 'capitalize' }}>
-                ADD
-                </Span>
-            </Button>
-  </ValidatorForm>
-        </div>
-
-    </Container>
-
-  )
+           <Col span={12}>
+   
+           <Form.Item >
+             <Button type="primary" htmlType="submit" style={{marginTop:"5%",width:"100%"}}>
+               Submit
+             </Button>
+           </Form.Item>
+           </Col>
+   
+   
+           </Row>
+         </Form>
+       </Container>
+      )}
+    </div>
+  );
 }
 
 export default UpdateProject

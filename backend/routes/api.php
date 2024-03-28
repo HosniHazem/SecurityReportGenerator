@@ -100,7 +100,7 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::get('Project/{id}/show', [ProjectController::class,'show']);
     Route::get('LastOne', [ProjectController::class,'default']);
     Route::delete('Project/{id}/delete', [ProjectController::class,'destroy']);
-    Route::put('Project/{id}/update', [ProjectController::class,'update']);
+    Route::post('Project/{id}/update', [ProjectController::class,'update']);
     Route::put('Project/{id}/updateQuality', [ProjectController::class,'updateQuality']);
     Route::post('Project/create',[ProjectController::class,'store']);
 
