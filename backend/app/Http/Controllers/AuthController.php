@@ -80,7 +80,7 @@ public function login(Request $request)
     return response()->json([
         'access_token' => $token,
         'token_type' => 'bearer',
-        'expires_in' => 3600,
+        'expires_in' => 60,
         'user' => auth()->user(),
         'success'=>true,
         'message'=>"redirecting to home page"
@@ -128,6 +128,13 @@ public function login(Request $request)
 
         
     }
+    public function logout()
+{
+    auth()->logout();
+
+    return response()->json(['message' => 'Logged out successfully', 'success' => true]);
+}
+
 
 
 public function profile(){

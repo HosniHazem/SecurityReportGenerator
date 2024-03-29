@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './sidebar.scss';
 import { axiosInstance } from '../axios/axiosInstance';
+import toast from "react-hot-toast";
+
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 // const sidebarNavItems = [
 //     {
@@ -38,10 +40,28 @@ const Sidebar = () => {
     const indicatorRef = useRef();
     const location = useLocation();
     const navigate = useNavigate();
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        window.location.reload();
+    const handleLogout = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axiosInstance.post('/auth/logout', {}, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            console.log(response.data.message);
+            if(response.data.success){
+                toast.success("Logging Out");
+
+                  localStorage.removeItem('token');
+    window.location.reload();
+                
+                        }
+        } catch (error) {   
+            console.log(error);   
+        }
+       
     }
+    
 
   
 
