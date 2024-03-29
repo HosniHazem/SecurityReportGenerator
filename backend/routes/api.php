@@ -202,6 +202,8 @@ Route::get('/all-logs',[ActivityLogController::class,'index']);
         Route::post('/login', [AuthController::class, 'login']);
         // Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/profile', [AuthController::class, 'profile']);
+        Route::post('/logout', [AuthController::class, 'logout']);
+
     
     
     });
