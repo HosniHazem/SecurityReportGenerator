@@ -138,7 +138,12 @@ public function login(Request $request)
 
 
 public function profile(){
-    return response()->json(auth()->user());
+    try {
+        return response()->json(['user'=> auth()->user(),'success'=>true]);
+
+    } catch (\Exception $e) {
+        return response()->json(['message' => $e->getMessage(), 'success' => false]);
+    }
 }
 static function generatePassword(){
     $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
