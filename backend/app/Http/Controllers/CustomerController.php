@@ -68,7 +68,8 @@ class CustomerController extends Controller
     if ($validator->fails()) {
         return response()->json([
             'status' => 422,
-            'validate_err' => $validator->getMessageBag(),
+            'message' => $validator->getMessageBag(),
+            'success'=>false
         ]);
     }
 
@@ -107,7 +108,7 @@ class CustomerController extends Controller
 
     $item->save();
 
-    return response()->json(['message' => 'Customer created successfully', 'status' => 200]);
+    return response()->json(['message' => 'Customer created successfully', 'status' => 200 ,'success'=>true]);
 }
 
     
