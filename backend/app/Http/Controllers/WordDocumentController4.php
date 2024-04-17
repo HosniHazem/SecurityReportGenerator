@@ -724,6 +724,36 @@ HERE10;
             return response()->json(['message' => 'Error: ' . $th->getMessage(), 'success' => false]);
         }
     }
+    public function getSecurityIndicators($c)
+    {
+        $url = "http://localhost/indicators/answersAsCsv.php?c=$c&e=qkljsdfqd25154dQDSFSDFQdv45q2dfqfDCX";
+
+        $response = Http::get($url);
+        $content = $response->body();
+
+    
+        // Save the modified content to a new file
+        file_put_contents(storage_path('csv.csv'), $content);
+        try {
+            // Load data into the database
+            $loadData = "LOAD DATA   INFILE '" . str_replace('/', '\\\\', str_replace('\\', '\\\\', storage_path('csv.csv'))) . "' IGNORE
+                INTO TABLE sec_indic
+                FIELDS TERMINATED BY ','
+                ENCLOSED BY '\"'
+                LINES TERMINATED BY '\n'
+                ( `id` ,`answer`,`commentaire`,`client`,`idIndicator`);
+            ";
+
+
+            // Execute the database statement
+            DB::statement($loadData);
+
+            return response()->json(['message' => 'CSV file stored with success', 'success' => true]);
+        } catch (\Throwable $th) {
+            // Log or handle the exception
+            return response()->json(['message' => 'Error: ' . $th->getMessage(), 'success' => false]);
+        }
+    }
 
 
     static function populateTemplate($templateProcessor, $rowPlaceholder, $dataArray)

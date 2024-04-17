@@ -140,6 +140,26 @@ const Dashboard = () => {
     }
   };
 
+  const handleFillIndicators = async (c) => {
+    console.log('c is ',c)
+    try {
+      const response = await axiosInstance(`/Insert-Into-Indicators/${c}`);
+      console.log(response.data);
+      if(response.data.success){
+        toast.success(response.data.message);
+
+      }
+
+
+
+
+    } catch (error) {
+
+      toast.error(error);
+
+    }
+  };
+
     const handleScroll = (event) => {
     const scrollLeft = event.target.scrollLeft;
     setIsScrollingLeft(scrollLeft > 0);
@@ -210,6 +230,9 @@ const Dashboard = () => {
             </Link>
             <Link onClick={()=>handleFillQuestions(c)} style={{ textDecoration: "none" }}>
               <div className="Pick2">Questions</div>
+            </Link>
+            <Link onClick={()=>handleFillIndicators(c)} style={{ textDecoration: "none" }}>
+              <div className="Pick2">Indicators</div>
             </Link>
             <Link to={`/all-rm-processus/${c}`} style={{ textDecoration: "none" }}>
               <div className="Pick2">RmProccessus</div>
