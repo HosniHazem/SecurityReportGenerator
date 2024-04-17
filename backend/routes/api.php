@@ -154,6 +154,7 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
 
 
     Route::get('/Insert-Into-Answers/{c}', [WordDocumentController4::class,'getAnswersFromWebsiteServer']);
+
   
     Route::get('/vmtype',[VmController::class,'getAccunetixAndOwaszap']);
     Route::get('/all-tables',[CloneController::class,'getTables']);
@@ -194,6 +195,8 @@ Route::post('/vuln-from-html/{id}',[HtmlParser::class,'parse']);
 Route::post('/vuln-from-hcl/{id}',[HtmlParser::class,'parseHcl']);
 
 Route::get('/all-logs',[ActivityLogController::class,'index']);
+Route::get('/Insert-Into-Indicators/{c}', [WordDocumentController4::class,'getSecurityIndicators']);
+
 
     Route::group(['middleware' => 'api', 'prefix' => 'auth'], function () {
         // Registration route
