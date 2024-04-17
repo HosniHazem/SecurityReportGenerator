@@ -51,6 +51,7 @@ Route::get('/get_vm', [VmController::class,'index']);
 Route::get('Customer', [CustomerController::class,'index']);
 
 Route::get('/generate-ansi/{customerId}', [WordDocumentController4::class,'generateWordDocument']);
+Route::get('/show-image/{partialFilename}', [ImageController::class, 'show']);
 
 Route::group(['middleware' => ['jwt.verify', 'log_activity']], function () {
 
