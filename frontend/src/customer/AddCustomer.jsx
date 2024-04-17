@@ -141,6 +141,7 @@ function AddCustom() {
       // }
       if (response.data.success) {
         message.success(response.data.message);
+        navigate("/customer");
       } else {
         if (response.data.message.Logo) {
           message.error(response.data.message.Logo[1]);

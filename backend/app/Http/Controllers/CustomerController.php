@@ -85,7 +85,7 @@ class CustomerController extends Controller
     // Handle Logo file upload
     if ($req->hasFile('Logo')) {
         $logoFile = $req->file('Logo');
-        $logoFileName = $item->SN . '_Logo.' . $logoFile->getClientOriginalExtension();
+        $logoFileName = $item->SN . '_Logo.' . $logoFile->getClientOriginalName();
         $logoFile->move(public_path('images/uploads'), $logoFileName);
         $item->Logo = $logoFileName;
     }
@@ -93,7 +93,7 @@ class CustomerController extends Controller
     // Handle Organigramme file upload
     if ($req->hasFile('Organigramme')) {
         $orgFile = $req->file('Organigramme');
-        $orgFileName = $item->SN . '_Organigramme.' . $orgFile->getClientOriginalExtension();
+        $orgFileName = $item->SN . '_Organigramme.' . $orgFile->getClientOriginalName();
         $orgFile->move(public_path('images/uploads'), $orgFileName);
         $item->Organigramme = $orgFileName;
     }
@@ -101,7 +101,7 @@ class CustomerController extends Controller
     // Handle Network Design file upload
     if ($req->hasFile('Network_Design')) {
         $networkFile = $req->file('Network_Design');
-        $networkFileName = $item->SN . '_NetworkDesign.' . $networkFile->getClientOriginalExtension();
+        $networkFileName = $item->SN . '_NetworkDesign.' . $networkFile->getClientOriginalName();
         $networkFile->move(public_path('images/uploads'), $networkFileName);
         $item->Network_Design = $networkFileName;
     }
@@ -118,7 +118,6 @@ class CustomerController extends Controller
         $filename = $request->input('name') . '.' . $file->getClientOriginalExtension();
         $picture = $filename;
     
-        // Move image to public/images/uploads folder
         $file->move(public_path('images/uploads'), $filename);
     
         return response()->json(["message" => "Image Uploaded Successfully", 'status' => 200]);
@@ -172,7 +171,7 @@ class CustomerController extends Controller
     foreach ($fileFields as $fileField) {
         if ($req->hasFile($fileField)) {
             $file = $req->file($fileField);
-            $fileName = $customer->SN . '_' . $fileField . '.' . $file->getClientOriginalExtension();
+            $fileName = $customer->SN . '_' . $fileField . '.' . $file->getClientOriginalName();
             $file->move(public_path('images/uploads'), $fileName);
             $customer->{$fileField} = $fileName;
         }

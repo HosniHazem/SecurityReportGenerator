@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { axiosInstance } from '../axios/axiosInstance';
-import { Table, Space, Button, Select } from 'antd';
+import { Table, Button, Modal, Select } from 'antd';
 import moment from 'moment';
 
 const { Option } = Select;
@@ -10,6 +10,8 @@ const Logs = () => {
   const [sortedLogs, setSortedLogs] = useState([]);
   const [sortByNewest, setSortByNewest] = useState(true);
   const [filterName, setFilterName] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedBody, setSelectedBody] = useState('');
 
   useEffect(() => {
     axiosInstance
@@ -19,6 +21,7 @@ const Logs = () => {
           const filtered = response.data.activity_logs.filter(
             (log) => log.action !== 'GET api/all-logs'
           );
+          console.log(response.data);
 
           // Sort by newest initially
           const sorted = [...filtered].sort(
@@ -68,6 +71,32 @@ const Logs = () => {
     setSortedLogs(sorted);
   };
 
+  const handleViewBody = (body) => {
+    setSelectedBody(body);
+    setModalVisible(true);
+  };
+
+  const renderBodyContent = (body) => {
+    const bodyObject = JSON.parse(body);
+  
+    return (
+      <>
+        {Object.entries(bodyObject).map(([key, value], index) => (
+          <div key={index}>
+            {key !== 'Logo' && key !== 'Organigramme' && key !== 'Network_Design' ? (
+              <p>{`${key}: ${value}`}</p>
+            ) : (
+              <Button type="link" onClick={() => window.open(value, '_blank')}>
+                View Image {key === 'Logo' ? 'Logo' : key === 'Organigramme' ? 'Organigramme' : 'Network Design'}
+              </Button>
+            )}
+          </div>
+        ))}
+      </>
+    );
+  };
+  
+
   const columns = [
     {
       title: 'User Name',
@@ -86,6 +115,16 @@ const Logs = () => {
       title: 'Action',
       dataIndex: 'action',
       key: 'action',
+    },
+    {
+      title: 'Body',
+      dataIndex: 'body',
+      key: 'body',
+      render: (text, record) => (
+        <Button type="link" onClick={() => handleViewBody(text)}>
+          View Body
+        </Button>
+      ),
     },
     {
       title: 'Date',
@@ -131,6 +170,15 @@ const Logs = () => {
         </Select>
       </h2>
       <Table dataSource={sortedLogs} columns={columns} />
+
+      <Modal
+        title="Body Content"
+        visible={modalVisible}
+        onCancel={() => setModalVisible(false)}
+        footer={null}
+      >
+        {selectedBody && renderBodyContent(selectedBody)}
+      </Modal>
     </div>
   );
 };
