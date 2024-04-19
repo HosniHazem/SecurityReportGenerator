@@ -193,6 +193,11 @@ HERE10;
 
 
         $sqlYear = 'SELECT `year` from `projects`WHERE `customer_id`=?';
+        $sqlIndicators = 'SELECT sec.answer as answer, sec.commentaire as comment, sec.idIndicator as value
+         FROM sec_indic AS sec 
+        JOIN rm_iteration AS rm ON sec.client = rm.ID 
+        JOIN projects AS p ON p.iterationKey = rm.ID JOIN 
+        customers AS c ON p.customer_id = c.id WHERE c.id = ?;';
 
         $templatePath = public_path("0.docx");
 
@@ -219,6 +224,48 @@ HERE10;
         //current year 
         $currentYear = date('Y');
         $templateProcessor->setValue('year', $year);
+        //indicators logic
+        $indicators = DB::select($sqlIndicators, [$customerId]);
+        $indicatorsArray = self::processDatabaseData($indicators);
+        // return response()->json($indicatorsArray);
+
+        $variables=[];
+
+        foreach ($indicatorsArray as $indicator) {
+            if (isset($indicator['answer'])) {
+                $templateProcessor->setValue('answer_#' . $indicator['value'], $indicator['answer']);
+            }
+            if (isset($indicator['comment'])) {
+                $templateProcessor->setValue('Commentaires_#' . $indicator['value'], $indicator['comment']);
+            }
+            
+        }
+        for ($value = 1; $value <= 125; $value++) {
+
+            $answerPlaceholder='answer_#'.$value;
+            $answerVariable=$templateProcessor->getVariables($answerPlaceholder);
+            if(!empty($answerVariable)){
+                $templateProcessor->setValue($answerPlaceholder,'');
+            }
+
+            $commentPlaceholder='Commentaires_#'.$value;
+            $commentVariable=$templateProcessor->getVariables($commentPlaceholder);
+            if(!empty($commentVariable)){
+                $templateProcessor->setValue($commentPlaceholder,'');
+            }
+            
+
+
+
+        }
+
+
+
+
+
+        // print_r('wa');
+        // exit;
+        // return response()->json($variables);
 
 
         // Part 9.2
@@ -247,9 +294,10 @@ HERE10;
         $templateProcessor->setValue('today', $today);
 
         //table "domaine"
-        $domain = DB::select($sqlDomain, [$customerId]);
-        $domainArray = self::processDatabaseData($domain);
-        $templateProcessor->cloneRowAndSetValues('Domain', $domainArray);
+        // $domain = DB::select($sqlDomain, [$customerId]);
+        // $domainArray = self::processDatabaseData($domain);
+        // // return response()->json($domain);
+        // $templateProcessor->cloneRowAndSetValues('Domain', $domainArray);
 
 
         //table prev audit 
@@ -701,7 +749,7 @@ HERE10;
         $response = Http::get($url);
         $content = $response->body();
 
-    
+
         // Save the modified content to a new file
         file_put_contents(storage_path('csv.csv'), $content);
         try {
@@ -731,7 +779,7 @@ HERE10;
         $response = Http::get($url);
         $content = $response->body();
 
-    
+
         // Save the modified content to a new file
         file_put_contents(storage_path('csv.csv'), $content);
         try {
@@ -795,8 +843,4 @@ HERE10;
 
         $templateProcessor->cloneRowAndSetValues('AP_' . $num, $vulnArray);
     }
-
-
-
-
 }

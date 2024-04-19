@@ -1,1 +1,9 @@
 DELETE FROM `audit_tools` WHERE `Tool_name`="Nipper"
+
+CREATE TABLE `sec_indic` (
+  `id` int(11) NOT NULL,
+  `answer` varchar(255) DEFAULT NULL,
+  `commentaire` varchar(255) DEFAULT NULL,
+  `client` varchar(100) DEFAULT NULL,
+  `idIndicator` int(11) DEFAULT NULL
+)
