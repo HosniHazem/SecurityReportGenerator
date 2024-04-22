@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuditPreviousAudit;
+use App\Models\CustomerSites;
+use App\Models\GlbPip;
 use Illuminate\Http\Request;
 use App\Models\Project;
 use App\Models\RmIteration;
 use App\Models\MehariVersion;
+use App\Models\Sow;
+use App\Models\Vuln;
 use Illuminate\Support\Facades\DB;
 
 
@@ -128,7 +133,7 @@ class ProjectController extends Controller
     public function update(Request $req, $id)
     {
         $item = Project::find($id);
-    
+
         if ($item) {
             $previousIterationKey = $item->iterationKey;
             // print_r("gdim".$previousIterationKey);
@@ -142,10 +147,10 @@ class ProjectController extends Controller
             if (isset($req->Preuve)) $item->Preuve = $req->Preuve;
             if (isset($req->iterationKey)) {
                 $item->iterationKey = $req->iterationKey;
-            
+
                 // Fetch the existing RmIteration record using SQL
                 $rmIteration = DB::table('rm_iteration')->where('ID', $previousIterationKey)->first();
-            
+
                 if ($rmIteration) {
                     // If RmIteration exists, update its fields using SQL
                     DB::table('rm_iteration')
@@ -166,14 +171,14 @@ class ProjectController extends Controller
             }
             $item->update();
 
-    
-    
+
+
             return response()->json(['message' => 'done', 'item' => $item, 'status' => 200]);
         } else {
             return response()->json(['message' => 'not done', 'status' => 404]);
         }
     }
-    
+
     public function updateQuality(Request $req, $id)
     {
 
@@ -206,5 +211,74 @@ class ProjectController extends Controller
         } else {
             return response()->json(['message' => 'not deleted'], 404);
         }
+    }
+    public function ProjectDetails()
+    {
+        $projects = Project::all();
+        $response = [];
+        $answerCounts = [];
+        $indicatorsCount=[];
+
+        foreach ($projects as $project) {
+            $glbPipCount = GlbPip::where('Cusotmer_ID', $project->customer_id)->count();
+            $sqlAnswers = "SELECT COUNT(rm_answers.ID) AS answer_count FROM projects 
+            JOIN rm_iteration ON projects.iterationKey = rm_iteration.ID 
+            JOIN rm_answers ON rm_iteration.ID = rm_answers.ID_ITERATION
+             WHERE projects.id = ?";
+            $result = DB::select($sqlAnswers, [$project->id]);
+            $sqlIndicators="SELECT COUNT(sec_indic.id) AS sec_indic_count
+            FROM projects
+            JOIN rm_iteration ON projects.iterationKey = rm_iteration.ID
+            JOIN sec_indic ON rm_iteration.ID = sec_indic.client
+            WHERE projects.id = ?";
+            $indicatorsResult=DB::select($sqlIndicators,[$project->id]);
+
+            $sqlRmProcessus="SELECT COUNT(rm_processus_domains.id) AS rm_processus_domains
+            FROM projects
+            JOIN rm_iteration ON projects.iterationKey = rm_iteration.ID
+            JOIN rm_processus_domains ON rm_iteration.ID = rm_processus_domains.ID_ITERATION
+            WHERE projects.id =?";
+            $rmProcessusResult=DB::select($sqlRmProcessus,[$project->id]);
+            
+
+
+            // Extract the answer count from the result and store it in the array
+            $answerCount = $result[0]->answer_count;
+            $answerCounts[$project->id] = $answerCount;
+            $indicatorCount=$indicatorsResult[0]->sec_indic_count;
+            $indicatorsCounts[$project->id]=$indicatorCount;
+            $rmProcessusCount=$rmProcessusResult[0]->rm_processus_domains;
+
+            $sowCount = Sow::where('Projet', $project->id)->count();
+            $sites = CustomerSites::where('Customer_ID', $project->customer_id)->count();
+            $auditPrev = AuditPreviousAudit::where('projectID', $project->id)->count();
+            $anomalie = Vuln::where('ID_Projet', $project->id)->count();
+
+
+            $response['Project'][] = [
+                'id' => $project->id,
+                'Nom' => $project->Nom,
+                'URL' => $project->URL,
+                'Description' => $project->Description,
+                'customer_id' => $project->customer_id,
+                'year' => $project->year,
+                'QualityChecked' => $project->QualityChecked,
+                'QualityCheckedDateTime' => $project->QualityCheckedDateTime,
+                'QualityCheckedMessage' => $project->QualityCheckedMessage,
+                'Preuve' => $project->Preuve,
+                'iterationKey' => $project->iterationKey,
+                'glbpip' => $glbPipCount,
+                'sow' => $sowCount,
+                'customerSites' => $sites,
+                'auditPrev' => $auditPrev,
+                'anomalie' => $anomalie,
+                'answers' => $answerCount,
+                'indicators' => $indicatorCount,
+                'rm_processus' => $rmProcessusCount,
+            ];
+        }
+
+        // Return the response array
+        return response()->json($response);
     }
 }

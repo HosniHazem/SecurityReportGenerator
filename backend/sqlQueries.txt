@@ -7,3 +7,4 @@ CREATE TABLE `sec_indic` (
   `client` varchar(100) DEFAULT NULL,
   `idIndicator` int(11) DEFAULT NULL
 )
+ALTER TABLE `sec_indic` ADD PRIMARY KEY(`id`);

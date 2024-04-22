@@ -24,6 +24,7 @@ import { green } from "@mui/material/colors";
 import { axiosInstance } from "../axios/axiosInstance";
 import { ButtonBase, ButtonGroup } from "@mui/material";
 import toast, { Toaster } from "react-hot-toast";
+import AnsiModal from "./ansiModal"; 
 
 function useDialogState() {
   const [open, setOpen] = React.useState(false);
@@ -36,6 +37,7 @@ const Dashboard = () => {
   const [Vm, setVm] = useState([]);
   const [exporting, setExporting] = useState(false); // Add loading state
   const [downloading, setDownloading] = useState(false);
+  
   const { open, setOpen } = useDialogState();
   const selected = sessionStorage.getItem("selectedIp");
   const [selectedIp, setSelectedIp] = useState(selected);
@@ -43,6 +45,23 @@ const Dashboard = () => {
   const [isScrollingLeft, setIsScrollingLeft] = useState(false);
 
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null)  
+  const [projectDetails, setProjectDetails] = useState(null); // State for storing project details
+
+  const handleOpenModal = (project) => {
+    setSelectedProject(project);
+    setModalOpen(true);
+  };
+
+  // Function to handle closing the modal
+  const handleCloseModal = () => {
+    setSelectedProject(null);
+    setModalOpen(false);
+  };
+  
+
+
 
   // }, []);
   // useEffect(() => {
@@ -60,20 +79,25 @@ const Dashboard = () => {
   // }, []);
 
   useEffect(() => {
-    axios
-      .get(`http://webapp.ssk.lc/AppGenerator/backend/api/Project`)
-      .then((res) => {
-        if (res.status === 200) {
-          const sortedProjects = res.data.Project.sort((a, b) => b.id - a.id);
-          setProject(sortedProjects);
-        }
-      })
-      .catch((error) => {
-        // Handle error accordingly
-        console.error("Error fetching data: ", error);
-      });
+    const fetchData = async () => {
+      try {
+        // Make a GET request to your API endpoint using Axios
+        const response = await axiosInstance.get('/Project-Details');
+        // Extract the data from the response
+        const data = response.data;
+        // Sort projects by ID in descending order
+        const sortedProjects = response.data.Project.sort((a, b) => b.id - a.id);
+        console.log("Sorted data", sortedProjects);
+        setProject(sortedProjects);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+  
+    fetchData();
   }, []);
-  console.log(Project);
+  
+  console.log("projects",Project);
 
   //... rest of your component
   useEffect(() => {
@@ -159,6 +183,11 @@ const Dashboard = () => {
 
     }
   };
+  const handleDispaly=async (id)=>{
+    setSelectedProject(id);
+
+
+  }
 
     const handleScroll = (event) => {
     const scrollLeft = event.target.scrollLeft;
@@ -202,50 +231,48 @@ const Dashboard = () => {
     {
       field: "ProjectDetails",
       headerName: "Project Details",
-      width: 650,
+      width: 750,
       renderCell: (params) => {
         const id = params.row.id;
-        const customerId=params.row.customer_id
+        const customerId = params.row.customer_id;
         const nom = params.row.Nom;
-        const c=params.row.iterationKey;
+        const c = params.row.iterationKey;
         return (
           <div className="cellAction">
             <Link to={`/add-glb-pip/${customerId}`} style={{ textDecoration: "none" }}>
-              <div className="Pick2">PIP</div>
+              <div className="Pick2" style={{ border: params.row.glbpip > 0 ? "2px solid green" : "2px solid red" }} title={params.row.glbpip > 0 ? params.row.glbpip : ''}>PIP</div>
             </Link>
             <Link to={`/sow/${id}`} style={{ textDecoration: "none" }}>
-              <div className="Pick2">SOW</div>
+              <div className="Pick2" style={{ border: params.row.sow > 0 ? "2px solid green" : "2px solid red" }} title={params.row.sow > 0 ? params.row.sow : ''}>SOW</div>
             </Link>
             <Link to={`/sites/${customerId}/customer-sites/${customerId}`} style={{ textDecoration: "none" }}>
-              <div className="Pick2">Sites</div>
+              <div className="Pick2" style={{ border: params.row.customerSites > 0 ? "2px solid green" : "2px solid red" }} title={params.row.customerSites > 0 ? params.row.customerSites : ''}>Sites</div>
             </Link>
-            <Link
-              to={`/all-audit-previous-audit/${id}`}
-              style={{ textDecoration: "none" }}
-            >
-              <div className="Pick2">PrevAudit</div>
+            <Link to={`/all-audit-previous-audit/${id}`} style={{ textDecoration: "none" }}>
+              <div className="Pick2" style={{ border: params.row.auditPrev > 0 ? "2px solid green" : "2px solid red" }} title={params.row.auditPrev > 0 ? params.row.auditPrev : ''}>PrevAudit</div>
             </Link>
             <Link to={`/anomalie/${id}`} style={{ textDecoration: "none" }}>
-              <div className="Pick2">Anomalie</div>
+              <div className="Pick2" style={{ border: params.row.anomalie > 0 ? "2px solid green" : "2px solid red" }} title={params.row.anomalie > 0 ? params.row.anomalie : ''}>Anomalie</div>
             </Link>
-            <Link onClick={()=>handleFillQuestions(c)} style={{ textDecoration: "none" }}>
-              <div className="Pick2">Questions</div>
+            <Link onClick={() => handleFillQuestions(c)} style={{ textDecoration: "none" }}>
+              <div className="Pick2" style={{ border: params.row.answers > 0 ? "2px solid green" : "2px solid red" }} title={params.row.answers > 0 ? params.row.answers : ''}>Questions</div>
             </Link>
-            <Link onClick={()=>handleFillIndicators(c)} style={{ textDecoration: "none" }}>
-              <div className="Pick2">Indicators</div>
+            <Link onClick={() => handleFillIndicators(c)} style={{ textDecoration: "none" }}>
+              <div className="Pick2" style={{ border: params.row.indicators > 0 ? "2px solid green" : "2px solid red" }} title={params.row.indicators > 0 ? params.row.indicators : ''}>Indicators</div>
             </Link>
             <Link to={`/all-rm-processus/${c}`} style={{ textDecoration: "none" }}>
-              <div className="Pick2">RmProccessus</div>
+              <div className="Pick2" style={{ border: params.row.rm_processus > 0 ? "2px solid green" : "2px solid red" }} title={params.row.rm_processus > 0 ? params.row.rm_processus : ''}>RmProccessus</div>
             </Link>
             <Link to={`/all-vuln/${id}`} style={{ textDecoration: "none" }}>
-              <div className="Pick2">Vuln</div>
+              <div className="Pick2" style={{ border: params.row.vuln > 0 ? "2px solid green" : "2px solid red" }} title={params.row.vuln > 0 ? params.row.vuln : ''}>Vuln</div>
             </Link>
-            
-
           </div>
         );
       },
-    },
+    }
+    
+    ,
+    
     {
       field: "Navigation",
       headerName: "Navigation",
@@ -281,6 +308,8 @@ const Dashboard = () => {
       renderCell: (params) => {
         const id = params.row.id;
         const name = params.row.Nom;
+        const project = params.row;
+
         return (
           <div className="cellAction">
             <Link to={`/quality/${id}`} style={{ textDecoration: "none" }}>
@@ -288,7 +317,7 @@ const Dashboard = () => {
                 className="Pick3"
                 onClick={() => {
                   sessionStorage.setItem("project_name", name);
-                  // hendleSelectProject(id);
+                  // handleSelectProject(id);
                 }}
               >
                 QC
@@ -306,17 +335,19 @@ const Dashboard = () => {
             >
               Annexe
             </div>
-
+        
+            {/* Modify this section to include the "Ansi" button */}
             <div>
-              <Link
-                to={`/ansi-report/${id}`}
-                style={{ textDecoration: "none" }}
-              >
-                <Button> Ansi </Button>
-              </Link>
+              <Button onClick={() => handleOpenModal(params.row)}>Ansi</Button>
             </div>
+        
+            {/* Render the modal conditionally */}
+            {modalOpen && selectedProject && (
+              <AnsiModal isOpen={modalOpen} onClose={handleCloseModal} project={selectedProject} />
+            )}
           </div>
         );
+        
       },
     },
   ];
@@ -635,8 +666,7 @@ const Dashboard = () => {
               rowsPerPageOptions={[9]}
               columnBuffer={2}
               onScroll={handleScroll}
-               // Add this line
-            />
+              />
           </div>
         )}
       </div>

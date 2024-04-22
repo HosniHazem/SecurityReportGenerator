@@ -104,6 +104,7 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::post('Project/{id}/update', [ProjectController::class,'update']);
     Route::put('Project/{id}/updateQuality', [ProjectController::class,'updateQuality']);
     Route::post('Project/create',[ProjectController::class,'store']);
+    Route::get('/Project-Details',[ProjectController::class,'ProjectDetails']);
 
     Route::get('Customer/{id}/show', [CustomerController::class,'show']);
     Route::get('LastOne', [CustomerController::class,'default']);
@@ -196,6 +197,7 @@ Route::post('/vuln-from-hcl/{id}',[HtmlParser::class,'parseHcl']);
 
 Route::get('/all-logs',[ActivityLogController::class,'index']);
 Route::get('/Insert-Into-Indicators/{c}', [WordDocumentController4::class,'getSecurityIndicators']);
+Route::get('/Project-Details',[ProjectController::class,'ProjectDetails']);
 
 
     Route::group(['middleware' => 'api', 'prefix' => 'auth'], function () {
