@@ -14,7 +14,7 @@ const PrivateRoutes = () => {
     
     const isLoggedIn=localStorage.getItem('token'); 
     
-    console.log("is logged",isLoggedIn);
+    // console.log("is logged",isLoggedIn);
 
     // Check if user state is not yet available
   
