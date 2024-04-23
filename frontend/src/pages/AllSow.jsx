@@ -25,31 +25,35 @@ export default function AllSow() {
         const response = await axiosInstance.get(`/sow-by-projectID/${id}`);
         if (response.status === 200) {
           let filteredData = response.data;
-
+  
           // Apply filter if filterType is set
           if (filterType) {
             filteredData = filteredData.filter(
               (item) => item.Type === filterType
             );
           }
-
+  
           // Apply search filter
           if (searchInput) {
             filteredData = filteredData.filter((item) =>
               item.IP_Host.includes(searchInput)
             );
           }
-
-          // Update state with filtered data
+          
+          // Sort filtered data by ID from newest to oldest
+          filteredData.sort((a, b) => b.ID - a.ID);
+  
+          // Update state with filtered and sorted data
           setSowData(filteredData);
         }
       } catch (error) {
         console.error("Error fetching SOW data:", error);
       }
     };
-
+  
     fetchFilteredSowData(); // Fetch SOW data initially
   }, [filterType, id, searchInput]);
+  
 
   const handleChangeFilter = (value) => {
     setFilterType(value);

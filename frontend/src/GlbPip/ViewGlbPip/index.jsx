@@ -34,13 +34,16 @@ export default function ViewGlbPip() {
       .get(`get-glbpip-by-customer-id/${customerID}`)
       .then((response) => {
         if (response.status === 200) {
-          setGlbPips(response.data.data);
+          // Sort the data by ID from newest to latest
+          const sortedData = response.data.data.sort((a, b) => b.ID - a.ID);
+          setGlbPips(sortedData);
         }
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
       });
   }, [customerID]);
+  
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);

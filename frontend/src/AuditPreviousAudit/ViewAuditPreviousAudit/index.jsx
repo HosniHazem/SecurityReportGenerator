@@ -26,7 +26,9 @@ export default function ViewAuditPrevious() {
       .then((response) => {
         if (response.status === 200) {
           console.log("response",response.data.auditPrev);
-          setAuditData(response.data.data);
+          const sortedData = response.data.data.sort((a, b) => b.ID - a.ID);
+
+          setAuditData(sortedData);
         }
       })
       .catch((error) => {
