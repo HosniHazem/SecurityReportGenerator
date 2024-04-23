@@ -40,21 +40,24 @@ export default function AddGlbPip() {
 
   const [project, setProject] = useState();
   console.log("projectId is", id);
-
+  
   useEffect(() => {
-    axiosInstance
-      .get(`/Project/${id}/show`)
-      .then((response) => {
+    const fetchData = async () => {
+      try {
+        const response = await axiosInstance.get(`/Project/${id}/show`);
         if (response.status === 200) {
+          console.log("mm", response.data.Project);
           setProject(response.data.Project);
-          console.log('project is',project)
-        
+          console.log('project is', project);
         }
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("Error fetching data:", error);
-      });
+      }
+    };
+  
+    fetchData();
   }, []);
+  
   // console.log("project", project.customer_id);
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -91,11 +94,12 @@ export default function AddGlbPip() {
       setTelError(true);
       return;
     }
+    console.log("cus",project.customer_id)
 
     try {
       const response = await axiosInstance.post("/add-glbPip", {
         ...formData,
-        customer_id: project.customer_id,
+        customer_id: id,
       });
       console.log(response.data);
       setFormData(initialFormData);
@@ -113,7 +117,7 @@ export default function AddGlbPip() {
   };
 
   const handleNavigate=()=>{
-    navigate(`/all-glb-pip/${project.customer_id}`);
+    navigate(-1);
   }
 
   return (

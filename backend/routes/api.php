@@ -105,6 +105,7 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::put('Project/{id}/updateQuality', [ProjectController::class,'updateQuality']);
     Route::post('Project/create',[ProjectController::class,'store']);
     Route::get('/Project-Details',[ProjectController::class,'ProjectDetails']);
+    Route::get('/project-by-customerID/{customerId}',[ProjectController::class,'getProjectByCustomerID']);
 
     Route::get('Customer/{id}/show', [CustomerController::class,'show']);
     Route::get('LastOne', [CustomerController::class,'default']);
