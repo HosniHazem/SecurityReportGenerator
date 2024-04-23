@@ -13,7 +13,9 @@ class Sow extends Model
     protected  $table='sow';
     protected $primaryKey='ID';
 
-
+    protected $fillable = [
+        'Nom', 'IP_Host', 'field3', 'field4', 'field5', 'dev_by', 'URL', 'Number_users'
+    ];
 
 
 }

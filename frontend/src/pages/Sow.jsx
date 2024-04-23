@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import './SOW.css'; // Import your CSS file for styling
 import swal from 'sweetalert';
 import axios from 'axios';
-import { useParams , Link } from 'react-router-dom';
+import { useParams , Link, useNavigate } from 'react-router-dom';
+import {  Button as antdButton }   from 'antd';
 
 
 
@@ -16,12 +17,16 @@ function SOW() {
   const [pcInput, setPCInput] = useState(null);
   const [appsInput, setAppsInput] = useState(null);
   const [Button, setButton] = useState(null);
-  
+  const navigate=useNavigate()
   const tableCellStyle = {
     textAlign: 'center',
     verticalAlign: 'middle',
   };
   const { id } = useParams();
+  const handleViewSow=()=>{
+    navigate(`/view-sow/${id}`);
+  }
+
 
   const generateJSON = () => {
     const generateObjects = (content,type) => {
@@ -412,6 +417,7 @@ const getSubnetIpRange = (cidr) => {
   Button ?   <button className='button2' onClick={imported}>Import</button>
  : null
 } 
+<antdButton type='primary' onClick={handleViewSow} style={{'cursor':'pointer'}} > View Sow of this project</antdButton>
 
     </div>
   );

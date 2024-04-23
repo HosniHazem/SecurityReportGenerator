@@ -37,6 +37,7 @@ import CreateUser from "./Users";
 import AllVulns from "./Vuln/AllVuln";
 import AddVuln from "./Vuln/AddVuln";
 import MajCustomer from "./customer/MajCustomer";
+import AllSow from "./pages/AllSow";
 // import AllRmProcess from "./RmProccessusDomains/AddRmProcessDomains";
 
 function App() {
@@ -64,7 +65,7 @@ function App() {
         <Route path="/newproject" element={<AddProject />} />
         <Route path="/import" element={<Nessus />} />
         <Route path="/import2" element={<Nessus2 />} />
-        <Route path="/sow/:id" element={<Sow />} />
+        <Route path="/sow/:id" element={<Sow/>} />
         <Route path="/add-glb-pip/:customerID" element={<ViewGlbPip/>} />
         <Route path='/ajout-glb-pip/:id' element={<AddGlbPip />} /> 
         <Route path="/quality/:id" element={<Quality />} />
@@ -84,6 +85,8 @@ function App() {
          <Route path="/users" element={<CreateUser />} />
          <Route path="/all-vuln/:id" element={<AllVulns />} />
          <Route path="/add-vuln/:id" element={<AddVuln />} />
+         <Route path="/view-sow/:id" element={<AllSow />} />
+
 
 
          </Route>

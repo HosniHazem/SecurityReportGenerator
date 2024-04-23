@@ -116,10 +116,11 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::get('Sow/{id}/show', [SowController::class,'show']);
     Route::get('Sow', [SowController::class,'index']);
     Route::get('LastOne', [SowController::class,'default']);
-    Route::delete('Sow/{id}/delete', [SowController::class,'destroy']);
+    // Route::delete('Sow/{id}/delete', [SowController::class,'destroy']);
     Route::put('Sow/{id}/update', [SowController::class,'update']);
     Route::post('Sow/create',[SowController::class,'store']);
     Route::post('Sow/import',[SowController::class,'multiple']);
+    Route::delete('delete-sow/{id}', [SowController::class,'destroy']);
 
 
 
@@ -198,6 +199,8 @@ Route::post('/vuln-from-hcl/{id}',[HtmlParser::class,'parseHcl']);
 Route::get('/all-logs',[ActivityLogController::class,'index']);
 Route::get('/Insert-Into-Indicators/{c}', [WordDocumentController4::class,'getSecurityIndicators']);
 Route::get('/Project-Details',[ProjectController::class,'ProjectDetails']);
+Route::get('/sow-by-projectID/{projectId}', [SowController::class, 'getSowByProjectId']);
+Route::post('/sow-by-projectID/{id}', [SowController::class, 'update']);
 
 
     Route::group(['middleware' => 'api', 'prefix' => 'auth'], function () {
