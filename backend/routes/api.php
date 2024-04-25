@@ -202,6 +202,7 @@ Route::get('/Insert-Into-Indicators/{c}', [WordDocumentController4::class,'getSe
 Route::get('/Project-Details',[ProjectController::class,'ProjectDetails']);
 Route::get('/sow-by-projectID/{projectId}', [SowController::class, 'getSowByProjectId']);
 Route::post('/sow-by-projectID/{id}', [SowController::class, 'update']);
+Route::post('/insert-sow/{projectId}',[SowController::class,'fillTable'])    ;
 
 
     Route::group(['middleware' => 'api', 'prefix' => 'auth'], function () {

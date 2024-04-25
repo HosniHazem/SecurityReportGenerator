@@ -165,9 +165,16 @@ class SowController extends Controller
     public function fillTable(Request $request, $projectId)
     {
         try {
-            $request->validate([
+            $validator = Validator::make($request->all(), [
                 'csv_file' => 'required|file|mimes:csv,txt'
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $validator->errors(),
+                ]);
+            }
 
             // Retrieve the uploaded CSV file
             $csvFile = $request->file('csv_file');
@@ -176,15 +183,37 @@ class SowController extends Controller
             // Read the contents of the CSV file
             $fileContents = file_get_contents($filePath);
 
-            // Insert the project ID as the first column in each row
-            $modifiedContents = preg_replace('/^(.*)$/m', $projectId . ',$1', $fileContents);
+            // Split the content into lines
+            $lines = explode("\n", $fileContents);
+
+            // Check if the header matches the expected format
+            $expectedHeader = 'Type,Name,IP_Host,field3,field4,field5,dev_by,URL,Number_users';
+            $header = trim(array_shift($lines));
+            if ($header !== $expectedHeader) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Format not respected. Expected header: ' . $expectedHeader,
+                ]);
+            }
+
+            // Insert projectId as the first column in each row
+            foreach ($lines as &$line) {
+                $line = $projectId . ',' . $line;
+            }
+            unset($line); // unset the reference
+
+            // Remove the last line (usually empty due to newline at end of file)
+            array_pop($lines);
+
+            // Combine the modified lines back into a single string
+            $modifiedContents = implode("\n", $lines);
 
             // Save the modified CSV file
             $modifiedFilePath = storage_path('app/csv_files/sow_modified.csv');
             file_put_contents($modifiedFilePath, $modifiedContents);
 
             // Use the modified CSV file in the LOAD DATA INFILE query
-            $loadData = "LOAD DATA INFILE '" . str_replace('/', '\\\\', str_replace('\\', '\\\\', storage_path('app/csv_files/sow_modified.csv'))) . "' IGNORE
+            $loadData = "LOAD DATA INFILE '" . str_replace('/', '\\\\', str_replace('\\', '\\\\', $modifiedFilePath)) . "' IGNORE
                 INTO TABLE sow
                 FIELDS TERMINATED BY ','
                 ENCLOSED BY '\"'
@@ -200,6 +229,10 @@ class SowController extends Controller
             return response()->json(['message' => $th->getMessage(), 'success' => false]);
         }
     }
+
+
+
+
 
     public function getSowByProjectId($projectId)
     {

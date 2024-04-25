@@ -8,3 +8,7 @@ CREATE TABLE `sec_indic` (
   `idIndicator` int(11) DEFAULT NULL
 )
 ALTER TABLE `sec_indic` ADD PRIMARY KEY(`id`);
+ALTER TABLE activity_log
+ADD projectId INT NULL;
+ALTER TABLE activity_log
+ADD body longtext;
