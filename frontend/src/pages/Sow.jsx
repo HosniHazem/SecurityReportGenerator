@@ -3,7 +3,8 @@ import './SOW.css'; // Import your CSS file for styling
 import swal from 'sweetalert';
 import axios from 'axios';
 import { useParams , Link, useNavigate } from 'react-router-dom';
-import {  Button as antdButton }   from 'antd';
+import { Modal, Button as antdButton }   from 'antd';
+import UploadSowCsv from './UploadSowCsv';
 
 
 
@@ -17,6 +18,11 @@ function SOW() {
   const [pcInput, setPCInput] = useState(null);
   const [appsInput, setAppsInput] = useState(null);
   const [Button, setButton] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+
+
+
+
   const navigate=useNavigate()
   const tableCellStyle = {
     textAlign: 'center',
@@ -27,6 +33,9 @@ function SOW() {
     navigate(`/view-sow/${id}`);
   }
 
+  const handleToggleModal = () => {
+    setShowModal(!showModal);
+  };
 
   const generateJSON = () => {
     const generateObjects = (content,type) => {
@@ -418,7 +427,15 @@ const getSubnetIpRange = (cidr) => {
  : null
 } 
 <antdButton type='primary' onClick={handleViewSow} style={{'cursor':'pointer'}} > View Sow of this project</antdButton>
-
+  <button onClick={handleToggleModal}  style={{ marginLeft: '20px' }} > Add it through CSV  </button>
+  <Modal
+        title="Upload SOW CSV"
+        visible={showModal}
+        onCancel={handleToggleModal}
+        footer={null}
+      >
+        <UploadSowCsv projectId={id} />
+      </Modal>
     </div>
   );
 }
