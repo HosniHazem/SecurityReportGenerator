@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
 use App\Mail\ConfirmationMail;
+use App\Models\AppController;
+use App\Models\Permission;
 
 class AuthController extends Controller
 {
@@ -139,12 +141,37 @@ public function login(Request $request)
 
 public function profile(){
     try {
-        return response()->json(['user'=> auth()->user(),'success'=>true]);
+        $user = auth()->user();
+        $permissions = Permission::where('userId', $user->id)->get();
 
+        if($permissions->isEmpty()){
+            return response()->json(['message' => 'Permissions not found', 'success' => false]);
+        }
+
+        $controllers = [];
+        foreach($permissions as $permission){
+            $controller = AppController::find($permission->controllerId);
+            if($controller){
+                $controllers[] = $controller;
+            }
+        }
+        
+        $response = [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'controllers' => $controllers,
+                'permissions' => $permissions,
+            ]
+        ];
+
+        return response()->json($response);
     } catch (\Exception $e) {
         return response()->json(['message' => $e->getMessage(), 'success' => false]);
     }
 }
+
 static function generatePassword(){
     $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 	$randomString = '';

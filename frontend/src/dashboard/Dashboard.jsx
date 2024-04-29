@@ -25,6 +25,7 @@ import { axiosInstance } from "../axios/axiosInstance";
 import { ButtonBase, ButtonGroup } from "@mui/material";
 import toast, { Toaster } from "react-hot-toast";
 import AnsiModal from "./ansiModal"; 
+import { useSelector } from "react-redux";
 
 function useDialogState() {
   const [open, setOpen] = React.useState(false);
@@ -48,7 +49,13 @@ const Dashboard = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null)  
   const [projectDetails, setProjectDetails] = useState(null); // State for storing project details
+  const userProfile = useSelector(state => state.user.profile);
 
+  // Extract the user name from the user profile, assuming user profile contains a 'name' field
+  const userName = userProfile ? userProfile.name : 'Guest';
+
+  // Display the user name in the console
+  console.log('User Name:', userName);
   const handleOpenModal = (project) => {
     setSelectedProject(project);
     setModalOpen(true);
@@ -584,6 +591,7 @@ const Dashboard = () => {
 
   return (
     <div>
+      <p style={{'textAlign':'right'}}> Hello {userName}</p>
       <Dialog
         open={open}
         onClose={handleClose}

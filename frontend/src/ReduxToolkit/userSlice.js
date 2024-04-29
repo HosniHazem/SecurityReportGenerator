@@ -22,7 +22,7 @@ export const getMe = createAsyncThunk(
 
       // Send request with token in headers
       const response = await axiosInstance.get("/auth/profile", config);
-      console.log(response.data.user)
+      console.log("user",response.data)
       return response.data.user;
     } catch (error) {
       return rejectWithValue(error.response.data);

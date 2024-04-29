@@ -35,6 +35,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RmProcessusDomainsController;
 use App\Models\RmProcessusDomains;
 use App\Http\Controllers\VulnController;
+use App\Http\Controllers\AdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -49,11 +50,14 @@ use App\Http\Controllers\VulnController;
 Route::get('Project', [ProjectController::class,'index']);
 Route::get('/get_vm', [VmController::class,'index']);
 Route::get('Customer', [CustomerController::class,'index']);
+Route::post('/fillPermissionTable', [AdminController::class,'fillPermissionTable']);
+Route::delete('/Delete-Privilige/{userId}/{controllerId}', [AdminController::class,'fillPermissionTable']);
 
 Route::get('/generate-ansi/{customerId}', [WordDocumentController4::class,'generateWordDocument']);
 Route::get('/show-image/{partialFilename}', [ImageController::class, 'show']);
 
 Route::group(['middleware' => ['jwt.verify', 'log_activity']], function () {
+Route::delete('/Delete-Privilige/{userId}/{controllerId}', [AdminController::class,'DeletePrivilige']);
 
 Route::get('/DangerCorrectPluginsAges', [AnnexesController::class,'DangerCorrectPluginsAges']);
 Route::get('/populateOSDanger', [AnnexesController::class,'populateOSDanger']);
