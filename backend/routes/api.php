@@ -58,6 +58,8 @@ Route::get('/show-image/{partialFilename}', [ImageController::class, 'show']);
 
 Route::group(['middleware' => ['jwt.verify', 'log_activity']], function () {
 Route::delete('/Delete-Privilige/{userId}/{controllerId}', [AdminController::class,'DeletePrivilige']);
+Route::get('/GetAllPrivilige', [AdminController::class,'getAllPermissions']);
+Route::post('/GrantPrivilige/{userId}/{controllerId}', [AdminController::class,'grantPrivilige']);
 
 Route::get('/DangerCorrectPluginsAges', [AnnexesController::class,'DangerCorrectPluginsAges']);
 Route::get('/populateOSDanger', [AnnexesController::class,'populateOSDanger']);

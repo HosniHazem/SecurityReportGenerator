@@ -150,7 +150,7 @@ public function profile(){
 
         $controllers = [];
         foreach($permissions as $permission){
-            $controller = AppController::find($permission->controllerId);
+            $controller = AppController::where('id',$permission->controllerId)->get()->first();
             if($controller){
                 $controllers[] = $controller;
             }

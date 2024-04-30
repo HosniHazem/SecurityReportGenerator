@@ -24,8 +24,9 @@ import { green } from "@mui/material/colors";
 import { axiosInstance } from "../axios/axiosInstance";
 import { ButtonBase, ButtonGroup } from "@mui/material";
 import toast, { Toaster } from "react-hot-toast";
-import AnsiModal from "./ansiModal"; 
-import { useSelector } from "react-redux";
+import AnsiModal from "./ansiModal";
+import { useDispatch, useSelector } from "react-redux";
+import { getMe } from "../ReduxToolkit/userSlice";
 
 function useDialogState() {
   const [open, setOpen] = React.useState(false);
@@ -38,7 +39,7 @@ const Dashboard = () => {
   const [Vm, setVm] = useState([]);
   const [exporting, setExporting] = useState(false); // Add loading state
   const [downloading, setDownloading] = useState(false);
-  
+
   const { open, setOpen } = useDialogState();
   const selected = sessionStorage.getItem("selectedIp");
   const [selectedIp, setSelectedIp] = useState(selected);
@@ -47,15 +48,28 @@ const Dashboard = () => {
 
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedProject, setSelectedProject] = useState(null)  
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [description, setDescription] = useState([]);
   const [projectDetails, setProjectDetails] = useState(null); // State for storing project details
-  const userProfile = useSelector(state => state.user.profile);
+  const userProfile = useSelector((state) => state.user.profile);
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(getMe());
+  }, [dispatch]);
 
-  // Extract the user name from the user profile, assuming user profile contains a 'name' field
-  const userName = userProfile ? userProfile.name : 'Guest';
+  const userName = userProfile ? userProfile.name : "Guest";
+  const controllers = userProfile?.controllers || [];
 
-  // Display the user name in the console
-  console.log('User Name:', userName);
+  console.table("contollers", controllers);
+  useEffect(() => {
+    // Populate the description array
+    const descriptions = controllers.map((element) => element.description);
+    setDescription(descriptions);
+  }, [controllers]);
+  console.log("description", description);
+
+  const id = sessionStorage.getItem("project_id");
+
   const handleOpenModal = (project) => {
     setSelectedProject(project);
     setModalOpen(true);
@@ -66,9 +80,6 @@ const Dashboard = () => {
     setSelectedProject(null);
     setModalOpen(false);
   };
-  
-
-
 
   // }, []);
   // useEffect(() => {
@@ -89,22 +100,24 @@ const Dashboard = () => {
     const fetchData = async () => {
       try {
         // Make a GET request to your API endpoint using Axios
-        const response = await axiosInstance.get('/Project-Details');
+        const response = await axiosInstance.get("/Project-Details");
         // Extract the data from the response
         const data = response.data;
         // Sort projects by ID in descending order
-        const sortedProjects = response.data.Project.sort((a, b) => b.id - a.id);
+        const sortedProjects = response.data.Project.sort(
+          (a, b) => b.id - a.id
+        );
         console.log("Sorted data", sortedProjects);
         setProject(sortedProjects);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
       }
     };
-  
+
     fetchData();
   }, []);
-  
-  console.log("projects",Project);
+
+  console.log("projects", Project);
 
   //... rest of your component
   useEffect(() => {
@@ -147,65 +160,54 @@ const Dashboard = () => {
   };
 
   const handleNavigateToRmQuesion = (c) => {
-    window.open(`https://smartskills.com.tn/wqkjsdhvj76vhbnc565ds/rmquestions.php?c=${c}&k=qdsg54SFDbfdQSd`, '_blank');
-};
-
+    window.open(
+      `https://smartskills.com.tn/wqkjsdhvj76vhbnc565ds/rmquestions.php?c=${c}&k=qdsg54SFDbfdQSd`,
+      "_blank"
+    );
+  };
 
   const handleFillQuestions = async (c) => {
-    console.log('c is ',c)
+    console.log("c is ", c);
     try {
       const response = await axiosInstance(`/Insert-Into-Answers/${c}`);
       console.log(response.data);
-      if(response.data.success){
+      if (response.data.success) {
         toast.success(response.data.message);
-
       }
-
-
-
-
     } catch (error) {
-
       toast.error(error);
-
     }
   };
 
   const handleFillIndicators = async (c) => {
-    console.log('c is ',c)
+    console.log("c is ", c);
     try {
       const response = await axiosInstance(`/Insert-Into-Indicators/${c}`);
       console.log(response.data);
-      if(response.data.success){
+      if (response.data.success) {
         toast.success(response.data.message);
-
       }
-
-
-
-
     } catch (error) {
-
       toast.error(error);
-
     }
   };
-  const handleDispaly=async (id)=>{
+  const handleDispaly = async (id) => {
     setSelectedProject(id);
+  };
 
-
-  }
-
-    const handleScroll = (event) => {
+  const handleScroll = (event) => {
     const scrollLeft = event.target.scrollLeft;
     setIsScrollingLeft(scrollLeft > 0);
   };
 
   const userColumns = [
-    { field: "id", headerName: "ID", width: 100 , 
-    //  headerClassName: "sticky-header",
-    // cellClassName: "sticky-column",
-  },
+    {
+      field: "id",
+      headerName: "ID",
+      width: 100,
+      //  headerClassName: "sticky-header",
+      // cellClassName: "sticky-column",
+    },
     {
       field: "Nom",
       headerName: "Nom",
@@ -246,67 +248,215 @@ const Dashboard = () => {
         const c = params.row.iterationKey;
         return (
           <div className="cellAction">
-            <Link to={`/add-glb-pip/${customerId}`} style={{ textDecoration: "none" }}>
+            {description.includes("/add-glb-pip/${customerId}") ? (
+              <Link
+                to={`/add-glb-pip/${customerId}`}
+                style={{ textDecoration: "none" }}
+              >
+                <div
+                  className="Pick2"
+                  style={{
+                    border:
+                      params.row.glbpip > 0
+                        ? "2px solid green"
+                        : "2px solid red",
+                  }}
+                  title={params.row.glbpip > 0 ? params.row.glbpip : ""}
+                >
+                  PIP
+                </div>
+              </Link>
+            ) : (
+              <></>
+            )}
+
+            {/* <Link to={`/add-glb-pip/${customerId}`} style={{ textDecoration: "none" }}>
               <div className="Pick2" style={{ border: params.row.glbpip > 0 ? "2px solid green" : "2px solid red" }} title={params.row.glbpip > 0 ? params.row.glbpip : ''}>PIP</div>
-            </Link>
-            <Link to={`/sow/${id}`} style={{ textDecoration: "none" }}>
-              <div className="Pick2" style={{ border: params.row.sow > 0 ? "2px solid green" : "2px solid red" }} title={params.row.sow > 0 ? params.row.sow : ''}>SOW</div>
-            </Link>
-            <Link to={`/sites/${customerId}/customer-sites/${customerId}`} style={{ textDecoration: "none" }}>
-              <div className="Pick2" style={{ border: params.row.customerSites > 0 ? "2px solid green" : "2px solid red" }} title={params.row.customerSites > 0 ? params.row.customerSites : ''}>Sites</div>
-            </Link>
-            <Link to={`/all-audit-previous-audit/${id}`} style={{ textDecoration: "none" }}>
-              <div className="Pick2" style={{ border: params.row.auditPrev > 0 ? "2px solid green" : "2px solid red" }} title={params.row.auditPrev > 0 ? params.row.auditPrev : ''}>PrevAudit</div>
-            </Link>
-            <Link to={`/anomalie/${id}`} style={{ textDecoration: "none" }}>
-              <div className="Pick2" style={{ border: params.row.anomalie > 0 ? "2px solid green" : "2px solid red" }} title={params.row.anomalie > 0 ? params.row.anomalie : ''}>Anomalie</div>
-            </Link>
-            <Link onClick={() => handleFillQuestions(c)} style={{ textDecoration: "none" }}>
-              <div className="Pick2" style={{ border: params.row.answers > 0 ? "2px solid green" : "2px solid red" }} title={params.row.answers > 0 ? params.row.answers : ''}>Questions</div>
-            </Link>
-            <Link onClick={() => handleFillIndicators(c)} style={{ textDecoration: "none" }}>
-              <div className="Pick2" style={{ border: params.row.indicators > 0 ? "2px solid green" : "2px solid red" }} title={params.row.indicators > 0 ? params.row.indicators : ''}>Indicators</div>
-            </Link>
-            <Link to={`/all-rm-processus/${c}`} style={{ textDecoration: "none" }}>
-              <div className="Pick2" style={{ border: params.row.rm_processus > 0 ? "2px solid green" : "2px solid red" }} title={params.row.rm_processus > 0 ? params.row.rm_processus : ''}>RmProccessus</div>
-            </Link>
-            <Link to={`/all-vuln/${id}`} style={{ textDecoration: "none" }}>
-              <div className="Pick2" style={{ border: params.row.vuln > 0 ? "2px solid green" : "2px solid red" }} title={params.row.vuln > 0 ? params.row.vuln : ''}>Vuln</div>
-            </Link>
+            </Link> */}
+            {description.includes("/sow/${id}") ? (
+              <Link to={`/sow/${id}`} style={{ textDecoration: "none" }}>
+                <div
+                  className="Pick2"
+                  style={{
+                    border:
+                      params.row.sow > 0 ? "2px solid green" : "2px solid red",
+                  }}
+                  title={params.row.sow > 0 ? params.row.sow : ""}
+                >
+                  SOW
+                </div>
+              </Link>
+            ) : (
+              <></>
+            )}
+
+            {description.includes(
+              "/sites/${customerId}/customer-sites/${customerId}"
+            ) ? (
+              <Link
+                to={`/sites/${customerId}/customer-sites/${customerId}`}
+                style={{ textDecoration: "none" }}
+              >
+                <div
+                  className="Pick2"
+                  style={{
+                    border:
+                      params.row.customerSites > 0
+                        ? "2px solid green"
+                        : "2px solid red",
+                  }}
+                  title={
+                    params.row.customerSites > 0 ? params.row.customerSites : ""
+                  }
+                >
+                  Sites
+                </div>
+              </Link>
+            ) : (
+              <></>
+            )}
+            {description.includes("/all-audit-previous-audit/${id}") ? (
+              <div>
+                <Link
+                  to={`/all-audit-previous-audit/${id}`}
+                  style={{ textDecoration: "none" }}
+                >
+                  <div
+                    className="Pick2"
+                    style={{
+                      border:
+                        params.row.auditPrev > 0
+                          ? "2px solid green"
+                          : "2px solid red",
+                    }}
+                    title={params.row.auditPrev > 0 ? params.row.auditPrev : ""}
+                  >
+                    PrevAudit
+                  </div>
+                </Link>
+              </div>
+            ) : (
+              <></>
+            )}
+            {description.includes("/anomalie/${id}") ? (
+              <Link to={`/anomalie/${id}`} style={{ textDecoration: "none" }}>
+                <div
+                  className="Pick2"
+                  style={{
+                    border:
+                      params.row.anomalie > 0
+                        ? "2px solid green"
+                        : "2px solid red",
+                  }}
+                  title={params.row.anomalie > 0 ? params.row.anomalie : ""}
+                >
+                  Anomalie
+                </div>
+              </Link>
+            ) : (
+              <></>
+            )}
+            {description.includes("/ansi-report/:id") ? (
+              <Link
+                onClick={() => handleFillQuestions(c)}
+                style={{ textDecoration: "none" }}
+              >
+                <div
+                  className="Pick2"
+                  style={{
+                    border:
+                      params.row.answers > 0
+                        ? "2px solid green"
+                        : "2px solid red",
+                  }}
+                  title={params.row.answers > 0 ? params.row.answers : ""}
+                >
+                  Questions
+                </div>
+              </Link>
+            ) : (
+              <> </>
+            )}
+
+            {description.includes("/ansi-report/:id") ? (
+              <Link
+                onClick={() => handleFillIndicators(c)}
+                style={{ textDecoration: "none" }}
+              >
+                <div
+                  className="Pick2"
+                  style={{
+                    border:
+                      params.row.indicators > 0
+                        ? "2px solid green"
+                        : "2px solid red",
+                  }}
+                  title={params.row.indicators > 0 ? params.row.indicators : ""}
+                >
+                  Indicators
+                </div>
+              </Link>
+            ) : (
+              <></>
+            )}
+            {description.includes("/all-rm-processus/${c}") ? (
+              <Link
+                to={`/all-rm-processus/${c}`}
+                style={{ textDecoration: "none" }}
+              >
+                <div
+                  className="Pick2"
+                  style={{
+                    border:
+                      params.row.rm_processus > 0
+                        ? "2px solid green"
+                        : "2px solid red",
+                  }}
+                  title={
+                    params.row.rm_processus > 0 ? params.row.rm_processus : ""
+                  }
+                >
+                  RmProccessus
+                </div>
+              </Link>
+            ) : (
+              <></>
+            )}
+            {description.includes("/all-vuln/${id}") ? (
+              <Link to={`/all-vuln/${id}`} style={{ textDecoration: "none" }}>
+                <div
+                  className="Pick2"
+                  style={{
+                    border:
+                      params.row.vuln > 0 ? "2px solid green" : "2px solid red",
+                  }}
+                  title={params.row.vuln > 0 ? params.row.vuln : ""}
+                >
+                  Vuln
+                </div>
+              </Link>
+            ) : (
+              <></>
+            )}
           </div>
         );
       },
-    }
-    
-    ,
-    
+    },
+
     {
       field: "Navigation",
       headerName: "Navigation",
       width: 100,
-      renderCell:(params)=>{
-        const c=params.row.iterationKey ?params.row.iterationKey : "";
+      renderCell: (params) => {
+        const c = params.row.iterationKey ? params.row.iterationKey : "";
         return (
           <>
-          {c && c!="" &&
-          <Button onClick={() =>handleNavigateToRmQuesion(c)}>
-           OSMQ 
-          </Button>
-          
-          
-          }
-
-
+            {c && c != "" && (
+              <Button onClick={() => handleNavigateToRmQuesion(c)}>OSMQ</Button>
+            )}
           </>
-
-
-        )
-        
-
-
-
-      }
-
+        );
+      },
     },
     {
       field: "Export",
@@ -319,42 +469,58 @@ const Dashboard = () => {
 
         return (
           <div className="cellAction">
-            <Link to={`/quality/${id}`} style={{ textDecoration: "none" }}>
+            {description.includes("/quality/${id}") ? (
+              <Link to={`/quality/${id}`} style={{ textDecoration: "none" }}>
+                <div
+                  className="Pick3"
+                  onClick={() => {
+                    sessionStorage.setItem("project_name", name);
+                    // handleSelectProject(id);
+                  }}
+                >
+                  QC
+                </div>
+              </Link>
+            ) : (
+              <></>
+            )}
+            {description.includes("/quality/${id}") ? (
               <div
-                className="Pick3"
-                onClick={() => {
-                  sessionStorage.setItem("project_name", name);
-                  // handleSelectProject(id);
+                className={`deButton ${
+                  params.row.QualityChecked === 0 ? "disabled" : ""
+                }`}
+                onClick={(e) => {
+                  if (params.row.QualityChecked !== 0) {
+                    Export2(name, id, e);
+                  }
                 }}
               >
-                QC
+                Annexe
               </div>
-            </Link>
-            <div
-              className={`deButton ${
-                params.row.QualityChecked === 0 ? "disabled" : ""
-              }`}
-              onClick={(e) => {
-                if (params.row.QualityChecked !== 0) {
-                  Export2(name, id, e);
-                }
-              }}
-            >
-              Annexe
-            </div>
-        
-            {/* Modify this section to include the "Ansi" button */}
-            <div>
-              <Button onClick={() => handleOpenModal(params.row)}>Ansi</Button>
-            </div>
-        
+            ) : (
+              <></>
+            )}
+
+            {description.includes("/ansi-report/:id") ? (
+              <div>
+                <Button onClick={() => handleOpenModal(params.row)}>
+                  Ansi
+                </Button>
+              </div>
+            ) : (
+              <></>
+            )}
+
             {/* Render the modal conditionally */}
             {modalOpen && selectedProject && (
-              <AnsiModal isOpen={modalOpen} onClose={handleCloseModal} project={selectedProject} />
+              <AnsiModal
+                isOpen={modalOpen}
+                onClose={handleCloseModal}
+                project={selectedProject}
+              />
             )}
           </div>
         );
-        
       },
     },
   ];
@@ -411,10 +577,10 @@ const Dashboard = () => {
   if (!selectedIp) {
     const firstActiveVm = Vm.find((element) => element.answer === "Online");
     if (firstActiveVm) {
-      console.log("happened")
-      handleSelect(firstActiveVm.ip, firstActiveVm.Auth)
+      console.log("happened");
+      handleSelect(firstActiveVm.ip, firstActiveVm.Auth);
     }
-}
+  }
 
   const Export = (id, e) => {
     e.persist();
@@ -591,7 +757,7 @@ const Dashboard = () => {
 
   return (
     <div>
-      <p style={{'textAlign':'right'}}> Hello {userName}</p>
+      <p style={{ textAlign: "right" }}> Hello {userName}</p>
       <Dialog
         open={open}
         onClose={handleClose}
@@ -625,7 +791,7 @@ const Dashboard = () => {
         <table style={{ borderCollapse: "collapse", width: "15%" }}>
           <thead>
             <tr>
-            <th className="sticky-header">Name</th> 
+              <th className="sticky-header">Name</th>
               <th>URL</th>
               <th>Status</th>
               <th>Select</th>
@@ -640,8 +806,8 @@ const Dashboard = () => {
                   backgroundColor: url.answer === "Online" ? "green" : "red",
                 }}
               >
-                <td  style={cellStyle}>{url.Name}</td> 
-                <td  style={cellStyle}>{url.ip}</td>
+                <td style={cellStyle}>{url.Name}</td>
+                <td style={cellStyle}>{url.ip}</td>
                 <td style={cellStyle}>{url.answer}</td>
                 <td style={cellStyle}>
                   <input
@@ -674,7 +840,7 @@ const Dashboard = () => {
               rowsPerPageOptions={[9]}
               columnBuffer={2}
               onScroll={handleScroll}
-              />
+            />
           </div>
         )}
       </div>

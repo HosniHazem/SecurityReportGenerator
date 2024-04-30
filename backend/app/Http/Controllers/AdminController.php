@@ -7,6 +7,7 @@ use App\Models\Permission;
 use App\Models\Route;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -39,9 +40,10 @@ class AdminController extends Controller
             
             // Find the permission
             $permission = Permission::where('userId', $userId)
-                                     ->where('controllerId', $controllerId)
-                                     ->firstOrFail();
+                                     ->where('controllerId', $controllerId);
+                                     
             
+
             $permission->delete();
     
             return response()->json(['message' => 'Permission revoked successfully', 'success' => true]);
@@ -73,6 +75,82 @@ class AdminController extends Controller
 
 
     }
+
+    public function grantPrivilige($userId, $controllerId){
+        try {
+            $user = auth()->user();
+            
+            if ($user->name !== "Ayed") {
+                return response()->json(['message' => 'You are not authorized', 'success' => false]);
+            }
+
+            $permission = Permission::where('userId', $userId)
+                                     ->where('controllerId', $controllerId)->exists();
+            
+            if($permission){
+                return response()->json(['message' => 'Permission already exists', 'success' => false]);
+            }
+
+            else {
+                $permission = new Permission();
+                $permission->userId=$userId;
+                $permission->controllerId=$controllerId;
+                $permission->save();
+                return response()->json(['message' => 'Permission granted successfully', 'success' => true]);
+            }
+
+
+
+
+
+        } catch (\Throwable $th) {
+            return response()->json(['message' => $th->getMessage(), 'success' => false]);
+        }
+    }
+
+    public function getAllPermissions(){
+        try {
+
+
+
+
+
+            $permissions = Permission::all();
+            
+            // Initialize an empty array to store the response
+            $response = [];
+    
+            // Loop through each permission
+            foreach ($permissions as $permission) {
+                // Find the user and controller associated with the permission
+                $controller = AppController::find($permission->controllerId);
+                $user = User::find($permission->userId);
+    
+                // If the user and controller exist, add their data to the response
+                if ($user && $controller) {
+                    // If the user already exists in the response array, add the controller to their permissions
+                    if (isset($response[$user->id])) {
+                        $response[$user->id]['controllers'][] = $controller;
+                    } else {
+                        // Otherwise, create a new entry for the user
+                        $response[$user->id] = [
+                            'user' => $user,
+                            'controllers' => [$controller],
+                        ];
+                    }
+                }
+            }
+    
+            // Return the response as JSON
+            return response()->json($response);
+    
+        } catch (\Throwable $th) {
+            // Handle exceptions if necessary
+            throw $th;
+        }
+    }
+    
+
 
     /**
      * Store a newly created resource in storage.
