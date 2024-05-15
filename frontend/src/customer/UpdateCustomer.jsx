@@ -115,19 +115,18 @@ function UpdateCustom() {
           Logo: Fich
           // Add other fields here
         };
-        axios.put(`http://webapp.ssk.lc/AppGenerator/backend/api/Customer/${id}/update`, data, {
+        axios.post(`http://webapp.ssk.lc/AppGenerator/backend/api/Customer/${id}/update`, data, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`
           }
         }).then((res) => {
+
           if (res.data.status === 200) {
+            console.log(res.data)
             swal("Created", "Customer", "success");
             navigate("/customer_create");
           } else if (res.data.status === 404) {
             swal("Error", CustomerInput.SN, "error");
-          } else if (res.data.status === 422) {
-            swal("All fields are mandatory", "", "error");
-            setCustomer({ ...CustomerInput, error_list: res.data.validate_err });
           }
         }).catch((error) => {
           console.error("Update Customer Error:", error);
@@ -143,6 +142,7 @@ function UpdateCustom() {
 
 
 // console.log("init",initialValues)
+
 
   return (
     <div style={{ width: "50%", margin: "0 auto" ,marginTop:"2%"}}>

@@ -38,6 +38,7 @@ import AllVulns from "./Vuln/AllVuln";
 import AddVuln from "./Vuln/AddVuln";
 import MajCustomer from "./customer/MajCustomer";
 import AllSow from "./pages/AllSow";
+import PermissionList from "./Admin/PriviligeList";
 // import AllRmProcess from "./RmProccessusDomains/AddRmProcessDomains";
 
 function App() {
@@ -86,6 +87,7 @@ function App() {
          <Route path="/all-vuln/:id" element={<AllVulns />} />
          <Route path="/add-vuln/:id" element={<AddVuln />} />
          <Route path="/view-sow/:id" element={<AllSow />} />
+         <Route path="/admin" element={<PermissionList />} />
 
 
 

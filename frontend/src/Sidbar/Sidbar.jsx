@@ -120,6 +120,11 @@ const Sidebar = () => {
                 icon: <i className='bx bx-user-plus'></i>,
                 to: '/users',
                 section: 'customer'
+            },{
+                display:'Admin',
+                icon: <i className='bx bxs-user-account'></i>,
+                to: '/admin',
+                section: 'admin'
             }
         ] : []),
         {

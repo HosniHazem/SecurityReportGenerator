@@ -51,8 +51,8 @@ Route::get('Project', [ProjectController::class,'index']);
 Route::get('/get_vm', [VmController::class,'index']);
 Route::get('Customer', [CustomerController::class,'index']);
 Route::post('/fillPermissionTable', [AdminController::class,'fillPermissionTable']);
-Route::delete('/Delete-Privilige/{userId}/{controllerId}', [AdminController::class,'fillPermissionTable']);
-
+// Route::delete('/Delete-Privilige/{userId}/{controllerId}', [AdminController::class,'fillPermissionTable']);
+Route::get('/All-Users', [AdminController::class,'getAllUsers']);
 Route::get('/generate-ansi/{customerId}', [WordDocumentController4::class,'generateWordDocument']);
 Route::get('/show-image/{partialFilename}', [ImageController::class, 'show']);
 
