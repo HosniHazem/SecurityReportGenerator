@@ -84,7 +84,6 @@ function UpdateCustom() {
 
   const handleImage = (info) => {
     if (info.file.status === 'done') {
-
       message.success(`${info.file.name} file uploaded successfully`);
       const fileExtension = info.file.name.split('.').pop();
       if (CustomerInput.SN) {
@@ -98,7 +97,6 @@ function UpdateCustom() {
       }
     } else if (info.file.status === 'error') {
       message.error(`${info.file.name} file upload failed.`);
-
     }
   };
 
