@@ -51,10 +51,10 @@ function UpdateCustom() {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          http://webapp.ssk.lc/AppGenerator/backend/api/Customer/${id}/show,
+          `http://webapp.ssk.lc/AppGenerator/backend/api/Customer/${id}/show`,
           {
             headers: {
-              Authorization: Bearer ${localStorage.getItem("token")}
+              Authorization: `Bearer ${localStorage.getItem("token")}`
             }
           }
         );
@@ -84,10 +84,11 @@ function UpdateCustom() {
 
   const handleImage = (info) => {
     if (info.file.status === 'done') {
-      message.success(${info.file.name} file uploaded successfully);
+
+      message.success(`${info.file.name} file uploaded successfully`);
       const fileExtension = info.file.name.split('.').pop();
       if (CustomerInput.SN) {
-        setFich(${CustomerInput.SN}.${fileExtension});
+        setFich(`${CustomerInput.SN}.${fileExtension}`);
       } else {
         Swal.fire({
           icon: 'error',
@@ -96,7 +97,8 @@ function UpdateCustom() {
         });
       }
     } else if (info.file.status === 'error') {
-      message.error(${info.file.name} file upload failed.);
+      message.error(`${info.file.name} file upload failed.`);
+
     }
   };
 
@@ -115,9 +117,9 @@ function UpdateCustom() {
           Logo: Fich
           // Add other fields here
         };
-        axios.post(http://webapp.ssk.lc/AppGenerator/backend/api/Customer/${id}/update, data, {
+        axios.post(`http://webapp.ssk.lc/AppGenerator/backend/api/Customer/${id}/update`, data, {
           headers: {
-            Authorization: Bearer ${localStorage.getItem("token")}
+            Authorization: `Bearer ${localStorage.getItem("token")}`
           }
         }).then((res) => {
 
