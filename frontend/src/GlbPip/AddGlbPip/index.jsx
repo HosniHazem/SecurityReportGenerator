@@ -40,7 +40,8 @@ export default function AddGlbPip() {
 
   const [project, setProject] = useState();
   console.log("projectId is", id);
-  
+  const customer_id=id;
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -94,12 +95,11 @@ export default function AddGlbPip() {
       setTelError(true);
       return;
     }
-    console.log("cus",project.customer_id)
 
     try {
       const response = await axiosInstance.post("/add-glbPip", {
         ...formData,
-        customer_id: id,
+        customer_id
       });
       console.log(response.data);
       setFormData(initialFormData);

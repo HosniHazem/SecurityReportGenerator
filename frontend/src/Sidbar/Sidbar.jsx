@@ -158,7 +158,7 @@ const Sidebar = () => {
         <div className="sidebar__logo">
              Web App 2 
         </div>
-        <p className="version">V0.90</p>
+        <p className="version">V1.0</p>
 
         <div ref={sidebarRef} className="sidebar__menu">
             <div

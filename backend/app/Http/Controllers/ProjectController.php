@@ -143,6 +143,8 @@ class ProjectController extends Controller
             if (isset($req->QualityChecked)) $item->QualityChecked = $req->QualityChecked;
             if (isset($req->QualityCheckedDateTime)) $item->QualityCheckedDateTime = $req->QualityCheckedDateTime;
             if (isset($req->QualityCheckedMessage)) $item->QualityCheckedMessage = $req->QualityCheckedMessage;
+            //year now
+            if(isset($req->year)) $item->year=$req->year;
             $methodVersion = $req->methodVersion;
             if (isset($req->Preuve)) $item->Preuve = $req->Preuve;
             if (isset($req->iterationKey)) {

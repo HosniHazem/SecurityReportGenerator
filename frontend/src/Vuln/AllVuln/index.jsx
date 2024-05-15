@@ -15,8 +15,10 @@ export default function AllVulns() {
       try {
         const response = await axiosInstance.get(`/vuln-by-projectID/${id}`);
         if (response.status === 200) {
-          setVulns(response.data);
-          console.log("res", response.data);
+          // Sort the data by ID from newest to oldest
+          const sortedData = response.data.sort((a, b) => b.id - a.id);
+          setVulns(sortedData);
+          console.log("Sorted data:", sortedData);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -25,6 +27,7 @@ export default function AllVulns() {
   
     fetchData();
   }, [id]);
+  
   
 
   useEffect(() => {

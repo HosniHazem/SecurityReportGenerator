@@ -105,6 +105,9 @@ export default function AllSow() {
         },
       });
       console.log(response.data);
+      setSowData((prevSowData) =>
+        prevSowData.filter((entry) => entry.ID !== sowId)
+      );
     } catch (error) {
       console.error("Error deleting SOW:", error);
     }
