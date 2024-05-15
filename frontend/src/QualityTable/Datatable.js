@@ -107,7 +107,18 @@ const DataTable = ({ data ,id}) => {
           });
       }
     } 
- 
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      throw new Error("No token available");
+    }
+  
+    // Add the token to the request headers
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
 
     const data = {
       QualityCheckedMessage: Project.QualityCheckedMessage,
@@ -117,7 +128,7 @@ const DataTable = ({ data ,id}) => {
     };
     console.log(data);
      axios
-      .put(`http://webapp.ssk.lc/AppGenerator/backend/api/Project/${id}/update`, data)
+      .post(`http://webapp.ssk.lc/AppGenerator/backend/api/Project/${id}/update`, data,config)
       .then((res) => {
         if (res.data.status === 200) {
           swal("Updated", "success");

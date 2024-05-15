@@ -1,33 +1,14 @@
-//sql query to do in the next prod
-ALTER TABLE vuln
-CHANGE COLUMN `CVSS v3.0 Base Score` `CVSSv3BaseScore` FLOAT(5,2);
-UPDATE `vm` Set `accessKey`="d31c2oo5sn998vpk0cpouf0i0h" WHERE `Type` ="Owaszap";
+DELETE FROM `audit_tools` WHERE `Tool_name`="Nipper"
 
-
-
-//
-
-ALTER TABLE projects
-ADD COLUMN iterationKey VARCHAR(255);  
-
-//
-customer sites make ID auto increment
-
-
-
-///execute only those 
-
-
-CREATE TABLE user_registered (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    tel VARCHAR(20) NOT NULL
-);
-
-INSERT INTO user_registered (name, email, password, tel) VALUES
-('Habib', 'habib.jalouli@smartskills.tn', 'HoJvR0BO7P3osg8', '+216 55 030 130'),
-('Rawia', 'rawia.hajri@smartskills.tn', 'q5gklecLy7vsIUz', '+216 29 887 734'),
-('Ayed', 'ayed.akrout@smartskills.tn', 'FQyuRiDnI3pBH4X', '+216 29 961 666'),
-('Hajer', 'hajer.labidi@smartskills.tn', 'bJjZshBVHHIE', '+216 53 479 659');
+CREATE TABLE `sec_indic` (
+  `id` int(11) NOT NULL,
+  `answer` varchar(255) DEFAULT NULL,
+  `commentaire` varchar(255) DEFAULT NULL,
+  `client` varchar(100) DEFAULT NULL,
+  `idIndicator` int(11) DEFAULT NULL
+)
+ALTER TABLE `sec_indic` ADD PRIMARY KEY(`id`);
+ALTER TABLE activity_log
+ADD projectId INT NULL;
+ALTER TABLE activity_log
+ADD body longtext;

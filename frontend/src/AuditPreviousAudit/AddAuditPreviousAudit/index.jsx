@@ -57,7 +57,7 @@ export default function AddAuditPreviousAudit() {
     }
   };
   const handleSubmit = async () => {
-      if (
+    if (
       formData.Project_name === "" ||
       formData.ID_Projet === "" ||
       formData.numeroProjet === "" ||
@@ -73,20 +73,28 @@ export default function AddAuditPreviousAudit() {
       toast.error("Please fill in all required fields.");
       return;
     }
-    if(actionNumeroError ||projectNumeroError ){
+    if (actionNumeroError || projectNumeroError) {
       toast.error("entrer un numero positif");
       return;
     }
-
+  
+    // Retrieve token from local storage
+    const token = localStorage.getItem('token');
+  
     try {
       const response = await axiosInstance.post(
         "/add-audit-previous-audits",
-        { ...formData, ID_Projet: 1, projectID }
+        { ...formData, ID_Projet: 1, projectID },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
       );
-      console.log(response.data)
+      console.log(response.data);
       if (response.data.success) {
         toast.success(response.data.message);
-        navigate(-1)
+        navigate(-1);
       } else {
         toast.error(response.data.message);
       }
@@ -95,6 +103,7 @@ export default function AddAuditPreviousAudit() {
       toast.error("An error occurred.");
     }
   };
+  
 
   const handleNavigate=()=>{
     navigate(`/all-audit-previous-audit/${projectID}`)

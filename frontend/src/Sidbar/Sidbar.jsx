@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './sidebar.scss';
 import { axiosInstance } from '../axios/axiosInstance';
+import toast from "react-hot-toast";
+import { useDispatch, useSelector } from 'react-redux';
+import { getMe } from '../ReduxToolkit/userSlice';
+
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 // const sidebarNavItems = [
 //     {
@@ -38,59 +42,100 @@ const Sidebar = () => {
     const indicatorRef = useRef();
     const location = useLocation();
     const navigate = useNavigate();
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        window.location.reload();
+    const dispatch = useDispatch();
+    const userProfile = useSelector((state) => state.user.profile);
+    const [description, setDescription] = useState([]);
+    const controllers = userProfile?.controllers || [];
+
+    const handleLogout = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axiosInstance.post('/auth/logout', {}, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            console.log(response.data.message);
+            if(response.data.success){
+                toast.success("Logging Out");
+
+                  localStorage.removeItem('token');
+    window.location.reload();
+                
+                        }
+        } catch (error) {   
+            console.log(error);   
+        }
+       
     }
+    
 
   
+    useEffect(() => {
+        dispatch(getMe());
+      }, [dispatch]);
 
+      useEffect(() => {
+        // Populate the description array
+        const descriptions = controllers.map((element) => element.description);
+        setDescription(descriptions);
+      }, [controllers]);
+      const userName = userProfile ? userProfile.name : "Guest";
 
-
-    const sidebarNavItems = [
+      const sidebarNavItems = [
         {
             display: 'Dashboard',
             icon: <i className='bx bx-home'></i>,
             to: '/dashboard',
             section: 'dashboard'
         },
-        {
-            display: 'Projects',
-            icon: <i className='bx bx-receipt'></i>,
-            to: '/project',
-            section: 'project'
-        },
-        {
-            display: 'Customers',
-            icon: <i className='bx bx-user'></i>,
-            to: '/customer',
-            section: 'customer'
-        },
+        // Conditionally include Projects item if description includes "/project"
+        ...(description.includes("/project") ? [
+            {
+                display: 'Projects',
+                icon: <i className='bx bx-receipt'></i>,
+                to: '/project',
+                section: 'project'
+            }
+        ] : []),
+        // Conditionally include Customers item if description includes "/customer"
+        ...(description.includes("/customer") ? [
+            {
+                display: 'Customers',
+                icon: <i className='bx bx-user'></i>,
+                to: '/customer',
+                section: 'customer'
+            }
+        ] : []),
         {
             display:'History',
-            icon: <i class='bx bx-history'></i>,
+            icon: <i className='bx bx-history'></i>,
             to: '/logs',
             section: 'customer'
-
-
         },
-        {
-            display:'Users',
-            icon: <i class='bx bx-user-plus'></i>,
-            to: '/users',
-            section: 'customer'
-
-
-        },
-     
+        // Conditionally include Users item if userName is 'Ayed'
+        ...(userName === 'Ayed' ? [
+            {
+                display:'Users',
+                icon: <i className='bx bx-user-plus'></i>,
+                to: '/users',
+                section: 'customer'
+            },{
+                display:'Admin',
+                icon: <i className='bx bxs-user-account'></i>,
+                to: '/admin',
+                section: 'admin'
+            }
+        ] : []),
         {
             display: 'Logout',
-             icon: <i class='bx bx-log-out'></i>,
-
-             onClick: handleLogout
-        },
-        
-    ]
+            icon: <i className='bx bx-log-out'></i>,
+            onClick: handleLogout
+        }
+    ];
+    
+    
+    
    
     
 
@@ -113,7 +158,7 @@ const Sidebar = () => {
         <div className="sidebar__logo">
              Web App 2 
         </div>
-        <p className="version">V0.90</p>
+        <p className="version">V1.0</p>
 
         <div ref={sidebarRef} className="sidebar__menu">
             <div

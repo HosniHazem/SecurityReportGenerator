@@ -13,7 +13,9 @@ export default function AllRmProcess() {
             .then((response) => {
                 if (response.status === 200) {
                     console.log("response", response.data);
-                    setRmProccessDomains(response.data);
+                              const sortedData = response.data.sort((a, b) => b.ID - a.ID);
+
+                    setRmProccessDomains(sortedData);
                 }
             })
             .catch((error) => {

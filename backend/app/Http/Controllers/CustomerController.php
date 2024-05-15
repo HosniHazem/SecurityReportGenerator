@@ -10,7 +10,7 @@ use App\Models\Project;
 
 class CustomerController extends Controller
 {
-
+    
 
    
 
@@ -20,7 +20,7 @@ class CustomerController extends Controller
         $item =Customer::find($id);
         if($item){
 
-        return response()->json(['Customer'=>$item,'status' => 200]);
+        return response()->json(['data'=>$item ,'success'=>true]);
         }
     else
     {
@@ -68,7 +68,8 @@ class CustomerController extends Controller
     if ($validator->fails()) {
         return response()->json([
             'status' => 422,
-            'validate_err' => $validator->getMessageBag(),
+            'message' => $validator->getMessageBag(),
+            'success'=>false
         ]);
     }
 
@@ -84,7 +85,7 @@ class CustomerController extends Controller
     // Handle Logo file upload
     if ($req->hasFile('Logo')) {
         $logoFile = $req->file('Logo');
-        $logoFileName = $item->SN . '_Logo.' . $logoFile->getClientOriginalExtension();
+        $logoFileName = $item->SN . '_Logo.' . $logoFile->getClientOriginalName();
         $logoFile->move(public_path('images/uploads'), $logoFileName);
         $item->Logo = $logoFileName;
     }
@@ -92,7 +93,7 @@ class CustomerController extends Controller
     // Handle Organigramme file upload
     if ($req->hasFile('Organigramme')) {
         $orgFile = $req->file('Organigramme');
-        $orgFileName = $item->SN . '_Organigramme.' . $orgFile->getClientOriginalExtension();
+        $orgFileName = $item->SN . '_Organigramme.' . $orgFile->getClientOriginalName();
         $orgFile->move(public_path('images/uploads'), $orgFileName);
         $item->Organigramme = $orgFileName;
     }
@@ -100,14 +101,14 @@ class CustomerController extends Controller
     // Handle Network Design file upload
     if ($req->hasFile('Network_Design')) {
         $networkFile = $req->file('Network_Design');
-        $networkFileName = $item->SN . '_NetworkDesign.' . $networkFile->getClientOriginalExtension();
+        $networkFileName = $item->SN . '_NetworkDesign.' . $networkFile->getClientOriginalName();
         $networkFile->move(public_path('images/uploads'), $networkFileName);
         $item->Network_Design = $networkFileName;
     }
 
     $item->save();
 
-    return response()->json(['message' => 'Customer created successfully', 'status' => 200]);
+    return response()->json(['message' => 'Customer created successfully', 'status' => 200 ,'success'=>true]);
 }
 
     
@@ -117,7 +118,6 @@ class CustomerController extends Controller
         $filename = $request->input('name') . '.' . $file->getClientOriginalExtension();
         $picture = $filename;
     
-        // Move image to public/images/uploads folder
         $file->move(public_path('images/uploads'), $filename);
     
         return response()->json(["message" => "Image Uploaded Successfully", 'status' => 200]);
@@ -130,6 +130,7 @@ class CustomerController extends Controller
 
     public function update(Request $req, $customerId)
 {
+  try {
     $validator = Validator::make($req->all(), [
         'SN'=>'string',
         'Logo' => 'image|mimes:jpeg,png,jpg,gif',
@@ -156,8 +157,7 @@ class CustomerController extends Controller
     }
 // return $customer;
     // Update fields if they are present in the request
-    $fillableFields = ['SN', 'LN', 'Logo', 'Organigramme', 'Description', 'SecteurActivité', 'Categorie', 'Site_Web', 'Addresse_mail'];
-    print_r($req->SN);
+    $fillableFields = ['SN', 'LN', 'Logo', 'Organigramme', 'Description', 'SecteurActivité', 'Categorie', 'Site Web', 'Addresse mail'];
     foreach ($fillableFields as $field) {
         if (isset($req->$field)) {
             $customer->$field = $req->input($field);
@@ -171,7 +171,7 @@ class CustomerController extends Controller
     foreach ($fileFields as $fileField) {
         if ($req->hasFile($fileField)) {
             $file = $req->file($fileField);
-            $fileName = $customer->SN . '_' . $fileField . '.' . $file->getClientOriginalExtension();
+            $fileName = $customer->SN . '_' . $fileField . '.' . $file->getClientOriginalName();
             $file->move(public_path('images/uploads'), $fileName);
             $customer->{$fileField} = $fileName;
         }
@@ -179,7 +179,10 @@ class CustomerController extends Controller
 
     $customer->update();
 
-    return response()->json(['message' => 'Customer updated successfully', 'status' => 200 ,'Customer'=>$customer]);
+    return response()->json(['message' => 'Customer updated successfully', 'success' => true ,'Customer'=>$customer]);
+} catch (\Exception $e) {
+    return response()->json(['message' => $e->getMessage(), 'success' => false]);
+}
 }
 
     public function destroy($id)

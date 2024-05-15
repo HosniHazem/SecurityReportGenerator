@@ -28,24 +28,21 @@ function AddCustom() {
   const [logoFile, setLogoFile] = useState(null);
   const [organigrammeFile, setOrganigrammeFile] = useState(null);
   const [networkDesignFile, setNetworkDesignFile] = useState(null);
-  const {id}=useParams();
+  const { id } = useParams();
   const [form] = Form.useForm();
-  const [customer,setCustomer]=useState(null);
-
+  const [customer, setCustomer] = useState(null);
 
   useEffect(() => {
     // Fetch customer details when component mounts
     const fetchCustomerDetails = async () => {
       try {
-        const response = await axiosInstance.get(
-          `Customer/${id}/show`
-        );
-          console.log(response.data);
+        const response = await axiosInstance.get(`Customer/${id}/show`);
+        console.log(response.data);
         if (response.data.status === 200) {
           // Set form values with the received customer data
           setCustomer(response.data.Customer);
           console.log(customer);
-        } 
+        }
       } catch (error) {
         // Handle errors
         console.error(error);
@@ -55,6 +52,21 @@ function AddCustom() {
     fetchCustomerDetails();
   }, [id, form]);
 
+  const props = {
+    beforeUpload: (file) => {
+      const isImage =
+        file.type === "image/png" ||
+        file.type === "image/jpeg" ||
+        file.type === "image/jpg";
+      if (!isImage) {
+        message.error(`${file.name} is not an image file`);
+      }
+      return isImage ? true : Upload.LIST_IGNORE;
+    },
+    onChange: (info) => {
+      console.log(info.fileList);
+    },
+  };
 
   const normLogoFile = (e) => {
     if (Array.isArray(e)) {
@@ -87,47 +99,59 @@ function AddCustom() {
   };
 
   const onFinish = async (values) => {
-    console.log("values",values)
+    console.log("values", values);
     try {
       const formData = new FormData();
 
       Object.entries(values).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== "") {
           // Append key-value pair to FormData
-          if (key === "Logo" || key === "Organigramme" || key === "Network_Design") {
+          if (
+            key === "Logo" ||
+            key === "Organigramme" ||
+            key === "Network_Design"
+          ) {
             formData.append(key, value[0]?.originFileObj);
           } else {
             formData.append(key, value);
           }
         }
       });
-// Assuming values.Logo, values.Organigramme, and values.Network_Design are arrays
+      // Assuming values.Logo, values.Organigramme, and values.Network_Design are arrays
 
+      const response = await axiosInstance.post(`Customer/create`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
-
-const response = await axiosInstance.post(
-  `Customer/create`,
-  formData,
-  {
-    headers: {
-      "Content-Type": "multipart/form-data",
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
-  }
-);
-
-        console.log(response.data)
+      console.log(response.data);
       // Handle the response from your Laravel backend
-      if (response.data.status === 200) {
-        Swal.fire({
-          title: "Customer Updated Successfully",
-          icon: "success",
-        });
+      // if (response.data.status === 200) {
+      //   Swal.fire({
+      //     title: "Customer Updated Successfully",
+      //     icon: "success",
+      //   });
+      //   navigate("/customer");
+      // } else {
+      //   Swal.fire({
+      //     title: "Error creating Customer",
+      //   });
+      // }
+      if (response.data.success) {
+        message.success(response.data.message);
         navigate("/customer");
       } else {
-        Swal.fire({
-          title: "Error creating Customer",
-        });
+        if (response.data.message.Logo) {
+          message.error(response.data.message.Logo[1]);
+        }
+        if (response.data.message.Organigramme) {
+          message.error(response.data.message.Organigramme[1]);
+        }
+        if (response.data.message.Network_Design) {
+          message.error(response.data.message.Network_Design[1]);
+        }
       }
     } catch (error) {
       // Handle errors
@@ -146,7 +170,7 @@ const response = await axiosInstance.post(
   // };
 
   return (
-    <div style={{ width: "50%", margin: "0 auto" ,marginTop:"2%"}}>
+    <div style={{ width: "50%", margin: "0 auto", marginTop: "2%" }}>
       <Form
         name="customer_form"
         onFinish={onFinish}
@@ -242,7 +266,9 @@ const response = await axiosInstance.post(
                   return false; // Returning false prevents automatic upload
                 }}
               >
-                <Button icon={<UploadOutlined />} style={{width:"200%"}} >Upload Logo</Button>
+                <Button icon={<UploadOutlined />} style={{ width: "200%" }}>
+                  Upload Logo
+                </Button>
               </Upload>
             </Form.Item>
           </Col>
@@ -257,24 +283,29 @@ const response = await axiosInstance.post(
               getValueFromEvent={normOrganigrammeFile}
             >
               <Upload
+                {...props}
                 name="organigramme"
                 beforeUpload={(file) => {
                   setOrganigrammeFile(file);
                   return false; // Returning false prevents automatic upload
                 }}
               >
-                <Button icon={<UploadOutlined />} style={{width:"140%"}}>Upload Organigramme</Button>
+                <Button icon={<UploadOutlined />} style={{ width: "140%" }}>
+                  Upload Organigramme
+                </Button>
               </Upload>
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item
+              {...props}
               name="Network_Design"
               label="Network Design"
               valuePropName="fileList"
               getValueFromEvent={normNetworkDesignFile}
             >
               <Upload
+                {...props}
                 name="network_design"
                 beforeUpload={(file) => {
                   setNetworkDesignFile(file);
@@ -282,14 +313,20 @@ const response = await axiosInstance.post(
                 }}
                 listType="picture"
               >
-                <Button icon={<UploadOutlined />} style={{width:"140%"}}>Upload Network Design</Button>
+                <Button icon={<UploadOutlined />} style={{ width: "140%" }}>
+                  Upload Network Design
+                </Button>
               </Upload>
             </Form.Item>
           </Col>
         </Row>
 
         <Form.Item>
-          <Button type="primary" htmlType="submit" style={{marginLeft:"0%" ,width:"100%"}}>
+          <Button
+            type="primary"
+            htmlType="submit"
+            style={{ marginLeft: "0%", width: "100%" }}
+          >
             Submit
           </Button>
         </Form.Item>

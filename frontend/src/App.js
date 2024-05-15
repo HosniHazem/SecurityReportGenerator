@@ -34,6 +34,11 @@ import Logs from "./Logs";
 import AllRmProcess from "./RmProccessusDomains/ViewRmProcessDomains";
 import AddRmProccess from "./RmProccessusDomains/AddRmProccessDomains";
 import CreateUser from "./Users";
+import AllVulns from "./Vuln/AllVuln";
+import AddVuln from "./Vuln/AddVuln";
+import MajCustomer from "./customer/MajCustomer";
+import AllSow from "./pages/AllSow";
+import PermissionList from "./Admin/PriviligeList";
 // import AllRmProcess from "./RmProccessusDomains/AddRmProcessDomains";
 
 function App() {
@@ -55,15 +60,15 @@ function App() {
           <Route path="/project" element={<Project />} />
           <Route path="/customer" element={<Customer />} />
         </Route>
-        <Route path="/updatecustomer/:id" element={<AddCustomer/>} />
+        <Route path="/updatecustomer/:id" element={<MajCustomer/>} />
         <Route path="/updateproject/:id" element={<UpdateProject />} />
         <Route path="/newcustomer" element={<AddCustomer />} />
         <Route path="/newproject" element={<AddProject />} />
         <Route path="/import" element={<Nessus />} />
         <Route path="/import2" element={<Nessus2 />} />
-        <Route path="/sow/:id" element={<Sow />} />
+        <Route path="/sow/:id" element={<Sow/>} />
         <Route path="/add-glb-pip/:customerID" element={<ViewGlbPip/>} />
-        <Route path='/ajout-glb-pip/:customerID' element={<AddGlbPip />} /> 
+        <Route path='/ajout-glb-pip/:id' element={<AddGlbPip />} /> 
         <Route path="/quality/:id" element={<Quality />} />
         <Route path="/modify-glb-pip/:id" element={<ModifyGlbPip />} />
         <Route path="/add-audit-previous-audit/:id" element={<AddAuditPreviousAudit />} />
@@ -79,6 +84,12 @@ function App() {
          <Route path="/all-rm-processus/:idIteration" element={<AllRmProcess />} />
          <Route path="/add-rm-proccessus/:idIteration" element={<AddRmProccess />} />
          <Route path="/users" element={<CreateUser />} />
+         <Route path="/all-vuln/:id" element={<AllVulns />} />
+         <Route path="/add-vuln/:id" element={<AddVuln />} />
+         <Route path="/view-sow/:id" element={<AllSow />} />
+         <Route path="/admin" element={<PermissionList />} />
+
+
 
          </Route>
          <Route path="/login" element ={<Login />}  />

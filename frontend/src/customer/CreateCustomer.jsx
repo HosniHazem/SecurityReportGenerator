@@ -14,12 +14,17 @@ function CreateCustomer() {
 
   
   useEffect(() => {
-    axios.get(`http://webapp.ssk.lc/AppGenerator/backend/api/Customer`,).then((res) => {
-      if(res.status === 200){
-      setCustomer(res.data.Customer);
- }
-    });
+    axios.get(`http://webapp.ssk.lc/AppGenerator/backend/api/Customer`)
+      .then((res) => {
+        if (res.status === 200) {
+          // Sort customers by ID from biggest to lowest
+          const sortedCustomers = res.data.Customer.sort((a, b) => b.id - a.id);
+          console.log(sortedCustomers);
+          setCustomer(sortedCustomers);
+        }
+      });
   }, []);
+  
 
   const userColumns = [
     { field: "id", headerName: "ID", width: 70 },

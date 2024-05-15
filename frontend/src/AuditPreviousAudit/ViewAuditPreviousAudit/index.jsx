@@ -26,7 +26,9 @@ export default function ViewAuditPrevious() {
       .then((response) => {
         if (response.status === 200) {
           console.log("response",response.data.auditPrev);
-          setAuditData(response.data.data);
+          const sortedData = response.data.data.sort((a, b) => b.ID - a.ID);
+
+          setAuditData(sortedData);
         }
       })
       .catch((error) => {
@@ -123,20 +125,20 @@ export default function ViewAuditPrevious() {
         />
       ),
     },
-    {
-      title: "Type de Projet",
-      dataIndex: "ID_Projet",
-      key: "ID_Projet",
-      render: (ID_Projet, record) => (
-        <EditableCell
-          record={record}
-          dataIndex="ID_Projet"
-          value={projectNameMapping[ID_Projet]}
-          handleUpdate={handleInputUpdate}
-        />
-      ),
-      width: "14.2857%",
-    },
+    // {
+    //   title: "Type de Projet",
+    //   dataIndex: "ID_Projet",
+    //   key: "ID_Projet",
+    //   render: (ID_Projet, record) => (
+    //     <EditableCell
+    //       record={record}
+    //       dataIndex="ID_Projet"
+    //       value={projectNameMapping[ID_Projet]}
+    //       handleUpdate={handleInputUpdate}
+    //     />
+    //   ),
+    //   width: "14.2857%",
+    // },
     {
       title: "Numéro de Projet",
       dataIndex: "ProjetNumero",

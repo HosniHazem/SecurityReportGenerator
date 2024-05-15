@@ -12,6 +12,8 @@ class Project extends Model
     use HasFactory;
     public $timestamps = false;
     protected  $table='projects';
+// In your Project model
+    protected $fillable = ['Nom', 'URL', 'Description', 'QualityChecked', 'QualityCheckedDateTime', 'QualityCheckedMessage', 'Preuve', 'iterationKey'];
 
   
 public function customer()

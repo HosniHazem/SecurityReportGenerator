@@ -16,23 +16,21 @@ class SowController extends Controller
     public function show($id)
     {
 
-        $item =Sow::find($id);
-        if($item){
+        $item = Sow::find($id);
+        if ($item) {
 
-        return response()->json(['Sow'=>$item,'status' => 200]);
+            return response()->json(['Sow' => $item, 'status' => 200]);
+        } else {
+            return response()->json(['message' => 'not found', 'status' => 404]);
         }
-    else
-    {
-    return response()->json(['message'=>'not found','status' => 404]);
-    }
     }
 
     public function index()
     {
 
-        $item =Sow::all();
+        $item = Sow::all();
 
-        return response()->json(['Sow'=>$item,'status' => 200]);
+        return response()->json(['Sow' => $item, 'status' => 200]);
     }
     public function default()
     {
@@ -62,14 +60,13 @@ class SowController extends Controller
                 'validate_err' => $validator->getMessageBag(),
             ]);
         } else {
-        $item =new Sow();
-        $item->SN=$req->SN;
-        $item->LN=$req->LN;
-        $item->Logo=$req->Logo;
-        $item->save();
-        return response()->json(['message'=>'done','status' => 200]);
-
-    }
+            $item = new Sow();
+            $item->SN = $req->SN;
+            $item->LN = $req->LN;
+            $item->Logo = $req->Logo;
+            $item->save();
+            return response()->json(['message' => 'done', 'status' => 200]);
+        }
     }
     public function multiple(Request $req)
     {
@@ -90,11 +87,9 @@ class SowController extends Controller
                     if (isset($i[$field])) {
 
                         $itemValues[] = isset($i[$field]) ? $i[$field] : null;
-                    }
-                     else if($field==="Projet"){
+                    } else if ($field === "Projet") {
                         $itemValues[] = $project_id;
-                    }
-                    else {
+                    } else {
                         $itemValues[] = null;
                     }
                 }
@@ -109,51 +104,148 @@ class SowController extends Controller
         return response()->json(['message' => 'done', 'status' => 200]);
     }
 
-    public function update(Request $req,$id)
+    // public function update(Request $req,$id)
+    // {
+    //     $validator = Validator::make($req->all(), [
+    //         'SN' => 'required',
+    //         'LN' => 'required',
+    //         'Logo' => 'required'
+    //     ]);
+
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status' => 422,
+    //             'validate_err' => $validator->getMessageBag(),
+    //         ]);
+    //     } else {
+
+    //     $item =Sow::find($id);
+
+    //     if($item){
+    //         $item->SN=$req->SN;
+    //         $item->LN=$req->LN;
+    //         $item->Logo=$req->Logo;
+    //     $item->update();
+    //     return response()->json(['message'=>'done','status' => 200]);
+    //             }
+
+
+    //             else
+    //             {
+    //             return response()->json(['message'=>'not done','status' => 404]);
+    //             }
+    //         }
+    // }
+
+    public function update(Request $request, $id)
     {
-        $validator = Validator::make($req->all(), [
-            'SN' => 'required',
-            'LN' => 'required',
-            'Logo' => 'required'
-        ]);
+        $sow = Sow::find($id);
 
+        if (!$sow) {
+            return response()->json(['message' => 'Sow not found'], 404);
+        }
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 422,
-                'validate_err' => $validator->getMessageBag(),
-            ]);
-        } else {
+        // Update only the fields that are provided in the request
+        $sow->fill($request->all())->save();
 
-        $item =Sow::find($id);
-
-        if($item){
-            $item->SN=$req->SN;
-            $item->LN=$req->LN;
-            $item->Logo=$req->Logo;
-        $item->update();
-        return response()->json(['message'=>'done','status' => 200]);
-                }
-
-
-                else
-                {
-                return response()->json(['message'=>'not done','status' => 404]);
-                }
-            }
+        return response()->json(['message' => 'Sow updated successfully', 'sow' => $sow]);
     }
     public function destroy($id)
     {
+        try {
+            $item = Sow::findOrFail($id); // Use findOrFail to automatically throw an exception if the item is not found
+            $item->delete();
+            return response()->json(['message' => 'deleted', 'success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage(), 'success' => false]);
+        }
+    }
 
-        $item =Sow::find($id);
-        if($item){
-        $item->delete();
-        return response()->json(['message'=>'deleted'], 200);
-                }
-                else
-                {
-                return response()->json(['message'=>'not deleted'], 404);
-                }
+    public function fillTable(Request $request, $projectId)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'csv_file' => 'required|file|mimes:csv,txt'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $validator->errors(),
+                ]);
+            }
+
+            // Retrieve the uploaded CSV file
+            $csvFile = $request->file('csv_file');
+            $filePath = $csvFile->getRealPath();
+
+            // Read the contents of the CSV file
+            $fileContents = file_get_contents($filePath);
+
+            // Split the content into lines
+            $lines = explode("\n", $fileContents);
+
+            // Check if the header matches the expected format
+            $expectedHeader = 'Type,Name,IP_Host,field3,field4,field5,dev_by,URL,Number_users';
+            $header = trim(array_shift($lines));
+            if ($header !== $expectedHeader) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Format not respected. Expected header: ' . $expectedHeader,
+                ]);
+            }
+
+            // Insert projectId as the first column in each row
+            foreach ($lines as &$line) {
+                $line = $projectId . ',' . $line;
+            }
+            unset($line); // unset the reference
+
+            // Remove the last line (usually empty due to newline at end of file)
+            array_pop($lines);
+
+            // Combine the modified lines back into a single string
+            $modifiedContents = implode("\n", $lines);
+
+            // Save the modified CSV file
+            $modifiedFilePath = storage_path('app/csv_files/sow_modified.csv');
+            file_put_contents($modifiedFilePath, $modifiedContents);
+
+            // Use the modified CSV file in the LOAD DATA INFILE query
+            $loadData = "LOAD DATA INFILE '" . str_replace('/', '\\\\', str_replace('\\', '\\\\', $modifiedFilePath)) . "' IGNORE
+                INTO TABLE sow
+                FIELDS TERMINATED BY ','
+                ENCLOSED BY '\"'
+                LINES TERMINATED BY '\n'
+                (`Projet`, `Type`, `Nom`,`IP_Host`, `field3`, `field4`, `field5`, `dev_by`, `URL`, `Number_users`)
+            ";
+
+            DB::statement($loadData);
+
+            return response()->json(['message' => 'CSV file stored with success', 'success' => true]);
+        } catch (\Throwable $th) {
+            // Handle exceptions here, e.g., log the error
+            return response()->json(['message' => $th->getMessage(), 'success' => false]);
+        }
+    }
+
+
+
+
+
+    public function getSowByProjectId($projectId)
+    {
+        try {
+            $sow = Sow::where('Projet', $projectId)->get();
+            if ($sow) {
+
+                return response()->json($sow);
+            } else {
+                return response()->json(['msg' => 'sow not found']);
+            }
+        } catch (\Throwable $th) {
+            return response()->json(['message' => $th->getMessage(), 'success' => false]);
+        }
     }
 }
-

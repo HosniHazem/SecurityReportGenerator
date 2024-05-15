@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
 use App\Mail\ConfirmationMail;
+use App\Models\AppController;
+use App\Models\Permission;
 
 class AuthController extends Controller
 {
@@ -80,7 +82,7 @@ public function login(Request $request)
     return response()->json([
         'access_token' => $token,
         'token_type' => 'bearer',
-        'expires_in' => \Illuminate\Support\Facades\Auth::factory()->getTTL() * 60,
+        'expires_in' => 60,
         'user' => auth()->user(),
         'success'=>true,
         'message'=>"redirecting to home page"
@@ -128,11 +130,48 @@ public function login(Request $request)
 
         
     }
+    public function logout()
+{
+    auth()->logout();
+
+    return response()->json(['message' => 'Logged out successfully', 'success' => true]);
+}
+
 
 
 public function profile(){
-    return response()->json(auth()->user());
+    try {
+        $user = auth()->user();
+        $permissions = Permission::where('userId', $user->id)->get();
+
+        if($permissions->isEmpty()){
+            return response()->json(['message' => 'Permissions not found', 'success' => false]);
+        }
+
+        $controllers = [];
+        foreach($permissions as $permission){
+            $controller = AppController::where('id',$permission->controllerId)->get()->first();
+            if($controller){
+                $controllers[] = $controller;
+            }
+        }
+        
+        $response = [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'controllers' => $controllers,
+                'permissions' => $permissions,
+            ]
+        ];
+
+        return response()->json($response);
+    } catch (\Exception $e) {
+        return response()->json(['message' => $e->getMessage(), 'success' => false]);
+    }
 }
+
 static function generatePassword(){
     $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 	$randomString = '';

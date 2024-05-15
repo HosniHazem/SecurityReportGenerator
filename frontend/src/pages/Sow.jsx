@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import './SOW.css'; // Import your CSS file for styling
 import swal from 'sweetalert';
 import axios from 'axios';
-import { useParams , Link } from 'react-router-dom';
+import { useParams , Link, useNavigate } from 'react-router-dom';
+import { Modal, Button as antdButton }   from 'antd';
+import UploadSowCsv from './UploadSowCsv';
 
 
 
@@ -16,12 +18,24 @@ function SOW() {
   const [pcInput, setPCInput] = useState(null);
   const [appsInput, setAppsInput] = useState(null);
   const [Button, setButton] = useState(null);
-  
+  const [showModal, setShowModal] = useState(false);
+
+
+
+
+  const navigate=useNavigate()
   const tableCellStyle = {
     textAlign: 'center',
     verticalAlign: 'middle',
   };
   const { id } = useParams();
+  const handleViewSow=()=>{
+    navigate(`/view-sow/${id}`);
+  }
+
+  const handleToggleModal = () => {
+    setShowModal(!showModal);
+  };
 
   const generateJSON = () => {
     const generateObjects = (content,type) => {
@@ -113,29 +127,36 @@ function removeFromPcsubnetArray(pcsubnetArray, ipHostToRemove) {
 }
 
 const imported = () => {
+  let parsedData = {};
+  parsedData.serveur = serveurInput;
+  parsedData.apps = appsInput;
+  parsedData.pc = pcInput;
+  parsedData.rs = r_sInput;
+  parsedData.project_id = id;
 
-    let parsedData = {};
-    parsedData.serveur = serveurInput;
-    parsedData.apps = appsInput;
-    parsedData.pc = pcInput;
-    parsedData.rs = r_sInput;
-    parsedData.project_id = id;
-console.log(parsedData);
-  axios.post('http://webapp.ssk.lc/AppGenerator/backend/api/Sow/import',parsedData)
+  console.log(parsedData);
+
+  const token = localStorage.getItem("token"); // Fetch token from local storage
+
+  axios.post('http://webapp.ssk.lc/AppGenerator/backend/api/Sow/import', parsedData, {
+      headers: {
+          Authorization: `Bearer ${token}`, // Set Authorization header with the token
+      }
+  })
   .then((response) => {
-    if(response.data.status===200){
-      swal("Imported","Successfully");
-
-    }else if(response.data.status===404) {
-      swal("Error","Problem while importing");
-    }
+      if (response.data.status === 200) {
+          swal("Imported", "Successfully");
+      } else if (response.data.status === 404) {
+          swal("Error", "Problem while importing");
+      }
   })
   .catch((error) => {
-    // Handle error
-    console.error('Error sending data:', error);
-    swal("Error","Problem while importing");
-  })   
+      // Handle error
+      console.error('Error sending data:', error);
+      swal("Error", "Problem while importing");
+  });
 }
+
 const getSubnetIpRange = (cidr) => {
 
   // Split CIDR into IP and subnet mask
@@ -405,7 +426,16 @@ const getSubnetIpRange = (cidr) => {
   Button ?   <button className='button2' onClick={imported}>Import</button>
  : null
 } 
-
+<antdButton type='primary' onClick={handleViewSow} style={{'cursor':'pointer'}} > View Sow of this project</antdButton>
+  <button onClick={handleToggleModal}  style={{ marginLeft: '20px' }} > Add it through CSV  </button>
+  <Modal
+        title="Upload SOW CSV"
+        visible={showModal}
+        onCancel={handleToggleModal}
+        footer={null}
+      >
+        <UploadSowCsv projectId={id} />
+      </Modal>
     </div>
   );
 }
