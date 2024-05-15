@@ -51,6 +51,7 @@ Route::get('Project', [ProjectController::class,'index']);
 Route::get('/get_vm', [VmController::class,'index']);
 Route::get('Customer', [CustomerController::class,'index']);
 Route::post('/fillPermissionTable', [AdminController::class,'fillPermissionTable']);
+
 // Route::delete('/Delete-Privilige/{userId}/{controllerId}', [AdminController::class,'fillPermissionTable']);
 Route::get('/All-Users', [AdminController::class,'getAllUsers']);
 Route::get('/generate-ansi/{customerId}', [WordDocumentController4::class,'generateWordDocument']);
@@ -60,7 +61,7 @@ Route::group(['middleware' => ['jwt.verify', 'log_activity']], function () {
 Route::delete('/Delete-Privilige/{userId}/{controllerId}', [AdminController::class,'DeletePrivilige']);
 Route::get('/GetAllPrivilige', [AdminController::class,'getAllPermissions']);
 Route::post('/GrantPrivilige/{userId}/{controllerId}', [AdminController::class,'grantPrivilige']);
-
+Route::get('/DangerLocateSelectedPluginsCompliance', [AnnexesController::class,'DangerLocateSelectedPluginsCompliance']);
 Route::get('/DangerCorrectPluginsAges', [AnnexesController::class,'DangerCorrectPluginsAges']);
 Route::get('/populateOSDanger', [AnnexesController::class,'populateOSDanger']);
 Route::get('/removeBadCharsFromDB', [AnnexesController::class,'removeBadCharsFromDB']);
