@@ -34,6 +34,8 @@ use App\Http\Controllers\CustomerSitesController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RmProcessusDomainsController;
 use App\Models\RmProcessusDomains;
+use App\Http\Controllers\VulnController;
+use App\Http\Controllers\AdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -48,10 +50,17 @@ use App\Models\RmProcessusDomains;
 Route::get('Project', [ProjectController::class,'index']);
 Route::get('/get_vm', [VmController::class,'index']);
 Route::get('Customer', [CustomerController::class,'index']);
+Route::post('/fillPermissionTable', [AdminController::class,'fillPermissionTable']);
 
+// Route::delete('/Delete-Privilige/{userId}/{controllerId}', [AdminController::class,'fillPermissionTable']);
+Route::get('/All-Users', [AdminController::class,'getAllUsers']);
 Route::get('/generate-ansi/{customerId}', [WordDocumentController4::class,'generateWordDocument']);
+Route::get('/show-image/{partialFilename}', [ImageController::class, 'show']);
 
-//Route::group(['middleware' => ['jwt.verify', 'log_activity']], function () {
+Route::group(['middleware' => ['jwt.verify', 'log_activity']], function () {
+Route::delete('/Delete-Privilige/{userId}/{controllerId}', [AdminController::class,'DeletePrivilige']);
+Route::get('/GetAllPrivilige', [AdminController::class,'getAllPermissions']);
+Route::post('/GrantPrivilige/{userId}/{controllerId}', [AdminController::class,'grantPrivilige']);
     
 Route::get('/DangerLocateSelectedPluginsCompliance', [AnnexesController::class,'DangerLocateSelectedPluginsCompliance']);
 Route::get('/DangerCorrectPluginsAges', [AnnexesController::class,'DangerCorrectPluginsAges']);
@@ -100,9 +109,11 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::get('Project/{id}/show', [ProjectController::class,'show']);
     Route::get('LastOne', [ProjectController::class,'default']);
     Route::delete('Project/{id}/delete', [ProjectController::class,'destroy']);
-    Route::put('Project/{id}/update', [ProjectController::class,'update']);
+    Route::post('Project/{id}/update', [ProjectController::class,'update']);
     Route::put('Project/{id}/updateQuality', [ProjectController::class,'updateQuality']);
     Route::post('Project/create',[ProjectController::class,'store']);
+    Route::get('/Project-Details',[ProjectController::class,'ProjectDetails']);
+    Route::get('/project-by-customerID/{customerId}',[ProjectController::class,'getProjectByCustomerID']);
 
     Route::get('Customer/{id}/show', [CustomerController::class,'show']);
     Route::get('LastOne', [CustomerController::class,'default']);
@@ -114,10 +125,11 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::get('Sow/{id}/show', [SowController::class,'show']);
     Route::get('Sow', [SowController::class,'index']);
     Route::get('LastOne', [SowController::class,'default']);
-    Route::delete('Sow/{id}/delete', [SowController::class,'destroy']);
+    // Route::delete('Sow/{id}/delete', [SowController::class,'destroy']);
     Route::put('Sow/{id}/update', [SowController::class,'update']);
     Route::post('Sow/create',[SowController::class,'store']);
     Route::post('Sow/import',[SowController::class,'multiple']);
+    Route::delete('delete-sow/{id}', [SowController::class,'destroy']);
 
 
 
@@ -153,6 +165,7 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
 
 
     Route::get('/Insert-Into-Answers/{c}', [WordDocumentController4::class,'getAnswersFromWebsiteServer']);
+
   
     Route::get('/vmtype',[VmController::class,'getAccunetixAndOwaszap']);
     Route::get('/all-tables',[CloneController::class,'getTables']);
@@ -175,7 +188,16 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::get('/rm-processus-domains/getRmProccessByIterationID/{idIteration}', [RmProcessusDomainsController::class, 'getRmProccessByIterationID']);
     Route::post('/create-user', [AuthController::class, 'createUser']);
 
-//});
+    Route::get('/vulns', [VulnController::class, 'index']);
+Route::post('/vulns', [VulnController::class, 'store']);
+Route::get('/vulns/{id}', [VulnController::class, 'show']);
+Route::get('/vuln-attributes', [VulnController::class, 'getColumnNamesVuln']);
+
+Route::get('/vuln-by-projectID/{id}', [VulnController::class, 'showByProjectID']); // Route to show vulnerabilities by project ID
+Route::post('/vulns-update/{id}', [VulnController::class, 'update']);
+Route::delete('/vulns/{id}', [VulnController::class, 'destroy']);
+
+});
 
 Route::post('/get-vuln', [ApiRequestController::class, 'index']);
 Route::get('/get-vulns', [ApiRequestController::class, 'getVulns']);
@@ -184,6 +206,12 @@ Route::post('/vuln-from-html/{id}',[HtmlParser::class,'parse']);
 Route::post('/vuln-from-hcl/{id}',[HtmlParser::class,'parseHcl']);
 
 Route::get('/all-logs',[ActivityLogController::class,'index']);
+Route::get('/Insert-Into-Indicators/{c}', [WordDocumentController4::class,'getSecurityIndicators']);
+Route::get('/Project-Details',[ProjectController::class,'ProjectDetails']);
+Route::get('/sow-by-projectID/{projectId}', [SowController::class, 'getSowByProjectId']);
+Route::post('/sow-by-projectID/{id}', [SowController::class, 'update']);
+Route::post('/insert-sow/{projectId}',[SowController::class,'fillTable'])    ;
+
 
     Route::group(['middleware' => 'api', 'prefix' => 'auth'], function () {
         // Registration route
@@ -193,8 +221,8 @@ Route::get('/all-logs',[ActivityLogController::class,'index']);
         Route::post('/login', [AuthController::class, 'login']);
         // Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/profile', [AuthController::class, 'profile']);
+        Route::post('/logout', [AuthController::class, 'logout']);
+
     
     
     });
-
-
