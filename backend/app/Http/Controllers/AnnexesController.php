@@ -52,6 +52,28 @@ class AnnexesController extends Controller
         set_time_limit(50000);
 
         $sqls = array(
+            
+            <<< HERE1002
+            SELECT  "Ce couple à vérifier Type de compliance vs Type de l'actif ", 
+            CONCAT( sow.IP_Host,';  https://www.tenable.com/plugins/nessus/', vuln.`Plugin ID`,'  ; ', sow.Type)  AS value, 
+            "Danger !!"
+            FROM `vuln` 
+            LEFT JOIN sow on Sow.IP_Host=vuln.Host and sow.Projet=vuln.ID_Projet AND vuln.ID_Projet=? 
+            WHERE vuln.Risk in ('FAILED', 'PASSED')  AND 
+            sow.Type not in ( 'Apps', 'OutOfScope')  AND 
+            (vuln.`Plugin ID`, sow.Type) NOT IN (Select plugincompliancetype.PluginID, plugincompliancetype.Type FROM plugincompliancetype) 
+            GROUP by vuln.`Plugin ID`, sow.Type; 
+            HERE1002,
+            <<< HERE1001
+            SELECT  'Est ce que les Vulns Compliance sont marquées', 
+            IF (
+                 (SELECT count(DISTINCT `Plugin ID`) FROM `vuln` WHERE Risk in ('PASSED', 'FAILED') AND  `ID_Projet` = ?)
+                 = 
+                 (SELECT count(DISTINCT `Plugin ID`) FROM `vuln` WHERE Risk in ('PASSED', 'FAILED') AND  `ID_Projet` = ? AND XREF='Selected4Compliance'), "0","Danger, il faut executer l'action de cette ligne une fois ligne suivante est correcte"        ), '/DangerLocateSelectedPluginsCompliance'  ; 
+            HERE1001,
+            <<< HERE1000
+            SELECT  'Plugins compliance non pris en charge (à fixer quelle sont les checks a adopter)',GROUP_CONCAT(DISTINCT `Plugin ID` SEPARATOR ', ') as nbr, 'Danger'  FROM `vuln` WHERE Risk in ('PASSED', 'FAILED') AND  `ID_Projet` = ? AND `Plugin ID` NOT IN (SELECT DISTINCT compliance.pluginID from compliance); 
+            HERE1000,
             <<< HERE0
             SELECT  'Nombre de Plugins mixed Plugins Age', count(*) as nbr, '/DangerCorrectPluginsAges'  FROM plugins WHERE (length (`age_of_vuln`)=? AND `age_of_vuln` is not null) or `age_of_vuln`="Not yet published" 
             HERE0,
@@ -59,16 +81,16 @@ class AnnexesController extends Controller
             SELECT  'Nombre de Plugins non traduit', count(DISTINCT `Plugin ID`), '/translatePlugins'  FROM vuln where ID_Projet=? and `Plugin ID` in (SELECT id FROM `plugins` WHERE `translated`<>'yes' )
             HERE000,
             <<< HERE1
-            SELECT 'Nombre de Vulns non traduit', count(DISTINCT `id`),'/translateVulns'  FROM vuln where ID_Projet = ? and Risk in ('PASSED', 'FAILED') AND  `BID` not in ('noway', 'yes' )
+            SELECT 'Nombre de Vulns Compliance non traduit', count(DISTINCT `id`),'/translateVulns'  FROM vuln where ID_Projet = ? and Risk in ('PASSED', 'FAILED') AND  `BID` not in ('noway', 'yes' )
             HERE1,
             <<< HERE111
-            SELECT 'Nombre de Vulns ignoree lors traduction', count(DISTINCT `id`),'Information'  FROM vuln where ID_Projet = ? and Risk in ('PASSED', 'FAILED') AND  `BID` ='noway'
+            SELECT 'Nombre de Vulns Compliance ignoree lors traduction', count(DISTINCT `id`),'Information'  FROM vuln where ID_Projet = ? and Risk in ('PASSED', 'FAILED') AND  `BID` ='noway'
             HERE111,
             <<< HERE2
             SELECT 'Nombre de Plugins manquants', count(DISTINCT `Plugin ID`) , '/getPluginsFromAllServers' FROM vuln where ID_Projet = ? and `Plugin ID` not in (SELECT id FROM `plugins` )
             HERE2,
             <<< HERE21
-            SELECT "Solution embeded in Description ", concat (count(*), "/", (SELECT count(*) FROM vuln WHERE Risk in ("FAILED" , "PASSED") AND  `ID_Projet` = ?)), "/cleanDescCompliance" FROM vuln WHERE POSITION(Solution IN Description)>0  AND   Risk in ("FAILED" , "PASSED") AND  `ID_Projet` = ? ;
+            SELECT "Solution embeded in Description (Compliance) ", concat (count(*), "/", (SELECT count(*) FROM vuln WHERE Risk in ("FAILED" , "PASSED") AND  `ID_Projet` = ?)), "/cleanDescCompliance" FROM vuln WHERE POSITION(Solution IN Description)>0  AND   Risk in ("FAILED" , "PASSED") AND  `ID_Projet` = ? ;
             HERE21,
             <<< HERE3
             SELECT Concat (sow.Type," ( ",count(DISTINCT Host) ," hosts ) ") As "Type", CONCAT( count(*), " vulns (Moy par hote: ", ROUND( count(*)/ count(DISTINCT Host))," vulns ) ") ,'no Link' FROM `vuln` LEFT Join sow on sow.IP_Host=Host  WHERE ID_Projet = ? and sow.Projet=? GROUP BY sow.Type;
@@ -385,7 +407,7 @@ class AnnexesController extends Controller
        $AllRows=  DB::select($query,[$prjID,$prjID]);
 
        $AllRowsPerColor=[];
-
+       self::sendMessage("[App2_TechReport] ". count($AllRows) ." is the number of items on ".$query); 
         for ($i=0;$i<count($AllRows);$i++)
         {
             foreach($AllRows[$i] as $key=>$value)
@@ -511,7 +533,7 @@ public function generateAnnexes (Request $request, $AnnexA)
 {
     set_time_limit(50000);
     $annex_id =  $request->annex_id;
-    array_unshift($annex_id , '9');
+    //array_unshift($annex_id , '9');
     //  var_dump(get_object_vars($request)); exit;
       include ("sqlRequests.php");
 
@@ -549,8 +571,8 @@ public function generateAnnexes (Request $request, $AnnexA)
               foreach($arrayConfig as $tmplate => $listOfDocParts)
               {
                   $iteration++;
-
-                  $nbrOfRowsAddedToFile=0;
+                 if($AnnexA=="" and isset($request->report_id) and ! in_array($iteration, $request->report_id)) continue;
+                   $nbrOfRowsAddedToFile=0;
                   $templatePath = public_path($tmplate);
                   //echo $templatePath; exit;
                   $templateProcessor = new TemplateProcessor($templatePath);
@@ -573,7 +595,9 @@ public function generateAnnexes (Request $request, $AnnexA)
                       $listOfFile[]=$outputPath;
                   self::sendMessage("[App2_TechReport] ". $outputFileName ." was created with sucess");
                   }
+                  else self::sendMessage("[App2_TechReport] ". $outputFileName ." was n't created !!!!"); 
               }
+              
           }
 
       }
@@ -607,7 +631,7 @@ public function generateAnnexes (Request $request, $AnnexA)
         $listOfFile[]=$annexeA_filename;
 
       }
-      return $listOfFile;
+      if(isset($listOfFile))  return $listOfFile;
 
   }
 static function preparePagesDeGarde($templateProcessor, $annex_id,$customer, $project )
@@ -864,6 +888,19 @@ public static function executeCronJobs(Request $req)
    self::sendMessage("[Finishing Cron Job\n Time now:". date("Y-m-d H:i:s"));
     return true;
 }
+
+
+public static function DangerLocateSelectedPluginsCompliance(Request $req)
+{
+
+    set_time_limit(50000);
+    self::sendMessage("Locate Selected Plugins Compliance");
+
+    DB::update('UPDATE `vuln` SET `XREF`="Selected4Compliance" WHERE `ID_Projet`=? AND Risk in ("PASSED", "FAILED") AND Substring(Description, 1, LEAST (300,LOCATE("[",Description)-3)) IN (SELECT compliance.keyword from compliance WHERE compliance.pluginID= `Plugin ID`)', [$req->prj_id]);
+ 
+ return true;
+}
+
 public static function DangerCorrectPluginsAges(Request $req)
 {
 

@@ -93,7 +93,11 @@ function UpdateCustom() {
     };
     console.log(data);
     axios
-      .put(`http://webapp.ssk.lc/AppGenerator/backend/api/Customer/${id}/update`, data)
+      .put(`http://webapp.ssk.lc/AppGenerator/backend/api/Customer/${id}/update`, data , {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
+      })
       .then((res) => {
         if (res.data.status === 200) {
           swal("Created", "Customer", "success");

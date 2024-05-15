@@ -51,8 +51,9 @@ Route::get('Customer', [CustomerController::class,'index']);
 
 Route::get('/generate-ansi/{customerId}', [WordDocumentController4::class,'generateWordDocument']);
 
-Route::group(['middleware' => ['jwt.verify', 'log_activity']], function () {
-
+//Route::group(['middleware' => ['jwt.verify', 'log_activity']], function () {
+    
+Route::get('/DangerLocateSelectedPluginsCompliance', [AnnexesController::class,'DangerLocateSelectedPluginsCompliance']);
 Route::get('/DangerCorrectPluginsAges', [AnnexesController::class,'DangerCorrectPluginsAges']);
 Route::get('/populateOSDanger', [AnnexesController::class,'populateOSDanger']);
 Route::get('/removeBadCharsFromDB', [AnnexesController::class,'removeBadCharsFromDB']);
@@ -174,7 +175,7 @@ Route::get('/translateVulns', [AnnexesController::class,'translateAllVulnsCompli
     Route::get('/rm-processus-domains/getRmProccessByIterationID/{idIteration}', [RmProcessusDomainsController::class, 'getRmProccessByIterationID']);
     Route::post('/create-user', [AuthController::class, 'createUser']);
 
-});
+//});
 
 Route::post('/get-vuln', [ApiRequestController::class, 'index']);
 Route::get('/get-vulns', [ApiRequestController::class, 'getVulns']);

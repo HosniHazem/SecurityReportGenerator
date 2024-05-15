@@ -105,7 +105,7 @@ $DefaultQuery = array (
     WHERE  `ID_Projet`=? and  sow.Projet=?  AND `Risk` in ('Critical', 'High', 'Medium', 'Low') CLAUSENUMBER1
     group by `Risk`,plugins.`Name`
     ORDER BY  exploited_by_malware DESC, exploit_available DESC,`Risk` DESC
-    HERE3,
+    HERE3, // WHERE  `ID_Projet`=? and  sow.Projet=?  AND `Risk` in ('Critical', 'High', 'Medium', 'Low') AND exploited_by_malware='true' CLAUSENUMBER1
     4 =>  <<<HERE4
     SELECT
     ROW_NUMBER() OVER() AS VulnDetails_ID,
@@ -122,9 +122,10 @@ $DefaultQuery = array (
     vuln.`See Also` AS VulnDetails_ref_ToBeClean
     FROM vuln
     LEFT JOIN sow ON vuln.`Host` = sow.IP_Host
-    WHERE `ID_Projet`=? and sow.Projet=? AND `Risk` in ('FAILED', 'PASSED') CLAUSENUMBER1
+    WHERE `ID_Projet`=? and sow.Projet=? AND `Risk` in ('FAILED', 'PASSED') AND `XREF`='Selected4Compliance' CLAUSENUMBER1
     group by `Risk`,vuln.description
-    ORDER BY  `Risk` ASC  CLAUSENUMBER99
+    ORDER BY  `Risk` ASC  CLAUSENUMBER99 
+    
     HERE4
 );
 
@@ -139,6 +140,7 @@ $ColoredRowsArrays= array (
     1=> $arrayRisks,
     2=> $arrayRisks,
     3=>null, 4=>null);
+    
 $SqlQueriesMarks = array(
     "0" =>array(0=>"CLAUSENUMBER1", 1=>"CLAUSENUMBER2"),
     "1" => array(0=>" and sow.Type='Serveur' AND vuln.Port NOT IN (SELECT `Ports_List` FROM PortsMapping)", 1=>""),
