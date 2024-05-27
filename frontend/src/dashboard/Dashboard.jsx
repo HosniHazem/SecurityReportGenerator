@@ -191,6 +191,19 @@ const Dashboard = () => {
       toast.error(error);
     }
   };
+  const handleFillLaws = async (c) => {
+    console.log("c is ", c);
+    try {
+      const response = await axiosInstance.post(`insert-laws/${c}`);
+      console.log(response.data);
+      if (response.data.success) {
+        toast.success(response.data.message);
+      }
+    } catch (error) {
+      toast.error(error);
+    }
+
+  }
   const handleDispaly = async (id) => {
     setSelectedProject(id);
   };
@@ -240,7 +253,7 @@ const Dashboard = () => {
     {
       field: "ProjectDetails",
       headerName: "Project Details",
-      width: 750,
+      width: 650,
       renderCell: (params) => {
         const id = params.row.id;
         const customerId = params.row.customer_id;
@@ -356,29 +369,9 @@ const Dashboard = () => {
             ) : (
               <></>
             )}
-            {description.includes("/ansi-report/:id") ? (
-              <Link
-                onClick={() => handleFillQuestions(c)}
-                style={{ textDecoration: "none" }}
-              >
-                <div
-                  className="Pick2"
-                  style={{
-                    border:
-                      params.row.answers > 0
-                        ? "2px solid green"
-                        : "2px solid red",
-                  }}
-                  title={params.row.answers > 0 ? params.row.answers : ""}
-                >
-                  Questions
-                </div>
-              </Link>
-            ) : (
-              <> </>
-            )}
+           
 
-            {description.includes("/ansi-report/:id") ? (
+            {/* {description.includes("/ansi-report/:id") ? (
               <Link
                 onClick={() => handleFillIndicators(c)}
                 style={{ textDecoration: "none" }}
@@ -398,7 +391,7 @@ const Dashboard = () => {
               </Link>
             ) : (
               <></>
-            )}
+            )} */}
             {description.includes("/all-rm-processus/${c}") ? (
               <Link
                 to={`/all-rm-processus/${c}`}
@@ -442,7 +435,71 @@ const Dashboard = () => {
         );
       },
     },
-
+    {
+      field: "get answsers from cloud",
+      headerName: "get answsers from cloud",
+      width: 190,
+      renderCell: (params) => {
+        const id = params.row.id;
+        const name = params.row.Nom;
+        const c = params.row.iterationKey;
+        const description = params?.row.description; // Assuming description is available in params.row
+    
+        return (
+          <div className="cellAction" style={{ display: 'flex', alignItems: 'center' }}>
+            <Link
+              onClick={() => handleFillQuestions(c)}
+              style={{ textDecoration: "none", marginRight: '4px' }} // Reduced marginRight for spacing
+            >
+              <div
+                className="Pick2"
+                style={{
+                  border: params.row.answers > 0 ? "2px solid green" : "2px solid red",
+                }}
+                title={params.row.answers > 0 ? params.row.answers : ""}
+              >
+                R
+              </div>
+            </Link>
+    
+            {/* Add the new cell "L" */}
+              <Link
+                onClick={() => handleFillIndicators(c)}
+                style={{ textDecoration: "none" }}
+              >
+                <div
+                  className="Pick2"
+                  style={{
+                    border:
+                      params.row.indicators > 0
+                        ? "2px solid green"
+                        : "2px solid red",
+                  }}
+                  title={params.row.indicators > 0 ? params.row.indicators : ""}
+                >
+                  I
+                </div>
+              </Link>
+            
+    
+            <div
+              className="Pick2"
+              style={{
+                border: params.row.answers > 0 ? "2px solid blue" : "2px solid orange",
+                marginLeft: '0px'
+              }}
+              title={params.row.answers > 0 ? params.row.answers : ""}
+              onClick={() => handleFillLaws(c)}
+            >
+              L
+            </div>
+          </div>
+        );
+      },
+    }
+    
+    ,
+    
     {
       field: "Navigation",
       headerName: "Navigation",

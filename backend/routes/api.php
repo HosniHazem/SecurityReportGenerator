@@ -203,7 +203,7 @@ Route::get('/get-vulns', [ApiRequestController::class, 'getVulns']);
 Route::post('/owaszap', [ApiRequestController::class, 'fillWithOWasZap']);
 Route::post('/vuln-from-html/{id}',[HtmlParser::class,'parse']);
 Route::post('/vuln-from-hcl/{id}',[HtmlParser::class,'parseHcl']);
-
+Route::post('/insert-laws/{c}',[WordDocumentController4::class,'getLaws']);
 Route::get('/all-logs',[ActivityLogController::class,'index']);
 Route::get('/Insert-Into-Indicators/{c}', [WordDocumentController4::class,'getSecurityIndicators']);
 Route::get('/Project-Details',[ProjectController::class,'ProjectDetails']);

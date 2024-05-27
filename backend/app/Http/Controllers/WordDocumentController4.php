@@ -199,6 +199,27 @@ HERE10;
         JOIN projects AS p ON p.iterationKey = rm.ID JOIN 
         customers AS c ON p.customer_id = c.id WHERE c.id = ?;';
 
+
+        $sqlLaws = "SELECT 
+        laws_lois_numero.typeLoi,
+        laws_lois_numero.numeroLoi,
+        laws_lois_numero.datePublication,
+        laws_articles.numeroArticle,
+        laws_articles.titreArticle,
+        laws_articles_answers.answer,
+        projects.id
+        FROM 
+        laws_lois_numero
+        JOIN 
+        laws_articles ON laws_lois_numero.id = laws_articles.numeroLoi_id
+        JOIN 
+        laws_articles_answers ON laws_articles.id = laws_articles_answers.idArticle
+        JOIN 
+        projects ON laws_articles_answers.c = projects.iterationKey
+        WHERE 
+        projects.customer_id = ?
+        GROUP BY laws_lois_numero.id,laws_articles.id;";
+
         $templatePath = public_path("0.docx");
 
         $templateProcessor = new TemplateProcessor($templatePath);
@@ -218,7 +239,7 @@ HERE10;
             }
             $templateProcessor->setValue('Y', $year);
         } else {
-            $templateProcessor->setValue('Y', "2023");
+            $templateProcessor->setValue('Y', "2024");
         }
 
         //current year 
@@ -229,7 +250,14 @@ HERE10;
         $indicatorsArray = self::processDatabaseData($indicators);
         // return response()->json($indicatorsArray);
 
-        $variables=[];
+        $laws=DB::select($sqlLaws,[$customerId]);
+        $lawsArray=self::processDatabaseData($laws);
+        $lawsArray=self::orderLaws($lawsArray);
+        // return response()->json($lawsArray);
+        self::fillLawsTable($lawsArray, $templateProcessor);
+        
+        // $templateProcessor->cloneRowAndSetValues('Laws', $lawsArray);
+        $variables = [];
 
         foreach ($indicatorsArray as $indicator) {
             if (isset($indicator['answer'])) {
@@ -238,25 +266,20 @@ HERE10;
             if (isset($indicator['comment'])) {
                 $templateProcessor->setValue('Commentaires_#' . $indicator['value'], $indicator['comment']);
             }
-            
         }
         for ($value = 1; $value <= 125; $value++) {
 
-            $answerPlaceholder='answer_#'.$value;
-            $answerVariable=$templateProcessor->getVariables($answerPlaceholder);
-            if(!empty($answerVariable)){
-                $templateProcessor->setValue($answerPlaceholder,'');
+            $answerPlaceholder = 'answer_#' . $value;
+            $answerVariable = $templateProcessor->getVariables($answerPlaceholder);
+            if (!empty($answerVariable)) {
+                $templateProcessor->setValue($answerPlaceholder, '');
             }
 
-            $commentPlaceholder='Commentaires_#'.$value;
-            $commentVariable=$templateProcessor->getVariables($commentPlaceholder);
-            if(!empty($commentVariable)){
-                $templateProcessor->setValue($commentPlaceholder,'');
+            $commentPlaceholder = 'Commentaires_#' . $value;
+            $commentVariable = $templateProcessor->getVariables($commentPlaceholder);
+            if (!empty($commentVariable)) {
+                $templateProcessor->setValue($commentPlaceholder, '');
             }
-            
-
-
-
         }
 
 
@@ -271,9 +294,9 @@ HERE10;
         // Part 9.2
         $vuln = DB::select($sqlVuln, [$customerId]);
         $vulnArray = self::processDatabaseData($vuln);
-        if (!empty($vulnArray)) {
-            $templateProcessor->cloneRowAndSetValues('RowNumber', $vulnArray);
-        }
+        // if (!empty($vulnArray)) {
+        //     $templateProcessor->cloneRowAndSetValues('RowNumber', $vulnArray);
+        // }
 
 
         $vulnArrayLength = count($vulnArray);
@@ -575,6 +598,73 @@ HERE10;
 
     }
 
+
+    public static function fillLawsTable($data, $templateProcessor) {
+        $totalArticles = 0;
+    
+        // First pass to count the total number of articles
+        foreach ($data as $loiData) {
+            $totalArticles += count($loiData['articles']);
+        }
+    
+        // Clone rows based on the total number of articles
+        $templateProcessor->cloneRow('lois', $totalArticles);
+    
+        $rowIndex = 1;
+        foreach ($data as $loiData) {
+            $typeLoi = $loiData['typeLoi'];
+            $numeroLoi = $loiData['numeroLoi'];
+            $datePublication = $loiData['datePublication'];
+            $articlePlaceHolder = $typeLoi . ' ' . $numeroLoi . ' de ' . $datePublication;
+    
+            foreach ($loiData['articles'] as $article) {
+                $numeroArticle = $article['numeroArticle'];
+                $titreArticle = $article['titreArticle'];
+                $answer = $article['answer'];
+    
+                // Fill in the table
+                $templateProcessor->setValue('lois#' . $rowIndex, $articlePlaceHolder);
+                $templateProcessor->setValue('numeroArticle#' . $rowIndex, $numeroArticle);
+                $templateProcessor->setValue('titreArticle#' . $rowIndex, $titreArticle);
+                $templateProcessor->setValue('answer#' . $rowIndex, $answer);
+    
+                $rowIndex++;
+            }
+        }
+    }
+    
+
+
+
+
+
+    static function orderLaws($data){
+        $groupedData = [];
+        $i=0;
+        foreach ($data as $item) {
+            $i++;
+            $numeroLoi= $item['numeroLoi'];
+            
+            if (!isset($groupedData[$numeroLoi])) {
+                $groupedData[$numeroLoi] = [
+                    'typeLoi' => $item['typeLoi'],
+                    'numeroLoi' => $item['numeroLoi'],
+                    'datePublication' => $item['datePublication'],
+                    'articles' => []
+                ];
+            }
+            
+            $groupedData[$numeroLoi]['articles'][] = [
+                'numeroArticle' => $item['numeroArticle'],
+                'titreArticle' => $item['titreArticle'],
+                'answer' => $item['answer'],
+                'id' => $item['id']
+            ];
+        }
+        
+        return $groupedData;
+    
+    }
     static function getMaxProjNum($prevAuditArray)
     {
         $maxProjNum = isset($prevAuditArray[0]['projNum']) ? $prevAuditArray[0]['projNum'] : null;
@@ -774,7 +864,7 @@ HERE10;
     }
     public function getSecurityIndicators($c)
     {
-        $url = "http://localhost/indicators/answersAsCsv.php?c=$c&e=qkljsdfqd25154dQDSFSDFQdv45q2dfqfDCX";
+        $url = "https://smartskills.com.tn/wqkjsdhvj76vhbnc565ds/Indicators/answersAsCsv.php?c=$c&e=qkljsdfqd25154dQDSFSDFQdv45q2dfqfDCX";
 
         $response = Http::get($url);
         $content = $response->body();
@@ -792,6 +882,35 @@ HERE10;
                 ( `id` ,`answer`,`commentaire`,`client`,`idIndicator`);
             ";
 
+
+            // Execute the database statement
+            DB::statement($loadData);
+
+            return response()->json(['message' => 'CSV file stored with success', 'success' => true]);
+        } catch (\Throwable $th) {
+            // Log or handle the exception
+            return response()->json(['message' => 'Error: ' . $th->getMessage(), 'success' => false]);
+        }
+    }
+    function getLaws($c)
+    {
+        $url = "https://smartskills.com.tn/wqkjsdhvj76vhbnc565ds/Laws/lawsAnswersAsCsv.php?c=$c&e=qkljsdfqd25154dQDSFSDFQdv45q2dfqfDCX";
+
+        $response = Http::get($url);
+        $content = $response->body();
+        // return $content;
+        // Save the modified content to a new file
+        file_put_contents(storage_path('csv.csv'), $content);
+        try {
+            // Load data into the database
+            $loadData = "LOAD DATA   INFILE '" . str_replace('/', '\\\\', str_replace('\\', '\\\\', storage_path('csv.csv'))) . "' IGNORE
+                INTO TABLE laws_articles_answers
+                FIELDS TERMINATED BY ','
+                ENCLOSED BY '\"'
+                LINES TERMINATED BY '\n'
+                ( `id` ,`answer`,`commentaire`,`c`,`idArticle`);
+
+            ";
 
             // Execute the database statement
             DB::statement($loadData);
