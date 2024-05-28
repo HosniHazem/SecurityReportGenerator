@@ -289,14 +289,14 @@ HERE10;
         // print_r('wa');
         // exit;
         // return response()->json($variables);
-
+        
 
         // Part 9.2
         $vuln = DB::select($sqlVuln, [$customerId]);
         $vulnArray = self::processDatabaseData($vuln);
-        // if (!empty($vulnArray)) {
-        //     $templateProcessor->cloneRowAndSetValues('RowNumber', $vulnArray);
-        // }
+        if (!empty($vulnArray)) {
+            $templateProcessor->cloneRowAndSetValues('RowNumber', $vulnArray);
+        }
 
 
         $vulnArrayLength = count($vulnArray);
@@ -632,6 +632,8 @@ HERE10;
             }
         }
     }
+    
+    
     
 
 

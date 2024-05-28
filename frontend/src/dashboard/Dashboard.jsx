@@ -202,10 +202,21 @@ const Dashboard = () => {
     } catch (error) {
       toast.error(error);
     }
-
-  }
+  };
   const handleDispaly = async (id) => {
     setSelectedProject(id);
+  };
+  const handleNavigatetoIndicators = (c) => {
+    window.open(
+      `https://smartskills.com.tn/wqkjsdhvj76vhbnc565ds/Indicators/indicators.php?c=${c}&k=qdsg54SFDbfdQSd`,
+      "_blank"
+    );
+  };
+  const handleNavigateToLaws = (c) => {
+    window.open(
+      `https://smartskills.com.tn/wqkjsdhvj76vhbnc565ds/Laws/index.php?c=${c}&k=qdsg54SFDbfdQSd`,
+      "_blank"
+    );
   };
 
   const handleScroll = (event) => {
@@ -369,7 +380,6 @@ const Dashboard = () => {
             ) : (
               <></>
             )}
-           
 
             {/* {description.includes("/ansi-report/:id") ? (
               <Link
@@ -444,49 +454,57 @@ const Dashboard = () => {
         const name = params.row.Nom;
         const c = params.row.iterationKey;
         const description = params?.row.description; // Assuming description is available in params.row
-    
+
         return (
-          <div className="cellAction" style={{ display: 'flex', alignItems: 'center' }}>
+          <div
+            className="cellAction"
+            style={{ display: "flex", alignItems: "center" }}
+          >
             <Link
               onClick={() => handleFillQuestions(c)}
-              style={{ textDecoration: "none", marginRight: '4px' }} // Reduced marginRight for spacing
+              style={{ textDecoration: "none", marginRight: "4px" }} // Reduced marginRight for spacing
             >
               <div
                 className="Pick2"
                 style={{
-                  border: params.row.answers > 0 ? "2px solid green" : "2px solid red",
+                  border:
+                    params.row.answers > 0
+                      ? "2px solid green"
+                      : "2px solid red",
                 }}
                 title={params.row.answers > 0 ? params.row.answers : ""}
               >
                 R
               </div>
             </Link>
-    
+
             {/* Add the new cell "L" */}
-              <Link
-                onClick={() => handleFillIndicators(c)}
-                style={{ textDecoration: "none" }}
+            <Link
+              onClick={() => handleFillIndicators(c)}
+              style={{ textDecoration: "none" }}
+            >
+              <div
+                className="Pick2"
+                style={{
+                  border:
+                    params.row.indicators > 0
+                      ? "2px solid green"
+                      : "2px solid red",
+                }}
+                title={params.row.indicators > 0 ? params.row.indicators : ""}
               >
-                <div
-                  className="Pick2"
-                  style={{
-                    border:
-                      params.row.indicators > 0
-                        ? "2px solid green"
-                        : "2px solid red",
-                  }}
-                  title={params.row.indicators > 0 ? params.row.indicators : ""}
-                >
-                  I
-                </div>
-              </Link>
-            
-    
+                I
+              </div>
+            </Link>
+
             <div
               className="Pick2"
               style={{
-                border: params.row.answers > 0 ? "2px solid blue" : "2px solid orange",
-                marginLeft: '0px'
+                border:
+                  params.row.answers > 0
+                    ? "2px solid blue"
+                    : "2px solid orange",
+                marginLeft: "0px",
               }}
               title={params.row.answers > 0 ? params.row.answers : ""}
               onClick={() => handleFillLaws(c)}
@@ -496,20 +514,27 @@ const Dashboard = () => {
           </div>
         );
       },
-    }
-    
-    ,
-    
+    },
+
     {
-      field: "Navigation",
-      headerName: "Navigation",
-      width: 100,
+      field: "Cloud Links",
+      headerName: "Cloud Links",
+      width: 170,
       renderCell: (params) => {
         const c = params.row.iterationKey ? params.row.iterationKey : "";
         return (
           <>
             {c && c != "" && (
-              <Button onClick={() => handleNavigateToRmQuesion(c)}>OSMQ</Button>
+              <div>
+                <Button
+                  className="Pick2"
+                  onClick={() => handleNavigateToRmQuesion(c)}
+                >
+                  R
+                </Button>
+                <Button> I </Button>²
+                <Button> L </Button>
+              </div>
             )}
           </>
         );
